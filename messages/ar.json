@@ -1,0 +1,60 @@
+{
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "email": "عنوان البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم الكامل",
+    "company": "اسم الشركة",
+    "signInButton": "تسجيل الدخول",
+    "signUpButton": "إنشاء حساب",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "signInHere": "سجل الدخول هنا",
+    "signUpHere": "أنشئ حساب هنا"
+  },
+  "navigation": {
+    "dashboard": "لوحة التحكم",
+    "invoices": "الفواتير",
+    "customers": "العملاء",
+    "followUps": "المتابعات",
+    "reports": "التقارير",
+    "settings": "الإعدادات"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "totalOutstanding": "إجمالي المبالغ المستحقة",
+    "overdueAmount": "المبالغ المتأخرة",
+    "daysToCollection": "أيام التحصيل",
+    "urgentFollowUps": "المتابعات العاجلة",
+    "recentPayments": "المدفوعات الحديثة",
+    "paymentTrends": "اتجاهات الدفع"
+  },
+  "invoices": {
+    "title": "الفواتير",
+    "addInvoice": "إضافة فاتورة",
+    "importInvoices": "استيراد الفواتير",
+    "invoiceNumber": "رقم الفاتورة",
+    "customer": "العميل",
+    "amount": "المبلغ",
+    "dueDate": "تاريخ الاستحقاق",
+    "status": "الحالة",
+    "actions": "الإجراءات"
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "search": "بحث",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "import": "استيراد",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "success": "تم بنجاح",
+    "confirm": "تأكيد"
+  }
+}

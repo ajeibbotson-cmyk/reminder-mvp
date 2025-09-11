@@ -1,0 +1,247 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Users and Authentication
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String?
+  companyId String   @map("company_id")
+  role      UserRole @default(FINANCE)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  accounts   Account[]
+  sessions   Session[]
+  activities Activity[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  trn       String?  @unique // UAE Trade Registration Number
+  address   String?
+  settings  Json? @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users             User[]
+  invoices          Invoice[]
+  customers         Customer[]
+  followUpSequences FollowUpSequence[]
+  activities        Activity[]
+
+  @@map("companies")
+}
+
+// Invoice Management
+model Invoice {
+  id               String        @id @default(cuid())
+  companyId        String        @map("company_id")
+  number           String
+  customerName     String        @map("customer_name")
+  customerEmail    String        @map("customer_email")
+  amount           Decimal @db.Decimal(10, 2)
+  currency         String        @default("AED")
+  dueDate          DateTime      @map("due_date")
+  status           InvoiceStatus @default(SENT)
+  description      String?
+  notes            String?
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer      Customer?      @relation(fields: [customerEmail, companyId], references: [email, companyId])
+  items         InvoiceItem[]
+  payments      Payment[]
+  followUpLogs  FollowUpLog[]
+
+  @@unique([companyId, number])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoiceId String  @map("invoice_id")
+  description String
+  quantity  Decimal @db.Decimal(10, 2)
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+  total     Decimal @db.Decimal(10, 2)
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}
+
+model Customer {
+  id           String  @id @default(cuid())
+  companyId    String  @map("company_id")
+  name         String
+  email        String
+  phone        String?
+  paymentTerms Int?    @map("payment_terms") // Days
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@unique([email, companyId])
+  @@map("customers")
+}
+
+// Follow-up System
+model FollowUpSequence {
+  id        String   @id @default(cuid())
+  companyId String   @map("company_id")
+  name      String
+  steps     Json // Array of follow-up step configurations
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  followUpLogs FollowUpLog[]
+
+  @@map("follow_up_sequences")
+}
+
+model FollowUpLog {
+  id                  String    @id @default(cuid())
+  invoiceId           String    @map("invoice_id")
+  sequenceId          String    @map("sequence_id")
+  stepNumber          Int       @map("step_number")
+  emailAddress        String    @map("email_address")
+  subject             String
+  content             String @db.Text
+  sentAt              DateTime  @map("sent_at")
+  emailOpened         DateTime? @map("email_opened")
+  emailClicked        DateTime? @map("email_clicked")
+  responseReceived    DateTime? @map("response_received")
+  awsMessageId        String?   @map("aws_message_id")
+  deliveryStatus      String?   @map("delivery_status")
+
+  // Relations
+  invoice  Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  sequence FollowUpSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+
+  @@map("follow_up_logs")
+}
+
+// Payments and Reporting
+model Payment {
+  id          String      @id @default(cuid())
+  invoiceId   String      @map("invoice_id")
+  amount      Decimal @db.Decimal(10, 2)
+  paymentDate DateTime    @map("payment_date")
+  method      PaymentMethod @default(BANK_TRANSFER)
+  reference   String?
+  notes       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  companyId   String   @map("company_id")
+  userId      String   @map("user_id")
+  type        String
+  description String
+  metadata    Json? @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activities")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  FINANCE
+  VIEWER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  OVERDUE
+  PAID
+  DISPUTED
+  WRITTEN_OFF
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CREDIT_CARD
+  CASH
+  CHEQUE
+  OTHER
+}

@@ -1,0 +1,60 @@
+{
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email Address",
+    "password": "Password",
+    "name": "Full Name",
+    "company": "Company Name",
+    "signInButton": "Sign In",
+    "signUpButton": "Create Account",
+    "forgotPassword": "Forgot Password?",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "signInHere": "Sign in here",
+    "signUpHere": "Sign up here"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "invoices": "Invoices",
+    "customers": "Customers",
+    "followUps": "Follow-ups",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalOutstanding": "Total Outstanding",
+    "overdueAmount": "Overdue Amount",
+    "daysToCollection": "Days to Collection",
+    "urgentFollowUps": "Urgent Follow-ups",
+    "recentPayments": "Recent Payments",
+    "paymentTrends": "Payment Trends"
+  },
+  "invoices": {
+    "title": "Invoices",
+    "addInvoice": "Add Invoice",
+    "importInvoices": "Import Invoices",
+    "invoiceNumber": "Invoice Number",
+    "customer": "Customer",
+    "amount": "Amount",
+    "dueDate": "Due Date",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "confirm": "Confirm"
+  }
+}
