@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,222 +8,171 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Users and Authentication
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String?
-  companyId String   @map("company_id")
-  role      UserRole @default(FINANCE)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+model accounts {
+  id                  String  @id
+  user_id             String
+  type                String
+  provider            String
+  provider_account_id String
+  refresh_token       String?
+  access_token        String?
+  expires_at          Int?
+  token_type          String?
+  scope               String?
+  id_token            String?
+  session_state       String?
+  users               users   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  // Relations
-  company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  accounts   Account[]
-  sessions   Session[]
-  activities Activity[]
-
-  @@map("users")
+  @@unique([provider, provider_account_id])
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String  @map("user_id")
-  type              String
-  provider          String
-  providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
+model activities {
+  id          String    @id
+  company_id  String
+  user_id     String
+  type        String
+  description String
+  metadata    Json?     @default("{}")
+  created_at  DateTime  @default(now())
+  companies   companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
+model companies {
+  id                  String                @id
+  name                String
+  trn                 String?               @unique
+  address             String?
+  settings            Json?                 @default("{}")
+  created_at          DateTime              @default(now())
+  updated_at          DateTime
+  activities          activities[]
+  customers           customers[]
+  follow_up_sequences follow_up_sequences[]
+  invoices            invoices[]
+  users               users[]
 }
 
-model VerificationToken {
+model customers {
+  id            String     @id
+  company_id    String
+  name          String
+  email         String
+  phone         String?
+  payment_terms Int?
+  notes         String?
+  created_at    DateTime   @default(now())
+  updated_at    DateTime
+  companies     companies  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  invoices      invoices[]
+
+  @@unique([email, company_id])
+}
+
+model follow_up_logs {
+  id                  String              @id
+  invoice_id          String
+  sequence_id         String
+  step_number         Int
+  email_address       String
+  subject             String
+  content             String
+  sent_at             DateTime
+  email_opened        DateTime?
+  email_clicked       DateTime?
+  response_received   DateTime?
+  aws_message_id      String?
+  delivery_status     String?
+  invoices            invoices            @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  follow_up_sequences follow_up_sequences @relation(fields: [sequence_id], references: [id], onDelete: Cascade)
+}
+
+model follow_up_sequences {
+  id             String           @id
+  company_id     String
+  name           String
+  steps          Json
+  active         Boolean          @default(true)
+  created_at     DateTime         @default(now())
+  updated_at     DateTime
+  follow_up_logs follow_up_logs[]
+  companies      companies        @relation(fields: [company_id], references: [id], onDelete: Cascade)
+}
+
+model invoice_items {
+  id          String   @id
+  invoice_id  String
+  description String
+  quantity    Decimal  @db.Decimal(10, 2)
+  unit_price  Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  invoices    invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+}
+
+model invoices {
+  id             String           @id
+  company_id     String
+  number         String
+  customer_name  String
+  customer_email String
+  amount         Decimal          @db.Decimal(10, 2)
+  currency       String           @default("AED")
+  due_date       DateTime
+  status         InvoiceStatus    @default(SENT)
+  description    String?
+  notes          String?
+  created_at     DateTime         @default(now())
+  updated_at     DateTime
+  follow_up_logs follow_up_logs[]
+  invoice_items  invoice_items[]
+  companies      companies        @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  customers      customers        @relation(fields: [customer_email, company_id], references: [email, company_id])
+  payments       payments[]
+
+  @@unique([company_id, number])
+}
+
+model payments {
+  id           String        @id
+  invoice_id   String
+  amount       Decimal       @db.Decimal(10, 2)
+  payment_date DateTime
+  method       PaymentMethod @default(BANK_TRANSFER)
+  reference    String?
+  notes        String?
+  created_at   DateTime      @default(now())
+  invoices     invoices      @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+}
+
+model sessions {
+  id            String   @id
+  session_token String   @unique
+  user_id       String
+  expires       DateTime
+  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model users {
+  id         String       @id
+  email      String       @unique
+  name       String
+  password   String?
+  company_id String
+  role       UserRole     @default(FINANCE)
+  created_at DateTime     @default(now())
+  updated_at DateTime
+  accounts   accounts[]
+  activities activities[]
+  sessions   sessions[]
+  companies  companies    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+}
+
+model verification_tokens {
   identifier String
   token      String   @unique
   expires    DateTime
 
   @@unique([identifier, token])
-  @@map("verification_tokens")
-}
-
-model Company {
-  id        String   @id @default(cuid())
-  name      String
-  trn       String?  @unique // UAE Trade Registration Number
-  address   String?
-  settings  Json? @default("{}")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  users             User[]
-  invoices          Invoice[]
-  customers         Customer[]
-  followUpSequences FollowUpSequence[]
-  activities        Activity[]
-
-  @@map("companies")
-}
-
-// Invoice Management
-model Invoice {
-  id               String        @id @default(cuid())
-  companyId        String        @map("company_id")
-  number           String
-  customerName     String        @map("customer_name")
-  customerEmail    String        @map("customer_email")
-  amount           Decimal @db.Decimal(10, 2)
-  currency         String        @default("AED")
-  dueDate          DateTime      @map("due_date")
-  status           InvoiceStatus @default(SENT)
-  description      String?
-  notes            String?
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
-
-  // Relations
-  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customer      Customer?      @relation(fields: [customerEmail, companyId], references: [email, companyId])
-  items         InvoiceItem[]
-  payments      Payment[]
-  followUpLogs  FollowUpLog[]
-
-  @@unique([companyId, number])
-  @@map("invoices")
-}
-
-model InvoiceItem {
-  id        String  @id @default(cuid())
-  invoiceId String  @map("invoice_id")
-  description String
-  quantity  Decimal @db.Decimal(10, 2)
-  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
-  total     Decimal @db.Decimal(10, 2)
-
-  // Relations
-  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-
-  @@map("invoice_items")
-}
-
-model Customer {
-  id           String  @id @default(cuid())
-  companyId    String  @map("company_id")
-  name         String
-  email        String
-  phone        String?
-  paymentTerms Int?    @map("payment_terms") // Days
-  notes        String?
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  invoices Invoice[]
-
-  @@unique([email, companyId])
-  @@map("customers")
-}
-
-// Follow-up System
-model FollowUpSequence {
-  id        String   @id @default(cuid())
-  companyId String   @map("company_id")
-  name      String
-  steps     Json // Array of follow-up step configurations
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  followUpLogs FollowUpLog[]
-
-  @@map("follow_up_sequences")
-}
-
-model FollowUpLog {
-  id                  String    @id @default(cuid())
-  invoiceId           String    @map("invoice_id")
-  sequenceId          String    @map("sequence_id")
-  stepNumber          Int       @map("step_number")
-  emailAddress        String    @map("email_address")
-  subject             String
-  content             String @db.Text
-  sentAt              DateTime  @map("sent_at")
-  emailOpened         DateTime? @map("email_opened")
-  emailClicked        DateTime? @map("email_clicked")
-  responseReceived    DateTime? @map("response_received")
-  awsMessageId        String?   @map("aws_message_id")
-  deliveryStatus      String?   @map("delivery_status")
-
-  // Relations
-  invoice  Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  sequence FollowUpSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
-
-  @@map("follow_up_logs")
-}
-
-// Payments and Reporting
-model Payment {
-  id          String      @id @default(cuid())
-  invoiceId   String      @map("invoice_id")
-  amount      Decimal @db.Decimal(10, 2)
-  paymentDate DateTime    @map("payment_date")
-  method      PaymentMethod @default(BANK_TRANSFER)
-  reference   String?
-  notes       String?
-  createdAt   DateTime    @default(now()) @map("created_at")
-
-  // Relations
-  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-
-  @@map("payments")
-}
-
-model Activity {
-  id          String   @id @default(cuid())
-  companyId   String   @map("company_id")
-  userId      String   @map("user_id")
-  type        String
-  description String
-  metadata    Json? @default("{}")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  // Relations
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("activities")
-}
-
-// Enums
-enum UserRole {
-  ADMIN
-  FINANCE
-  VIEWER
 }
 
 enum InvoiceStatus {
@@ -244,4 +190,10 @@ enum PaymentMethod {
   CASH
   CHEQUE
   OTHER
+}
+
+enum UserRole {
+  ADMIN
+  FINANCE
+  VIEWER
 }

@@ -1,0 +1,3 @@
+-- This is an empty migration.
+-- This migration represents the current state of the database schema.
+-- All tables and relationships already exist.
