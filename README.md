@@ -2,12 +2,12 @@
 
 **E-invoicing gets your invoices delivered. UAEPay gets them paid.**
 
-A Next.js 14 SaaS platform designed to capture first-mover advantage in the UAE e-invoice payment collection market, launching before the July 2026 mandate.
+A Next.js 15 SaaS platform designed to capture first-mover advantage in the UAE e-invoice payment collection market, launching before the July 2026 mandate.
 
 ## 🚀 Phase 0: Foundation Complete ✅
 
 ### Current Status
-- ✅ **Next.js 14** with TypeScript and App Router
+- ✅ **Next.js 15** with TypeScript and App Router
 - ✅ **Tailwind CSS + shadcn/ui** component library
 - ✅ **PostgreSQL + Prisma ORM** with comprehensive schema
 - ✅ **NextAuth.js** authentication with role-based access
@@ -19,7 +19,7 @@ A Next.js 14 SaaS platform designed to capture first-mover advantage in the UAE 
 ### Tech Stack
 
 #### Frontend
-- **Next.js 14** with App Router and Server Components
+- **Next.js 15** with App Router and Server Components
 - **TypeScript** for type safety
 - **Tailwind CSS + shadcn/ui** for consistent, professional UI
 - **Zustand** for lightweight state management
@@ -28,10 +28,10 @@ A Next.js 14 SaaS platform designed to capture first-mover advantage in the UAE 
 - **next-intl** for Arabic/English bilingual support
 
 #### Backend & Infrastructure
-- **PostgreSQL 15** with Prisma ORM
-- **NextAuth.js** with database sessions and role-based permissions
+- **PostgreSQL 15** with Prisma ORM v6.15
+- **NextAuth.js v4.24** with database sessions and role-based permissions
 - **AWS SES** for reliable email delivery with tracking
-- **AWS S3** for file storage (invoices, exports)
+- **Supabase** for PostgreSQL hosting and real-time features
 - **Vercel** for frontend deployment
 - **Node.js** with TypeScript for API routes
 
@@ -125,7 +125,7 @@ Visit `http://localhost:3000` to see the application.
 
 ## 📋 Next Development Phases
 
-### Phase 1: Core MVP Features (Weeks 3-6)
+### Phase 1: Core MVP Features (Weeks 1-6)
 - [ ] Invoice Management System
   - [ ] CSV/Excel import with field mapping
   - [ ] Manual invoice entry forms
@@ -139,14 +139,14 @@ Visit `http://localhost:3000` to see the application.
   - [ ] Visual charts with Recharts
   - [ ] Payment reconciliation
 
-### Phase 2: Enhancement & Polish (Weeks 7-8)
+### Phase 2: Enhancement & Polish (Weeks 7-10)
 - [ ] Advanced dashboard with analytics
 - [ ] Bulk actions and filtering
 - [ ] Export functionality (PDF, Excel, CSV)
 - [ ] Admin panel for system management
 - [ ] Performance optimization
 
-### Phase 3: Beta Launch Program (Weeks 9-12)
+### Phase 3: Beta Launch Program (Weeks 11-14)
 - [ ] 20 UAE SME beta customer recruitment
 - [ ] White-glove onboarding process
 - [ ] Feedback collection and iteration
@@ -161,11 +161,11 @@ Visit `http://localhost:3000` to see the application.
 - **Mobile Performance**: Optimized for UAE networks
 
 ### Business Goals
-- **Week 2**: Functional authentication and basic UI
+- **Week 1**: Database optimization and state management
 - **Week 6**: Complete MVP with all core features
-- **Week 8**: Production-ready application
-- **Week 12**: 20 active beta customers
-- **Week 16**: 100+ paying customers, investment-ready metrics
+- **Week 10**: Production-ready application with enhancements
+- **Week 14**: 20 active beta customers with feedback integration
+- **Week 16**: Market launch with 100+ paying customers, investment-ready metrics
 
 ## 🌍 UAE Market Focus
 
@@ -179,8 +179,10 @@ This platform is specifically designed for the UAE market with:
 
 ## 📚 Documentation
 
-- **Technical Docs**: `/docs` directory
-- **API Documentation**: Auto-generated with OpenAPI
+- **Technical Docs**: Specialized CLAUDE.md files in each major directory
+- **Implementation Roadmap**: `/IMPLEMENTATION_ROADMAP.md`
+- **Database Architecture**: `/DATABASE_ARCHITECTURE_ANALYSIS.md`
+- **API Documentation**: `/src/app/api/CLAUDE.md`
 - **User Guide**: Will be created during beta phase
 - **Developer Setup**: This README
 
