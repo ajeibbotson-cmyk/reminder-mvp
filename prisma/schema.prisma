@@ -339,11 +339,12 @@ model email_logs {
   max_retries           Int                @default(3)
   created_at            DateTime           @default(now())
   updated_at            DateTime           @updatedAt
-  email_templates       email_templates?   @relation(fields: [template_id], references: [id])
-  companies             companies          @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  invoices              invoices?          @relation(fields: [invoice_id], references: [id])
-  customers             customers?         @relation(fields: [customer_id], references: [id])
-  follow_up_logs        follow_up_logs?    @relation(fields: [follow_up_log_id], references: [id])
+  email_templates       email_templates?       @relation(fields: [template_id], references: [id])
+  companies             companies              @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  invoices              invoices?              @relation(fields: [invoice_id], references: [id])
+  customers             customers?             @relation(fields: [customer_id], references: [id])
+  follow_up_logs        follow_up_logs?        @relation(fields: [follow_up_log_id], references: [id])
+  email_bounce_tracking email_bounce_tracking?
 
   @@index([company_id, delivery_status])
   @@index([invoice_id, sent_at])

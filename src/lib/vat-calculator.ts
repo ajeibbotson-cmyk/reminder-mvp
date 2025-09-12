@@ -406,4 +406,4 @@ export function calculatePaymentDueDate(
 
 // Export type utilities for better type safety
 export type { VATCalculationInput, VATCalculationResult, LineItemVAT, InvoiceVATSummary }
-export { UAE_VAT_RATES }
+// UAE_VAT_RATES already exported at top of file
