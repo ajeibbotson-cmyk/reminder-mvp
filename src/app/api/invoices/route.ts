@@ -4,10 +4,12 @@ import { handleApiError, successResponse, logError } from '@/lib/errors'
 import { requireRole, canManageInvoices } from '@/lib/auth-utils'
 import { 
   createInvoiceSchema, 
+  createInvoiceWithVatSchema,
   invoiceFiltersSchema, 
   validateRequestBody, 
   validateQueryParams 
 } from '@/lib/validations'
+import { calculateInvoiceVAT } from '@/lib/vat-calculator'
 import { UserRole } from '@prisma/client'
 
 // GET /api/invoices - Fetch invoices with filters and pagination
@@ -74,10 +76,20 @@ export async function GET(request: NextRequest) {
           payments: {
             orderBy: { createdAt: 'desc' }
           },
-          items: true,
+          invoiceItems: {
+            orderBy: { createdAt: 'asc' }
+          },
           followUpLogs: {
             orderBy: { sentAt: 'desc' },
             take: 5
+          },
+          importBatches: {
+            select: {
+              id: true,
+              originalFilename: true,
+              status: true,
+              createdAt: true
+            }
           }
         },
         orderBy: { createdAt: 'desc' },
@@ -113,7 +125,7 @@ export async function POST(request: NextRequest) {
       throw new Error('Insufficient permissions to create invoices')
     }
 
-    const invoiceData = await validateRequestBody(request, createInvoiceSchema)
+    const invoiceData = await validateRequestBody(request, createInvoiceWithVatSchema)
     
     // Ensure user can only create invoices for their company
     if (invoiceData.companyId !== authContext.user.companyId) {
@@ -142,30 +154,61 @@ export async function POST(request: NextRequest) {
         })
       }
 
-      // Create invoice
+      // Calculate VAT if line items are provided
+      let vatCalculation = null
+      if (invoiceData.items && invoiceData.items.length > 0) {
+        vatCalculation = calculateInvoiceVAT(
+          invoiceData.items.map(item => ({
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            taxCategory: item.taxCategory || 'STANDARD'
+          })),
+          invoiceData.currency
+        )
+      }
+
+      // Create invoice with VAT calculations
       const invoice = await tx.invoice.create({
         data: {
+          id: crypto.randomUUID(),
           companyId: invoiceData.companyId,
           number: invoiceData.number,
           customerName: invoiceData.customerName,
           customerEmail: invoiceData.customerEmail,
           amount: invoiceData.amount,
+          subtotal: vatCalculation ? vatCalculation.subtotal.toNumber() : invoiceData.subtotal,
+          vatAmount: vatCalculation ? vatCalculation.totalVatAmount.toNumber() : invoiceData.vatAmount,
+          totalAmount: vatCalculation ? vatCalculation.grandTotal.toNumber() : invoiceData.totalAmount,
           currency: invoiceData.currency,
           dueDate: invoiceData.dueDate,
+          status: invoiceData.status,
           description: invoiceData.description,
+          descriptionAr: invoiceData.descriptionAr,
           notes: invoiceData.notes,
+          notesAr: invoiceData.notesAr,
+          trnNumber: invoiceData.trnNumber,
+          importBatchId: invoiceData.importBatchId
         }
       })
 
-      // Create invoice items
+      // Create invoice items with VAT calculations
       if (invoiceData.items && invoiceData.items.length > 0) {
+        const itemsWithVat = vatCalculation ? vatCalculation.lineItems : invoiceData.items
+        
         await tx.invoiceItem.createMany({
-          data: invoiceData.items.map(item => ({
+          data: itemsWithVat.map((item: any, index: number) => ({
+            id: crypto.randomUUID(),
             invoiceId: invoice.id,
             description: item.description,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            total: item.total
+            descriptionAr: invoiceData.items[index]?.descriptionAr,
+            quantity: item.quantity || invoiceData.items[index]?.quantity,
+            unitPrice: item.unitPrice || invoiceData.items[index]?.unitPrice,
+            total: item.lineTotal || item.total,
+            vatRate: item.vatRate || invoiceData.items[index]?.vatRate || 5.00,
+            vatAmount: item.vatAmount || invoiceData.items[index]?.vatAmount || 0.00,
+            totalWithVat: item.totalWithVat || invoiceData.items[index]?.totalWithVat,
+            taxCategory: item.taxCategory || invoiceData.items[index]?.taxCategory || 'STANDARD'
           }))
         })
       }

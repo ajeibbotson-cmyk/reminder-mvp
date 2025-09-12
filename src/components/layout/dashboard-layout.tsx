@@ -20,7 +20,9 @@ import {
   LogOut,
   Menu,
   X,
-  Building2
+  Building2,
+  Upload,
+  Mail
 } from 'lucide-react'
 
 interface DashboardLayoutProps {
@@ -48,6 +50,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       href: '/dashboard/invoices',
       icon: FileText,
       current: pathname.startsWith('/dashboard/invoices')
+    },
+    {
+      name: 'Import Invoices',
+      href: '/dashboard/import',
+      icon: Upload,
+      current: pathname.startsWith('/dashboard/import')
+    },
+    {
+      name: 'Email Templates',
+      href: '/dashboard/email-templates',
+      icon: Mail,
+      current: pathname.startsWith('/dashboard/email-templates')
     },
     {
       name: t('navigation.customers'),

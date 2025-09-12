@@ -1,5 +1,15 @@
 import { z } from 'zod'
-import { InvoiceStatus, PaymentMethod, UserRole } from '@prisma/client'
+import { 
+  InvoiceStatus, 
+  PaymentMethod, 
+  UserRole,
+  ImportBatchStatus,
+  ImportType,
+  ImportErrorType,
+  EmailTemplateType,
+  EmailLanguage,
+  EmailDeliveryStatus
+} from '@prisma/client'
 
 // UAE-specific validation patterns
 export const UAE_TRN_REGEX = /^\d{15}$/
@@ -158,6 +168,198 @@ export async function validateRequestBody<T>(
   return schema.parse(body)
 }
 
+// Week 2 Enhancement: CSV Import validation schemas
+export const csvImportFieldMappingSchema = z.object({
+  importBatchId: z.string().min(1, 'Import batch ID is required'),
+  csvColumnName: z.string().min(1, 'CSV column name is required'),
+  systemField: z.string().min(1, 'System field is required'),
+  dataType: z.enum(['string', 'number', 'date', 'boolean', 'email', 'currency']).default('string'),
+  isRequired: z.boolean().default(false),
+  defaultValue: z.string().optional(),
+  validationRule: z.string().optional(),
+  transformation: z.string().optional(),
+})
+
+export const createImportBatchSchema = z.object({
+  companyId: z.string().min(1, 'Company ID is required'),
+  userId: z.string().min(1, 'User ID is required'),
+  filename: z.string().min(1, 'Filename is required'),
+  originalFilename: z.string().min(1, 'Original filename is required'),
+  fileSize: z.number().positive('File size must be positive'),
+  importType: z.nativeEnum(ImportType).default('INVOICE'),
+  fieldMappings: z.record(z.string()).optional(),
+})
+
+export const updateImportBatchSchema = z.object({
+  status: z.nativeEnum(ImportBatchStatus).optional(),
+  totalRecords: z.number().int().min(0).optional(),
+  processedRecords: z.number().int().min(0).optional(),
+  successfulRecords: z.number().int().min(0).optional(),
+  failedRecords: z.number().int().min(0).optional(),
+  processingStartedAt: z.coerce.date().optional(),
+  processingEndedAt: z.coerce.date().optional(),
+  errorSummary: z.string().optional(),
+})
+
+export const csvInvoiceRowSchema = z.object({
+  number: z.string().min(1, 'Invoice number is required'),
+  customerName: z.string().min(1, 'Customer name is required'),
+  customerEmail: emailSchema,
+  amount: z.number().positive('Amount must be positive').or(z.string().transform((val) => parseFloat(val))),
+  subtotal: z.number().positive().optional().or(z.string().transform((val) => val ? parseFloat(val) : undefined)),
+  vatAmount: z.number().min(0).optional().or(z.string().transform((val) => val ? parseFloat(val) : undefined)),
+  totalAmount: z.number().positive().optional().or(z.string().transform((val) => val ? parseFloat(val) : undefined)),
+  currency: currencySchema,
+  dueDate: z.string().transform((val) => new Date(val)).pipe(z.date()),
+  status: z.nativeEnum(InvoiceStatus).optional().default('SENT'),
+  description: z.string().optional(),
+  descriptionAr: z.string().optional(),
+  notes: z.string().optional(),
+  notesAr: z.string().optional(),
+  trnNumber: uaeTrnSchema,
+  // Line items as JSON string or array
+  items: z.string().transform((val) => {
+    try {
+      return JSON.parse(val)
+    } catch {
+      return []
+    }
+  }).pipe(z.array(z.object({
+    description: z.string().min(1, 'Item description is required'),
+    descriptionAr: z.string().optional(),
+    quantity: z.number().positive('Quantity must be positive'),
+    unitPrice: z.number().positive('Unit price must be positive'),
+    total: z.number().positive('Total must be positive'),
+    vatRate: z.number().min(0).max(100).default(5),
+    vatAmount: z.number().min(0).default(0),
+    totalWithVat: z.number().min(0).optional(),
+    taxCategory: z.enum(['STANDARD', 'EXEMPT', 'ZERO_RATED']).default('STANDARD'),
+  }))).optional().default([]),
+})
+
+// Week 2 Enhancement: Email Integration validation schemas
+export const createEmailTemplateSchema = z.object({
+  companyId: z.string().min(1, 'Company ID is required'),
+  name: z.string().min(1, 'Template name is required'),
+  description: z.string().optional(),
+  templateType: z.nativeEnum(EmailTemplateType).default('FOLLOW_UP'),
+  subjectEn: z.string().min(1, 'English subject is required'),
+  subjectAr: z.string().optional(),
+  contentEn: z.string().min(1, 'English content is required'),
+  contentAr: z.string().optional(),
+  variables: z.record(z.any()).optional(),
+  isActive: z.boolean().default(true),
+  isDefault: z.boolean().default(false),
+  uaeBusinessHoursOnly: z.boolean().default(true),
+  createdBy: z.string().min(1, 'Created by user ID is required'),
+})
+
+export const updateEmailTemplateSchema = createEmailTemplateSchema.partial().omit({ companyId: true, createdBy: true })
+
+export const sendEmailSchema = z.object({
+  templateId: z.string().optional(),
+  companyId: z.string().min(1, 'Company ID is required'),
+  invoiceId: z.string().optional(),
+  customerId: z.string().optional(),
+  recipientEmail: emailSchema,
+  recipientName: z.string().optional(),
+  subject: z.string().min(1, 'Subject is required'),
+  content: z.string().min(1, 'Content is required'),
+  language: z.nativeEnum(EmailLanguage).default('ENGLISH'),
+  uaeSendTime: z.coerce.date().optional(),
+  variables: z.record(z.any()).optional(),
+})
+
+export const emailDeliveryFilterSchema = z.object({
+  companyId: z.string().min(1, 'Company ID is required'),
+  templateId: z.string().optional(),
+  invoiceId: z.string().optional(),
+  customerId: z.string().optional(),
+  recipientEmail: emailSchema.optional(),
+  deliveryStatus: z.nativeEnum(EmailDeliveryStatus).optional(),
+  language: z.nativeEnum(EmailLanguage).optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+})
+
+// Week 2 Enhancement: VAT Calculation validation schemas
+export const vatCalculationSchema = z.object({
+  subtotal: z.number().positive('Subtotal must be positive'),
+  vatRate: z.number().min(0).max(100).default(5), // UAE standard VAT rate is 5%
+  taxCategory: z.enum(['STANDARD', 'EXEMPT', 'ZERO_RATED']).default('STANDARD'),
+  currency: currencySchema,
+})
+
+export const invoiceLineItemSchema = z.object({
+  description: z.string().min(1, 'Item description is required'),
+  descriptionAr: z.string().optional(),
+  quantity: z.number().positive('Quantity must be positive').multipleOf(0.01),
+  unitPrice: z.number().positive('Unit price must be positive').multipleOf(0.01),
+  total: z.number().positive('Total must be positive').multipleOf(0.01),
+  vatRate: z.number().min(0).max(100).default(5),
+  vatAmount: z.number().min(0).default(0).multipleOf(0.01),
+  totalWithVat: z.number().min(0).optional().multipleOf(0.01),
+  taxCategory: z.enum(['STANDARD', 'EXEMPT', 'ZERO_RATED']).default('STANDARD'),
+})
+
+// Enhanced invoice schema with VAT support
+export const createInvoiceWithVatSchema = z.object({
+  companyId: z.string().min(1, 'Company ID is required'),
+  number: z.string().min(1, 'Invoice number is required'),
+  customerName: z.string().min(1, 'Customer name is required'),
+  customerEmail: emailSchema,
+  amount: z.number().positive('Amount must be positive').multipleOf(0.01),
+  subtotal: z.number().positive('Subtotal must be positive').multipleOf(0.01),
+  vatAmount: z.number().min(0).default(0).multipleOf(0.01),
+  totalAmount: z.number().positive('Total amount must be positive').multipleOf(0.01),
+  currency: currencySchema,
+  dueDate: z.coerce.date().min(new Date(), 'Due date must be in the future'),
+  status: z.nativeEnum(InvoiceStatus).default('SENT'),
+  description: z.string().optional(),
+  descriptionAr: z.string().optional(),
+  notes: z.string().optional(),
+  notesAr: z.string().optional(),
+  importBatchId: z.string().optional(),
+  trnNumber: uaeTrnSchema,
+  items: z.array(invoiceLineItemSchema).min(1, 'At least one item is required'),
+})
+
+// Bulk operations schemas
+export const bulkInvoiceActionSchema = z.object({
+  invoiceIds: z.array(z.string().min(1)).min(1, 'At least one invoice ID is required'),
+  action: z.enum(['update_status', 'delete', 'send_reminder', 'export']),
+  status: z.nativeEnum(InvoiceStatus).optional(),
+  emailTemplateId: z.string().optional(),
+})
+
+export const bulkImportValidationSchema = z.object({
+  importBatchId: z.string().min(1, 'Import batch ID is required'),
+  validateOnly: z.boolean().default(false),
+  rollbackOnError: z.boolean().default(true),
+  chunkSize: z.number().int().positive().max(1000).default(100),
+})
+
+// File upload validation
+export const fileUploadSchema = z.object({
+  filename: z.string().min(1, 'Filename is required'),
+  fileType: z.enum(['csv', 'xlsx', 'xls']),
+  fileSize: z.number().positive().max(50 * 1024 * 1024), // 50MB max
+  companyId: z.string().min(1, 'Company ID is required'),
+  importType: z.nativeEnum(ImportType).default('INVOICE'),
+})
+
+// UAE Business Hours validation
+export const uaeBusinessHoursSchema = z.object({
+  timezone: z.string().default('Asia/Dubai'),
+  workingDays: z.array(z.number().min(0).max(6)).default([0, 1, 2, 3, 4]), // Sun-Thu
+  startHour: z.number().min(0).max(23).default(8),
+  endHour: z.number().min(0).max(23).default(18),
+  allowWeekends: z.boolean().default(false),
+  allowHolidays: z.boolean().default(false),
+})
+
 // Utility function to validate query parameters
 export function validateQueryParams<T>(
   searchParams: URLSearchParams,
@@ -165,4 +367,32 @@ export function validateQueryParams<T>(
 ): T {
   const params = Object.fromEntries(searchParams.entries())
   return schema.parse(params)
+}
+
+// Utility function to validate multipart form data
+export function validateFormData<T>(
+  formData: FormData,
+  schema: z.ZodSchema<T>
+): T {
+  const data: Record<string, unknown> = {}
+  
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File) {
+      data[key] = {
+        name: value.name,
+        size: value.size,
+        type: value.type,
+        lastModified: value.lastModified
+      }
+    } else {
+      // Try to parse JSON, fallback to string
+      try {
+        data[key] = JSON.parse(value as string)
+      } catch {
+        data[key] = value
+      }
+    }
+  }
+  
+  return schema.parse(data)
 }

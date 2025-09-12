@@ -44,29 +44,40 @@ model companies {
   trn                 String?               @unique
   address             String?
   settings            Json?                 @default("{}")
+  default_vat_rate    Decimal?              @db.Decimal(5, 2) @default(5.00) // UAE VAT rate
+  email_settings      Json?                 // Email configuration settings
+  business_hours      Json?                 // UAE business hours configuration
   created_at          DateTime              @default(now())
-  updated_at          DateTime
+  updated_at          DateTime              @updatedAt
   activities          activities[]
   customers           customers[]
   follow_up_sequences follow_up_sequences[]
   invoices            invoices[]
   users               users[]
+  import_batches      import_batches[]
+  email_templates     email_templates[]
+  email_logs          email_logs[]
 }
 
 model customers {
   id            String     @id
   company_id    String
   name          String
+  name_ar       String?    // Arabic name for UAE bilingual support
   email         String
   phone         String?
   payment_terms Int?
   notes         String?
+  notes_ar      String?    // Arabic notes for UAE bilingual support
   created_at    DateTime   @default(now())
-  updated_at    DateTime
+  updated_at    DateTime   @updatedAt
   companies     companies  @relation(fields: [company_id], references: [id], onDelete: Cascade)
   invoices      invoices[]
+  email_logs    email_logs[]
 
   @@unique([email, company_id])
+  @@index([name])
+  @@index([company_id, name])
 }
 
 model follow_up_logs {
@@ -85,6 +96,7 @@ model follow_up_logs {
   delivery_status     String?
   invoices            invoices            @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
   follow_up_sequences follow_up_sequences @relation(fields: [sequence_id], references: [id], onDelete: Cascade)
+  email_logs          email_logs[]
 }
 
 model follow_up_sequences {
@@ -100,36 +112,57 @@ model follow_up_sequences {
 }
 
 model invoice_items {
-  id          String   @id
-  invoice_id  String
-  description String
-  quantity    Decimal  @db.Decimal(10, 2)
-  unit_price  Decimal  @db.Decimal(10, 2)
-  total       Decimal  @db.Decimal(10, 2)
-  invoices    invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  id                    String   @id
+  invoice_id            String
+  description           String
+  description_ar        String?  // Arabic description for UAE bilingual support
+  quantity              Decimal  @db.Decimal(10, 2)
+  unit_price            Decimal  @db.Decimal(10, 2)
+  total                 Decimal  @db.Decimal(10, 2)
+  vat_rate              Decimal? @db.Decimal(5, 2) @default(5.00) // UAE VAT rate (5%)
+  vat_amount            Decimal? @db.Decimal(10, 2) @default(0.00)
+  total_with_vat        Decimal? @db.Decimal(10, 2)
+  tax_category          String?  @default("STANDARD") // STANDARD, EXEMPT, ZERO_RATED
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  invoices              invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  @@index([invoice_id])
+  @@index([tax_category])
 }
 
 model invoices {
-  id             String           @id
-  company_id     String
-  number         String
-  customer_name  String
-  customer_email String
-  amount         Decimal          @db.Decimal(10, 2)
-  currency       String           @default("AED")
-  due_date       DateTime
-  status         InvoiceStatus    @default(SENT)
-  description    String?
-  notes          String?
-  created_at     DateTime         @default(now())
-  updated_at     DateTime
-  follow_up_logs follow_up_logs[]
-  invoice_items  invoice_items[]
-  companies      companies        @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  customers      customers        @relation(fields: [customer_email, company_id], references: [email, company_id])
-  payments       payments[]
+  id               String           @id
+  company_id       String
+  number           String
+  customer_name    String
+  customer_email   String
+  amount           Decimal          @db.Decimal(10, 2)
+  subtotal         Decimal?         @db.Decimal(10, 2) // Amount before VAT
+  vat_amount       Decimal?         @db.Decimal(10, 2) @default(0.00) // Total VAT amount
+  total_amount     Decimal?         @db.Decimal(10, 2) // Final amount with VAT
+  currency         String           @default("AED")
+  due_date         DateTime
+  status           InvoiceStatus    @default(SENT)
+  description      String?
+  description_ar   String?          // Arabic description for UAE bilingual support
+  notes            String?
+  notes_ar         String?          // Arabic notes for UAE bilingual support
+  import_batch_id  String?          // Link to CSV import batch
+  trn_number       String?          // UAE TRN for tax calculations
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  follow_up_logs   follow_up_logs[]
+  invoice_items    invoice_items[]
+  companies        companies        @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  customers        customers        @relation(fields: [customer_email, company_id], references: [email, company_id])
+  payments         payments[]
+  import_batches   import_batches?  @relation(fields: [import_batch_id], references: [id])
+  email_logs       email_logs[]
 
   @@unique([company_id, number])
+  @@index([import_batch_id])
+  @@index([trn_number])
 }
 
 model payments {
@@ -153,18 +186,20 @@ model sessions {
 }
 
 model users {
-  id         String       @id
-  email      String       @unique
-  name       String
-  password   String?
-  company_id String
-  role       UserRole     @default(FINANCE)
-  created_at DateTime     @default(now())
-  updated_at DateTime
-  accounts   accounts[]
-  activities activities[]
-  sessions   sessions[]
-  companies  companies    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  id              String            @id
+  email           String            @unique
+  name            String
+  password        String?
+  company_id      String
+  role            UserRole          @default(FINANCE)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @updatedAt
+  accounts        accounts[]
+  activities      activities[]
+  sessions        sessions[]
+  companies       companies         @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  import_batches  import_batches[]
+  email_templates email_templates[]
 }
 
 model verification_tokens {
@@ -174,6 +209,166 @@ model verification_tokens {
 
   @@unique([identifier, token])
 }
+
+// Week 2 Enhancement: CSV Import Schema Models
+
+model import_batches {
+  id                    String                @id
+  company_id            String
+  user_id               String
+  filename              String
+  original_filename     String
+  file_size             Int
+  total_records         Int                   @default(0)
+  processed_records     Int                   @default(0)
+  successful_records    Int                   @default(0)
+  failed_records        Int                   @default(0)
+  status                ImportBatchStatus     @default(PENDING)
+  import_type           ImportType            @default(INVOICE)
+  field_mappings        Json?                 // Store field mapping configuration
+  processing_started_at DateTime?
+  processing_ended_at   DateTime?
+  error_summary         String?
+  created_at            DateTime              @default(now())
+  updated_at            DateTime              @updatedAt
+  companies             companies             @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  users                 users                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  invoices              invoices[]
+  import_errors         import_errors[]
+  import_field_mappings import_field_mappings[]
+
+  @@index([company_id, status])
+  @@index([user_id, created_at])
+  @@index([status, created_at])
+}
+
+model import_field_mappings {
+  id              String         @id
+  import_batch_id String
+  csv_column_name String         // Original CSV column name
+  system_field    String         // Mapped system field name
+  data_type       String         // Expected data type (string, number, date, etc.)
+  is_required     Boolean        @default(false)
+  default_value   String?        // Default value if CSV field is empty
+  validation_rule String?        // Custom validation rule
+  transformation  String?        // Data transformation rule (e.g., format dates)
+  created_at      DateTime       @default(now())
+  import_batches  import_batches @relation(fields: [import_batch_id], references: [id], onDelete: Cascade)
+
+  @@unique([import_batch_id, csv_column_name])
+  @@index([import_batch_id])
+}
+
+model import_errors {
+  id              String         @id
+  import_batch_id String
+  row_number      Int
+  csv_data        Json           // Store the original CSV row data
+  error_type      ImportErrorType
+  error_message   String
+  field_name      String?        // Specific field that caused the error
+  attempted_value String?        // Value that caused the error
+  suggestion      String?        // Suggested fix for the error
+  is_resolved     Boolean        @default(false)
+  resolved_at     DateTime?
+  resolved_by     String?        // User ID who resolved the error
+  created_at      DateTime       @default(now())
+  import_batches  import_batches @relation(fields: [import_batch_id], references: [id], onDelete: Cascade)
+
+  @@index([import_batch_id, error_type])
+  @@index([import_batch_id, is_resolved])
+  @@index([row_number, import_batch_id])
+}
+
+// Week 2 Enhancement: Email Integration Schema Models
+
+model email_templates {
+  id              String              @id
+  company_id      String
+  name            String
+  description     String?
+  template_type   EmailTemplateType   @default(FOLLOW_UP)
+  subject_en      String              // English subject line
+  subject_ar      String?             // Arabic subject line for UAE
+  content_en      String              // English email content (HTML/text)
+  content_ar      String?             // Arabic email content for UAE
+  variables       Json?               // Available template variables
+  version         Int                 @default(1)
+  is_active       Boolean             @default(true)
+  is_default      Boolean             @default(false)
+  uae_business_hours_only Boolean    @default(true) // Send only during UAE business hours
+  created_by      String
+  created_at      DateTime            @default(now())
+  updated_at      DateTime            @updatedAt
+  companies       companies           @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  users           users               @relation(fields: [created_by], references: [id])
+  email_logs      email_logs[]
+
+  @@unique([company_id, name, version])
+  @@index([company_id, template_type, is_active])
+  @@index([is_default, template_type])
+}
+
+model email_logs {
+  id                    String             @id
+  template_id           String?
+  company_id            String
+  invoice_id            String?
+  customer_id           String?
+  follow_up_log_id      String?            // Link to existing follow_up_logs
+  recipient_email       String
+  recipient_name        String?
+  subject               String
+  content               String
+  language              EmailLanguage      @default(ENGLISH) // ENGLISH or ARABIC
+  delivery_status       EmailDeliveryStatus @default(QUEUED)
+  sent_at               DateTime?
+  delivered_at          DateTime?
+  opened_at             DateTime?
+  clicked_at            DateTime?
+  bounced_at            DateTime?
+  complained_at         DateTime?
+  unsubscribed_at       DateTime?
+  aws_message_id        String?
+  aws_request_id        String?
+  bounce_reason         String?
+  complaint_feedback    String?
+  engagement_score      Decimal?           @db.Decimal(3, 2) // 0.00 to 1.00
+  uae_send_time         DateTime?          // Adjusted for UAE timezone
+  retry_count           Int                @default(0)
+  max_retries           Int                @default(3)
+  created_at            DateTime           @default(now())
+  updated_at            DateTime           @updatedAt
+  email_templates       email_templates?   @relation(fields: [template_id], references: [id])
+  companies             companies          @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  invoices              invoices?          @relation(fields: [invoice_id], references: [id])
+  customers             customers?         @relation(fields: [customer_id], references: [id])
+  follow_up_logs        follow_up_logs?    @relation(fields: [follow_up_log_id], references: [id])
+
+  @@index([company_id, delivery_status])
+  @@index([invoice_id, sent_at])
+  @@index([customer_id, sent_at])
+  @@index([delivery_status, created_at])
+  @@index([recipient_email, company_id])
+  @@index([uae_send_time])
+}
+
+model email_bounce_tracking {
+  id                String    @id
+  email_log_id      String    @unique
+  bounce_type       String    // hard, soft, complaint
+  bounce_subtype    String?   // bounce sub-classification
+  diagnostic_code   String?
+  feedback_id       String?   // For complaint feedback
+  arrival_date      DateTime
+  is_suppressed     Boolean   @default(false) // Whether to suppress future emails
+  created_at        DateTime  @default(now())
+  email_logs        email_logs @relation(fields: [email_log_id], references: [id], onDelete: Cascade)
+
+  @@index([bounce_type, is_suppressed])
+  @@index([arrival_date])
+}
+
 
 enum InvoiceStatus {
   DRAFT
@@ -196,4 +391,57 @@ enum UserRole {
   ADMIN
   FINANCE
   VIEWER
+}
+
+// Week 2 Enhancement: New Enums for CSV Import and Email Integration
+
+enum ImportBatchStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  PARTIALLY_COMPLETED
+}
+
+enum ImportType {
+  INVOICE
+  CUSTOMER
+  PAYMENT
+  INVOICE_ITEMS
+}
+
+enum ImportErrorType {
+  VALIDATION_ERROR
+  FORMAT_ERROR
+  DUPLICATE_ERROR
+  REFERENCE_ERROR
+  CONSTRAINT_ERROR
+  BUSINESS_RULE_ERROR
+}
+
+enum EmailTemplateType {
+  FOLLOW_UP
+  WELCOME
+  INVOICE_REMINDER
+  PAYMENT_CONFIRMATION
+  OVERDUE_NOTICE
+  SYSTEM_NOTIFICATION
+}
+
+enum EmailLanguage {
+  ENGLISH
+  ARABIC
+}
+
+enum EmailDeliveryStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  COMPLAINED
+  UNSUBSCRIBED
+  FAILED
 }
