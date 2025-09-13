@@ -1,1 +1,459 @@
-import { create } from 'zustand'\nimport { subscribeWithSelector } from 'zustand/middleware'\nimport { immer } from 'zustand/middleware/immer'\nimport { \n  EmailTemplateState,\n  EmailTemplateWithDetails,\n  EmailTemplateFilters,\n  ApiResponse\n} from '../types/store'\nimport { EmailTemplate, EmailTemplateType } from '@prisma/client'\n\n// API utility functions\nconst api = {\n  async fetchTemplates(companyId: string, filters: EmailTemplateFilters = {}): Promise<ApiResponse<{\n    templates: EmailTemplateWithDetails[]\n    totalCount: number\n    hasMore: boolean\n    summary: any\n  }>> {\n    const params = new URLSearchParams({ companyId })\n    \n    if (filters.templateType) params.append('templateType', filters.templateType)\n    if (filters.isActive !== undefined) params.append('isActive', filters.isActive.toString())\n    if (filters.isDefault !== undefined) params.append('isDefault', filters.isDefault.toString())\n    if (filters.language) params.append('language', filters.language)\n    if (filters.search) params.append('search', filters.search)\n    if (filters.page) params.append('page', filters.page.toString())\n    if (filters.limit) params.append('limit', filters.limit.toString())\n\n    const response = await fetch(`/api/email/templates?${params}`)\n    return response.json()\n  },\n\n  async createTemplate(templateData: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<EmailTemplate>> {\n    const response = await fetch('/api/email/templates', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(templateData)\n    })\n    return response.json()\n  },\n\n  async updateTemplate(id: string, updates: Partial<EmailTemplate>): Promise<ApiResponse<EmailTemplate>> {\n    const response = await fetch(`/api/email/templates/${id}`, {\n      method: 'PUT',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(updates)\n    })\n    return response.json()\n  },\n\n  async deleteTemplate(id: string): Promise<ApiResponse<{ action: string; templateId: string }>> {\n    const response = await fetch(`/api/email/templates/${id}`, {\n      method: 'DELETE'\n    })\n    return response.json()\n  },\n\n  async getTemplateById(id: string): Promise<ApiResponse<EmailTemplateWithDetails>> {\n    const response = await fetch(`/api/email/templates/${id}`)\n    return response.json()\n  }\n}\n\nexport const useEmailTemplateStore = create<EmailTemplateState>()(subscribeWithSelector(immer((set, get) => ({\n  // State\n  templates: [],\n  currentTemplate: null,\n  loading: false,\n  error: null,\n  totalCount: 0,\n\n  // Actions\n  fetchTemplates: async (companyId: string, filters: EmailTemplateFilters = {}) => {\n    set(state => {\n      state.loading = true\n      state.error = null\n    })\n\n    try {\n      const result = await api.fetchTemplates(companyId, filters)\n      \n      if (result.success && result.data) {\n        set(state => {\n          state.templates = result.data!.templates\n          state.totalCount = result.data!.totalCount\n          state.loading = false\n        })\n      } else {\n        throw new Error(result.error || 'Failed to fetch email templates')\n      }\n    } catch (error) {\n      set(state => {\n        state.error = error instanceof Error ? error.message : 'Failed to fetch email templates'\n        state.loading = false\n      })\n    }\n  },\n\n  createTemplate: async (templateData: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {\n    set(state => {\n      state.loading = true\n      state.error = null\n    })\n\n    try {\n      const result = await api.createTemplate(templateData)\n      \n      if (result.success && result.data) {\n        set(state => {\n          state.loading = false\n        })\n        \n        // Refresh templates to include the new one\n        await get().fetchTemplates(templateData.companyId)\n        \n        return result.data\n      } else {\n        throw new Error(result.error || 'Failed to create email template')\n      }\n    } catch (error) {\n      set(state => {\n        state.error = error instanceof Error ? error.message : 'Failed to create email template'\n        state.loading = false\n      })\n      throw error\n    }\n  },\n\n  updateTemplate: async (id: string, updates: Partial<EmailTemplate>) => {\n    set(state => {\n      state.loading = true\n      state.error = null\n    })\n\n    try {\n      const result = await api.updateTemplate(id, updates)\n      \n      if (result.success && result.data) {\n        set(state => {\n          state.loading = false\n          \n          // Update template in local state\n          const templateIndex = state.templates.findIndex(t => t.id === id)\n          if (templateIndex !== -1) {\n            state.templates[templateIndex] = { ...state.templates[templateIndex], ...updates }\n          }\n          \n          // Update current template if it's the one being updated\n          if (state.currentTemplate?.id === id) {\n            state.currentTemplate = { ...state.currentTemplate, ...updates }\n          }\n        })\n      } else {\n        throw new Error(result.error || 'Failed to update email template')\n      }\n    } catch (error) {\n      set(state => {\n        state.error = error instanceof Error ? error.message : 'Failed to update email template'\n        state.loading = false\n      })\n      throw error\n    }\n  },\n\n  deleteTemplate: async (id: string) => {\n    set(state => {\n      state.loading = true\n      state.error = null\n    })\n\n    try {\n      const result = await api.deleteTemplate(id)\n      \n      if (result.success) {\n        set(state => {\n          state.loading = false\n          \n          // Remove template from local state if actually deleted\n          if (result.data?.action === 'deleted') {\n            state.templates = state.templates.filter(t => t.id !== id)\n            state.totalCount = Math.max(0, state.totalCount - 1)\n          } else if (result.data?.action === 'deactivated') {\n            // Update template status to inactive\n            const templateIndex = state.templates.findIndex(t => t.id === id)\n            if (templateIndex !== -1) {\n              state.templates[templateIndex].isActive = false\n            }\n          }\n          \n          // Clear current template if it was deleted/deactivated\n          if (state.currentTemplate?.id === id) {\n            state.currentTemplate = null\n          }\n        })\n      } else {\n        throw new Error(result.error || 'Failed to delete email template')\n      }\n    } catch (error) {\n      set(state => {\n        state.error = error instanceof Error ? error.message : 'Failed to delete email template'\n        state.loading = false\n      })\n      throw error\n    }\n  },\n\n  duplicateTemplate: async (id: string, newName: string) => {\n    const templateToDuplicate = get().templates.find(t => t.id === id)\n    if (!templateToDuplicate) {\n      throw new Error('Template not found')\n    }\n\n    const duplicateData = {\n      companyId: templateToDuplicate.companyId,\n      name: newName,\n      description: `Copy of ${templateToDuplicate.description || templateToDuplicate.name}`,\n      templateType: templateToDuplicate.templateType,\n      subjectEn: templateToDuplicate.subjectEn,\n      subjectAr: templateToDuplicate.subjectAr,\n      contentEn: templateToDuplicate.contentEn,\n      contentAr: templateToDuplicate.contentAr,\n      variables: templateToDuplicate.variables,\n      isActive: true,\n      isDefault: false, // Duplicates are never default\n      uaeBusinessHoursOnly: templateToDuplicate.uaeBusinessHoursOnly,\n      createdBy: templateToDuplicate.createdBy\n    }\n\n    return get().createTemplate(duplicateData)\n  },\n\n  setAsDefault: async (id: string, templateType: EmailTemplateType) => {\n    try {\n      await get().updateTemplate(id, { isDefault: true, templateType })\n      \n      // Update other templates of same type to not be default\n      set(state => {\n        state.templates.forEach(template => {\n          if (template.templateType === templateType && template.id !== id) {\n            template.isDefault = false\n          }\n        })\n      })\n    } catch (error) {\n      throw error\n    }\n  },\n\n  getTemplateById: (id: string) => {\n    return get().templates.find(t => t.id === id) || null\n  },\n\n  clearError: () => {\n    set(state => {\n      state.error = null\n    })\n  }\n})))\n\n// Utility functions for template management\nexport const emailTemplateUtils = {\n  /**\n   * Get template type display information\n   */\n  getTemplateTypeInfo: (type: EmailTemplateType) => {\n    const typeMap = {\n      FOLLOW_UP: { \n        label: 'Follow-up', \n        description: 'Payment reminder emails', \n        icon: '📧',\n        color: 'blue' \n      },\n      WELCOME: { \n        label: 'Welcome', \n        description: 'Customer welcome emails', \n        icon: '👋',\n        color: 'green' \n      },\n      INVOICE_REMINDER: { \n        label: 'Invoice Reminder', \n        description: 'Invoice payment reminders', \n        icon: '💳',\n        color: 'orange' \n      },\n      PAYMENT_CONFIRMATION: { \n        label: 'Payment Confirmation', \n        description: 'Payment received confirmations', \n        icon: '✅',\n        color: 'green' \n      },\n      OVERDUE_NOTICE: { \n        label: 'Overdue Notice', \n        description: 'Overdue payment notices', \n        icon: '⚠️',\n        color: 'red' \n      },\n      SYSTEM_NOTIFICATION: { \n        label: 'System Notification', \n        description: 'System-generated notifications', \n        icon: '🔔',\n        color: 'gray' \n      }\n    }\n    \n    return typeMap[type] || { \n      label: type, \n      description: '', \n      icon: '📄',\n      color: 'gray' \n    }\n  },\n\n  /**\n   * Validate template content\n   */\n  validateTemplate: (template: Partial<EmailTemplate>): string[] => {\n    const errors: string[] = []\n\n    if (!template.name?.trim()) {\n      errors.push('Template name is required')\n    }\n\n    if (!template.subjectEn?.trim()) {\n      errors.push('English subject is required')\n    }\n\n    if (!template.contentEn?.trim()) {\n      errors.push('English content is required')\n    }\n\n    // Check for balanced template variables\n    const content = (template.contentEn || '') + (template.subjectEn || '')\n    const openBraces = (content.match(/{{/g) || []).length\n    const closeBraces = (content.match(/}}/g) || []).length\n    \n    if (openBraces !== closeBraces) {\n      errors.push('Template variables have unmatched braces')\n    }\n\n    return errors\n  },\n\n  /**\n   * Extract template variables from content\n   */\n  extractVariables: (content: string): string[] => {\n    const variableRegex = /{{(\\w+)}}/g\n    const variables: string[] = []\n    let match\n\n    while ((match = variableRegex.exec(content)) !== null) {\n      if (!variables.includes(match[1])) {\n        variables.push(match[1])\n      }\n    }\n\n    return variables.sort()\n  },\n\n  /**\n   * Get available template variables for different contexts\n   */\n  getAvailableVariables: () => {\n    return {\n      invoice: [\n        'invoiceNumber', 'invoiceAmount', 'invoiceSubtotal', 'invoiceVatAmount',\n        'invoiceTotalAmount', 'invoiceCurrency', 'invoiceStatus', 'invoiceDueDate',\n        'invoiceDescription', 'daysPastDue', 'totalPaid', 'outstandingAmount',\n        'itemCount', 'lastPaymentDate'\n      ],\n      customer: [\n        'customerName', 'customerNameAr', 'customerEmail', 'customerPhone',\n        'customerPaymentTerms', 'customerNotes', 'outstandingInvoiceCount',\n        'totalOutstanding'\n      ],\n      company: [\n        'companyName', 'companyTrn', 'supportEmail', 'supportPhone'\n      ],\n      system: [\n        'currentDate', 'currentDateAr', 'currentTime', 'businessYear'\n      ]\n    }\n  },\n\n  /**\n   * Generate preview content with sample data\n   */\n  generatePreview: (content: string, language: 'en' | 'ar' = 'en'): string => {\n    const sampleData = {\n      invoiceNumber: 'INV-2025-001',\n      invoiceAmount: language === 'ar' ? '1,250.00 د.إ' : 'AED 1,250.00',\n      customerName: language === 'ar' ? 'شركة الإمارات للتجارة' : 'Emirates Trading Company',\n      companyName: language === 'ar' ? 'شركة الفواتير الذكية' : 'Smart Invoice Solutions',\n      dueDate: language === 'ar' ? '15 يناير 2025' : 'January 15, 2025',\n      daysPastDue: '5',\n      currentDate: language === 'ar' ? '20 يناير 2025' : 'January 20, 2025'\n    }\n\n    let preview = content\n    Object.entries(sampleData).forEach(([key, value]) => {\n      const regex = new RegExp(`{{${key}}}`, 'g')\n      preview = preview.replace(regex, value)\n    })\n\n    return preview\n  },\n\n  /**\n   * Check if template has Arabic content\n   */\n  hasArabicContent: (template: EmailTemplate): boolean => {\n    return !!(template.subjectAr || template.contentAr)\n  },\n\n  /**\n   * Get template usage statistics\n   */\n  getUsageStats: (template: EmailTemplateWithDetails) => {\n    const totalSent = template.emailLogs?.length || 0\n    const recentSent = template.emailLogs?.filter(log => {\n      const thirtyDaysAgo = new Date()\n      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)\n      return new Date(log.createdAt) >= thirtyDaysAgo\n    }).length || 0\n\n    return {\n      totalSent,\n      recentSent,\n      lastUsed: totalSent > 0 ? template.emailLogs?.[0]?.createdAt : null,\n      isPopular: recentSent > 10\n    }\n  },\n\n  /**\n   * Sort templates by relevance (default first, then by usage, then by date)\n   */\n  sortTemplatesByRelevance: (templates: EmailTemplateWithDetails[]): EmailTemplateWithDetails[] => {\n    return [...templates].sort((a, b) => {\n      // Default templates first\n      if (a.isDefault !== b.isDefault) {\n        return a.isDefault ? -1 : 1\n      }\n      \n      // Then by usage (total email logs)\n      const aUsage = a.emailLogs?.length || 0\n      const bUsage = b.emailLogs?.length || 0\n      if (aUsage !== bUsage) {\n        return bUsage - aUsage\n      }\n      \n      // Finally by update date\n      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()\n    })\n  }\n}\n\n// Export the store hook for easy use in components\nexport default useEmailTemplateStore"
+import { create } from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
+import { 
+  EmailTemplateState,
+  EmailTemplateWithDetails,
+  EmailTemplateFilters,
+  ApiResponse
+} from '../types/store'
+import { EmailTemplate, EmailTemplateType } from '@prisma/client'
+
+// API utility functions
+const api = {
+  async fetchTemplates(companyId: string, filters: EmailTemplateFilters = {}): Promise<ApiResponse<{
+    templates: EmailTemplateWithDetails[]
+    totalCount: number
+    hasMore: boolean
+    summary: any
+  }>> {
+    const params = new URLSearchParams({ companyId })
+    
+    if (filters.templateType) params.append('templateType', filters.templateType)
+    if (filters.isActive !== undefined) params.append('isActive', filters.isActive.toString())
+    if (filters.isDefault !== undefined) params.append('isDefault', filters.isDefault.toString())
+    if (filters.language) params.append('language', filters.language)
+    if (filters.search) params.append('search', filters.search)
+    if (filters.page) params.append('page', filters.page.toString())
+    if (filters.limit) params.append('limit', filters.limit.toString())
+
+    const response = await fetch(`/api/email/templates?${params}`)
+    return response.json()
+  },
+
+  async createTemplate(templateData: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<EmailTemplate>> {
+    const response = await fetch('/api/email/templates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(templateData)
+    })
+    return response.json()
+  },
+
+  async updateTemplate(id: string, updates: Partial<EmailTemplate>): Promise<ApiResponse<EmailTemplate>> {
+    const response = await fetch(`/api/email/templates/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    })
+    return response.json()
+  },
+
+  async deleteTemplate(id: string): Promise<ApiResponse<{ action: string; templateId: string }>> {
+    const response = await fetch(`/api/email/templates/${id}`, {
+      method: 'DELETE'
+    })
+    return response.json()
+  },
+
+  async getTemplateById(id: string): Promise<ApiResponse<EmailTemplateWithDetails>> {
+    const response = await fetch(`/api/email/templates/${id}`)
+    return response.json()
+  }
+}
+
+export const useEmailTemplateStore = create<EmailTemplateState>()(subscribeWithSelector(immer((set, get) => ({
+  // State
+  templates: [],
+  currentTemplate: null,
+  loading: false,
+  error: null,
+  totalCount: 0,
+
+  // Actions
+  fetchTemplates: async (companyId: string, filters: EmailTemplateFilters = {}) => {
+    set(state => {
+      state.loading = true
+      state.error = null
+    })
+
+    try {
+      const result = await api.fetchTemplates(companyId, filters)
+      
+      if (result.success && result.data) {
+        set(state => {
+          state.templates = result.data!.templates
+          state.totalCount = result.data!.totalCount
+          state.loading = false
+        })
+      } else {
+        throw new Error(result.error || 'Failed to fetch email templates')
+      }
+    } catch (error) {
+      set(state => {
+        state.error = error instanceof Error ? error.message : 'Failed to fetch email templates'
+        state.loading = false
+      })
+    }
+  },
+
+  createTemplate: async (templateData: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
+    set(state => {
+      state.loading = true
+      state.error = null
+    })
+
+    try {
+      const result = await api.createTemplate(templateData)
+      
+      if (result.success && result.data) {
+        set(state => {
+          state.loading = false
+        })
+        
+        // Refresh templates to include the new one
+        await get().fetchTemplates(templateData.companyId)
+        
+        return result.data
+      } else {
+        throw new Error(result.error || 'Failed to create email template')
+      }
+    } catch (error) {
+      set(state => {
+        state.error = error instanceof Error ? error.message : 'Failed to create email template'
+        state.loading = false
+      })
+      throw error
+    }
+  },
+
+  updateTemplate: async (id: string, updates: Partial<EmailTemplate>) => {
+    set(state => {
+      state.loading = true
+      state.error = null
+    })
+
+    try {
+      const result = await api.updateTemplate(id, updates)
+      
+      if (result.success && result.data) {
+        set(state => {
+          state.loading = false
+          
+          // Update template in local state
+          const templateIndex = state.templates.findIndex(t => t.id === id)
+          if (templateIndex !== -1) {
+            state.templates[templateIndex] = { ...state.templates[templateIndex], ...updates }
+          }
+          
+          // Update current template if it's the one being updated
+          if (state.currentTemplate?.id === id) {
+            state.currentTemplate = { ...state.currentTemplate, ...updates }
+          }
+        })
+      } else {
+        throw new Error(result.error || 'Failed to update email template')
+      }
+    } catch (error) {
+      set(state => {
+        state.error = error instanceof Error ? error.message : 'Failed to update email template'
+        state.loading = false
+      })
+      throw error
+    }
+  },
+
+  deleteTemplate: async (id: string) => {
+    set(state => {
+      state.loading = true
+      state.error = null
+    })
+
+    try {
+      const result = await api.deleteTemplate(id)
+      
+      if (result.success) {
+        set(state => {
+          state.loading = false
+          
+          // Remove template from local state if actually deleted
+          if (result.data?.action === 'deleted') {
+            state.templates = state.templates.filter(t => t.id !== id)
+            state.totalCount = Math.max(0, state.totalCount - 1)
+          } else if (result.data?.action === 'deactivated') {
+            // Update template status to inactive
+            const templateIndex = state.templates.findIndex(t => t.id === id)
+            if (templateIndex !== -1) {
+              state.templates[templateIndex].isActive = false
+            }
+          }
+          
+          // Clear current template if it was deleted/deactivated
+          if (state.currentTemplate?.id === id) {
+            state.currentTemplate = null
+          }
+        })
+      } else {
+        throw new Error(result.error || 'Failed to delete email template')
+      }
+    } catch (error) {
+      set(state => {
+        state.error = error instanceof Error ? error.message : 'Failed to delete email template'
+        state.loading = false
+      })
+      throw error
+    }
+  },
+
+  duplicateTemplate: async (id: string, newName: string) => {
+    const templateToDuplicate = get().templates.find(t => t.id === id)
+    if (!templateToDuplicate) {
+      throw new Error('Template not found')
+    }
+
+    const duplicateData = {
+      companyId: templateToDuplicate.companyId,
+      name: newName,
+      description: `Copy of ${templateToDuplicate.description || templateToDuplicate.name}`,
+      templateType: templateToDuplicate.templateType,
+      subjectEn: templateToDuplicate.subjectEn,
+      subjectAr: templateToDuplicate.subjectAr,
+      contentEn: templateToDuplicate.contentEn,
+      contentAr: templateToDuplicate.contentAr,
+      variables: templateToDuplicate.variables,
+      isActive: true,
+      isDefault: false, // Duplicates are never default
+      uaeBusinessHoursOnly: templateToDuplicate.uaeBusinessHoursOnly,
+      createdBy: templateToDuplicate.createdBy
+    }
+
+    return get().createTemplate(duplicateData)
+  },
+
+  setAsDefault: async (id: string, templateType: EmailTemplateType) => {
+    try {
+      await get().updateTemplate(id, { isDefault: true, templateType })
+      
+      // Update other templates of same type to not be default
+      set(state => {
+        state.templates.forEach(template => {
+          if (template.templateType === templateType && template.id !== id) {
+            template.isDefault = false
+          }
+        })
+      })
+    } catch (error) {
+      throw error
+    }
+  },
+
+  getTemplateById: (id: string) => {
+    return get().templates.find(t => t.id === id) || null
+  },
+
+  clearError: () => {
+    set(state => {
+      state.error = null
+    })
+  }
+})))
+
+// Utility functions for template management
+export const emailTemplateUtils = {
+  /**
+   * Get template type display information
+   */
+  getTemplateTypeInfo: (type: EmailTemplateType) => {
+    const typeMap = {
+      FOLLOW_UP: { 
+        label: 'Follow-up', 
+        description: 'Payment reminder emails', 
+        icon: '📧',
+        color: 'blue' 
+      },
+      WELCOME: { 
+        label: 'Welcome', 
+        description: 'Customer welcome emails', 
+        icon: '👋',
+        color: 'green' 
+      },
+      INVOICE_REMINDER: { 
+        label: 'Invoice Reminder', 
+        description: 'Invoice payment reminders', 
+        icon: '💳',
+        color: 'orange' 
+      },
+      PAYMENT_CONFIRMATION: { 
+        label: 'Payment Confirmation', 
+        description: 'Payment received confirmations', 
+        icon: '✅',
+        color: 'green' 
+      },
+      OVERDUE_NOTICE: { 
+        label: 'Overdue Notice', 
+        description: 'Overdue payment notices', 
+        icon: '⚠️',
+        color: 'red' 
+      },
+      SYSTEM_NOTIFICATION: { 
+        label: 'System Notification', 
+        description: 'System-generated notifications', 
+        icon: '🔔',
+        color: 'gray' 
+      }
+    }
+    
+    return typeMap[type] || { 
+      label: type, 
+      description: '', 
+      icon: '📄',
+      color: 'gray' 
+    }
+  },
+
+  /**
+   * Validate template content
+   */
+  validateTemplate: (template: Partial<EmailTemplate>): string[] => {
+    const errors: string[] = []
+
+    if (!template.name?.trim()) {
+      errors.push('Template name is required')
+    }
+
+    if (!template.subjectEn?.trim()) {
+      errors.push('English subject is required')
+    }
+
+    if (!template.contentEn?.trim()) {
+      errors.push('English content is required')
+    }
+
+    // Check for balanced template variables
+    const content = (template.contentEn || '') + (template.subjectEn || '')
+    const openBraces = (content.match(/{{/g) || []).length
+    const closeBraces = (content.match(/}}/g) || []).length
+    
+    if (openBraces !== closeBraces) {
+      errors.push('Template variables have unmatched braces')
+    }
+
+    return errors
+  },
+
+  /**
+   * Extract template variables from content
+   */
+  extractVariables: (content: string): string[] => {
+    const variableRegex = /{{(\w+)}}/g
+    const variables: string[] = []
+    let match
+
+    while ((match = variableRegex.exec(content)) !== null) {
+      if (!variables.includes(match[1])) {
+        variables.push(match[1])
+      }
+    }
+
+    return variables.sort()
+  },
+
+  /**
+   * Get available template variables for different contexts
+   */
+  getAvailableVariables: () => {
+    return {
+      invoice: [
+        'invoiceNumber', 'invoiceAmount', 'invoiceSubtotal', 'invoiceVatAmount',
+        'invoiceTotalAmount', 'invoiceCurrency', 'invoiceStatus', 'invoiceDueDate',
+        'invoiceDescription', 'daysPastDue', 'totalPaid', 'outstandingAmount',
+        'itemCount', 'lastPaymentDate'
+      ],
+      customer: [
+        'customerName', 'customerNameAr', 'customerEmail', 'customerPhone',
+        'customerPaymentTerms', 'customerNotes', 'outstandingInvoiceCount',
+        'totalOutstanding'
+      ],
+      company: [
+        'companyName', 'companyTrn', 'supportEmail', 'supportPhone'
+      ],
+      system: [
+        'currentDate', 'currentDateAr', 'currentTime', 'businessYear'
+      ]
+    }
+  },
+
+  /**
+   * Generate preview content with sample data
+   */
+  generatePreview: (content: string, language: 'en' | 'ar' = 'en'): string => {
+    const sampleData = {
+      invoiceNumber: 'INV-2025-001',
+      invoiceAmount: language === 'ar' ? '1,250.00 د.إ' : 'AED 1,250.00',
+      customerName: language === 'ar' ? 'شركة الإمارات للتجارة' : 'Emirates Trading Company',
+      companyName: language === 'ar' ? 'شركة الفواتير الذكية' : 'Smart Invoice Solutions',
+      dueDate: language === 'ar' ? '15 يناير 2025' : 'January 15, 2025',
+      daysPastDue: '5',
+      currentDate: language === 'ar' ? '20 يناير 2025' : 'January 20, 2025'
+    }
+
+    let preview = content
+    Object.entries(sampleData).forEach(([key, value]) => {
+      const regex = new RegExp(`{{${key}}}`, 'g')
+      preview = preview.replace(regex, value)
+    })
+
+    return preview
+  },
+
+  /**
+   * Check if template has Arabic content
+   */
+  hasArabicContent: (template: EmailTemplate): boolean => {
+    return !!(template.subjectAr || template.contentAr)
+  },
+
+  /**
+   * Get template usage statistics
+   */
+  getUsageStats: (template: EmailTemplateWithDetails) => {
+    const totalSent = template.emailLogs?.length || 0
+    const recentSent = template.emailLogs?.filter(log => {
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      return new Date(log.createdAt) >= thirtyDaysAgo
+    }).length || 0
+
+    return {
+      totalSent,
+      recentSent,
+      lastUsed: totalSent > 0 ? template.emailLogs?.[0]?.createdAt : null,
+      isPopular: recentSent > 10
+    }
+  },
+
+  /**
+   * Sort templates by relevance (default first, then by usage, then by date)
+   */
+  sortTemplatesByRelevance: (templates: EmailTemplateWithDetails[]): EmailTemplateWithDetails[] => {
+    return [...templates].sort((a, b) => {
+      // Default templates first
+      if (a.isDefault !== b.isDefault) {
+        return a.isDefault ? -1 : 1
+      }
+      
+      // Then by usage (total email logs)
+      const aUsage = a.emailLogs?.length || 0
+      const bUsage = b.emailLogs?.length || 0
+      if (aUsage !== bUsage) {
+        return bUsage - aUsage
+      }
+      
+      // Finally by update date
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    })
+  }
+}
+
+// Export the store hook for easy use in components
+export default useEmailTemplateStore
