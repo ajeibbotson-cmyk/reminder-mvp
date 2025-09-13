@@ -1,2 +1,359 @@
 import { create } from 'zustand'
-import { subscribeWithSelector } from 'zustand/middleware'\nimport { immer } from 'zustand/middleware/immer'\nimport { \n  ImportBatchState,\n  ImportBatchWithDetails,\n  ImportProgress,\n  ImportBatchFilters,\n  ProcessingOptions,\n  ApiResponse\n} from '../types/store'\nimport { ImportBatch, ImportBatchStatus } from '@prisma/client'\n\n// API utility functions\nconst api = {\n  async fetchBatches(companyId: string, filters: ImportBatchFilters = {}): Promise<ApiResponse<{\n    batches: ImportBatchWithDetails[]\n    totalCount: number\n    hasMore: boolean\n  }>> {\n    const params = new URLSearchParams({ companyId })\n    \n    if (filters.status) params.append('status', filters.status)\n    if (filters.importType) params.append('importType', filters.importType)\n    if (filters.userId) params.append('userId', filters.userId)\n    if (filters.startDate) params.append('startDate', filters.startDate.toISOString())\n    if (filters.endDate) params.append('endDate', filters.endDate.toISOString())\n    if (filters.page) params.append('page', filters.page.toString())\n    if (filters.limit) params.append('limit', filters.limit.toString())\n\n    const response = await fetch(`/api/import/process?${params}`)\n    return response.json()\n  },\n\n  async createBatch(batchData: Omit<ImportBatch, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<ImportBatch>> {\n    const response = await fetch('/api/import/upload', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(batchData)\n    })\n    return response.json()\n  },\n\n  async getBatchById(batchId: string): Promise<ApiResponse<ImportBatchWithDetails>> {\n    const response = await fetch(`/api/import/progress/${batchId}`)\n    return response.json()\n  },\n\n  async getBatchProgress(batchId: string): Promise<ApiResponse<ImportProgress>> {\n    const response = await fetch(`/api/import/progress/${batchId}`)\n    const result = await response.json()\n    return {\n      success: result.success,\n      data: result.data?.progress || null,\n      error: result.error\n    }\n  },\n\n  async startProcessing(batchId: string, options: ProcessingOptions = {}): Promise<ApiResponse<any>> {\n    const response = await fetch('/api/import/process', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({\n        importBatchId: batchId,\n        ...options\n      })\n    })\n    return response.json()\n  },\n\n  async cancelBatch(batchId: string): Promise<ApiResponse<any>> {\n    const response = await fetch(`/api/import/progress/${batchId}`, {\n      method: 'DELETE'\n    })\n    return response.json()\n  }\n}\n\nexport const useImportBatchStore = create<ImportBatchState>()(subscribeWithSelector(immer((set, get) => ({\n  // State\n  batches: [],\n  currentBatch: null,\n  progress: null,\n  loading: false,\n  error: null,\n  totalCount: 0,\n\n  // Actions\n  fetchBatches: async (companyId: string, filters: ImportBatchFilters = {}) => {\n    set(state => {\n      state.loading = true\n      state.error = null\n    })\n\n    try {\n      const result = await api.fetchBatches(companyId, filters)\n      \n      if (result.success && result.data) {\n        set(state => {\n          state.batches = result.data!.batches\n          state.totalCount = result.data!.totalCount\n          state.loading = false\n        })\n      } else {\n        throw new Error(result.error || 'Failed to fetch import batches')\n      }\n    } catch (error) {\n      set(state => {\n        state.error = error instanceof Error ? error.message : 'Failed to fetch import batches'\n        state.loading = false\n      })\n    }\n  },\n\n  createBatch: async (batchData: Omit<ImportBatch, 'id' | 'createdAt' | 'updatedAt'>) => {\n    set(state => {\n      state.loading = true\n      state.error = null\n    })\n\n    try {\n      const result = await api.createBatch(batchData)\n      \n      if (result.success && result.data) {\n        set(state => {\n          state.loading = false\n        })\n        \n        // Refresh batches to include the new one\n        await get().fetchBatches(batchData.companyId)\n        \n        return result.data\n      } else {\n        throw new Error(result.error || 'Failed to create import batch')\n      }\n    } catch (error) {\n      set(state => {\n        state.error = error instanceof Error ? error.message : 'Failed to create import batch'\n        state.loading = false\n      })\n      throw error\n    }\n  },\n\n  getBatchById: async (batchId: string) => {\n    set(state => {\n      state.loading = true\n      state.error = null\n    })\n\n    try {\n      const result = await api.getBatchById(batchId)\n      \n      if (result.success && result.data) {\n        set(state => {\n          state.currentBatch = result.data as ImportBatchWithDetails\n          state.loading = false\n        })\n        \n        return result.data as ImportBatchWithDetails\n      } else {\n        throw new Error(result.error || 'Import batch not found')\n      }\n    } catch (error) {\n      set(state => {\n        state.error = error instanceof Error ? error.message : 'Failed to get import batch'\n        state.loading = false\n      })\n      return null\n    }\n  },\n\n  getBatchProgress: async (batchId: string) => {\n    try {\n      const result = await api.getBatchProgress(batchId)\n      \n      if (result.success && result.data) {\n        set(state => {\n          state.progress = result.data as ImportProgress\n        })\n        \n        return result.data as ImportProgress\n      }\n      \n      return null\n    } catch (error) {\n      console.error('Failed to get batch progress:', error)\n      return null\n    }\n  },\n\n  startProcessing: async (batchId: string, options: ProcessingOptions = {}) => {\n    set(state => {\n      state.loading = true\n      state.error = null\n    })\n\n    try {\n      const result = await api.startProcessing(batchId, options)\n      \n      if (result.success) {\n        set(state => {\n          state.loading = false\n          // Update batch status in local state\n          const batchIndex = state.batches.findIndex(b => b.id === batchId)\n          if (batchIndex !== -1) {\n            state.batches[batchIndex].status = 'PROCESSING' as ImportBatchStatus\n          }\n          if (state.currentBatch?.id === batchId) {\n            state.currentBatch.status = 'PROCESSING' as ImportBatchStatus\n          }\n        })\n        \n        // Start polling for progress updates\n        const pollProgress = async () => {\n          const progress = await get().getBatchProgress(batchId)\n          if (progress && ['PROCESSING', 'PENDING'].includes(progress.status)) {\n            setTimeout(pollProgress, 2000) // Poll every 2 seconds\n          } else {\n            // Processing completed, refresh batch data\n            await get().getBatchById(batchId)\n          }\n        }\n        \n        setTimeout(pollProgress, 1000) // Start polling after 1 second\n      } else {\n        throw new Error(result.error || 'Failed to start processing')\n      }\n    } catch (error) {\n      set(state => {\n        state.error = error instanceof Error ? error.message : 'Failed to start processing'\n        state.loading = false\n      })\n      throw error\n    }\n  },\n\n  cancelBatch: async (batchId: string) => {\n    set(state => {\n      state.loading = true\n      state.error = null\n    })\n\n    try {\n      const result = await api.cancelBatch(batchId)\n      \n      if (result.success) {\n        set(state => {\n          state.loading = false\n          // Update batch status in local state\n          const batchIndex = state.batches.findIndex(b => b.id === batchId)\n          if (batchIndex !== -1) {\n            state.batches[batchIndex].status = 'CANCELLED' as ImportBatchStatus\n          }\n          if (state.currentBatch?.id === batchId) {\n            state.currentBatch.status = 'CANCELLED' as ImportBatchStatus\n          }\n        })\n      } else {\n        throw new Error(result.error || 'Failed to cancel import batch')\n      }\n    } catch (error) {\n      set(state => {\n        state.error = error instanceof Error ? error.message : 'Failed to cancel import batch'\n        state.loading = false\n      })\n      throw error\n    }\n  },\n\n  clearError: () => {\n    set(state => {\n      state.error = null\n    })\n  },\n\n  clearProgress: () => {\n    set(state => {\n      state.progress = null\n    })\n  }\n})))\n\n// Utility functions for batch management\nexport const importBatchUtils = {\n  /**\n   * Get batch status display information\n   */\n  getBatchStatusInfo: (status: ImportBatchStatus) => {\n    const statusMap = {\n      PENDING: { label: 'Pending', color: 'yellow', description: 'Waiting to be processed' },\n      PROCESSING: { label: 'Processing', color: 'blue', description: 'Currently processing records' },\n      COMPLETED: { label: 'Completed', color: 'green', description: 'Successfully processed all records' },\n      FAILED: { label: 'Failed', color: 'red', description: 'Processing failed with errors' },\n      CANCELLED: { label: 'Cancelled', color: 'gray', description: 'Processing was cancelled' },\n      PARTIALLY_COMPLETED: { label: 'Partial', color: 'orange', description: 'Completed with some errors' }\n    }\n    \n    return statusMap[status] || { label: status, color: 'gray', description: '' }\n  },\n\n  /**\n   * Calculate progress percentage\n   */\n  calculateProgress: (batch: ImportBatchWithDetails | ImportProgress): number => {\n    if (!batch.totalRecords || batch.totalRecords === 0) return 0\n    return Math.round((batch.processedRecords / batch.totalRecords) * 100)\n  },\n\n  /**\n   * Calculate success rate\n   */\n  calculateSuccessRate: (batch: ImportBatchWithDetails | ImportProgress): number => {\n    if (!batch.processedRecords || batch.processedRecords === 0) return 0\n    return Math.round((batch.successfulRecords / batch.processedRecords) * 100)\n  },\n\n  /**\n   * Estimate completion time\n   */\n  estimateCompletion: (progress: ImportProgress): Date | null => {\n    if (!progress.processingRate || !progress.startTime) return null\n    \n    const remainingRecords = progress.totalRecords - progress.processedRecords\n    if (remainingRecords <= 0) return new Date()\n    \n    const remainingTimeMs = (remainingRecords / progress.processingRate) * 1000\n    return new Date(Date.now() + remainingTimeMs)\n  },\n\n  /**\n   * Format processing rate for display\n   */\n  formatProcessingRate: (rate: number | undefined): string => {\n    if (!rate) return 'N/A'\n    return `${Math.round(rate)} records/sec`\n  },\n\n  /**\n   * Check if batch can be cancelled\n   */\n  canCancelBatch: (status: ImportBatchStatus): boolean => {\n    return ['PENDING', 'PROCESSING'].includes(status)\n  },\n\n  /**\n   * Check if batch can be reprocessed\n   */\n  canReprocessBatch: (status: ImportBatchStatus): boolean => {\n    return ['FAILED', 'CANCELLED', 'PARTIALLY_COMPLETED'].includes(status)\n  },\n\n  /**\n   * Get error summary for display\n   */\n  getErrorSummary: (errors: any[]): string => {\n    if (!errors || errors.length === 0) return 'No errors'\n    \n    const errorTypes = errors.reduce((acc: Record<string, number>, error) => {\n      acc[error.errorType] = (acc[error.errorType] || 0) + 1\n      return acc\n    }, {})\n    \n    const summaryParts = Object.entries(errorTypes)\n      .sort(([,a], [,b]) => (b as number) - (a as number))\n      .slice(0, 3)\n      .map(([type, count]) => `${count} ${type.replace('_', ' ').toLowerCase()}`)\n    \n    return summaryParts.join(', ') + (errors.length > 3 ? ` and ${errors.length - 3} more` : '')\n  }\n}\n\n// Export the store hook for easy use in components\nexport default useImportBatchStore"
+import { devtools } from 'zustand/middleware'
+import { ImportBatch, ImportBatchStatus } from '@prisma/client'
+import { 
+  ImportBatchState, 
+  ImportBatchWithDetails, 
+  ImportProgress,
+  ImportBatchFilters,
+  ProcessingOptions,
+  ApiResponse 
+} from '../types/store'
+
+export const useImportBatchStore = create<ImportBatchState>()(
+  devtools(
+    (set, get) => ({
+      batches: [],
+      currentBatch: null,
+      progress: null,
+      loading: false,
+      error: null,
+      totalCount: 0,
+
+      fetchBatches: async (companyId: string, filters?: ImportBatchFilters) => {
+        set({ loading: true, error: null })
+        
+        try {
+          const searchParams = new URLSearchParams()
+          searchParams.append('companyId', companyId)
+          
+          if (filters) {
+            Object.entries(filters).forEach(([key, value]) => {
+              if (value !== undefined && value !== null) {
+                if (value instanceof Date) {
+                  searchParams.append(key, value.toISOString())
+                } else {
+                  searchParams.append(key, value.toString())
+                }
+              }
+            })
+          }
+
+          const response = await fetch(`/api/import-batches?${searchParams}`)
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch import batches: ${response.statusText}`)
+          }
+
+          const result: ApiResponse<{ batches: ImportBatchWithDetails[], totalCount: number }> = await response.json()
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch import batches')
+          }
+
+          set({ 
+            batches: result.data?.batches || [], 
+            totalCount: result.data?.totalCount || 0,
+            loading: false 
+          })
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          set({ error: errorMessage, loading: false })
+          throw error
+        }
+      },
+
+      createBatch: async (batchData) => {
+        set({ loading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/import-batches', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(batchData),
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to create import batch: ${response.statusText}`)
+          }
+
+          const result: ApiResponse<ImportBatch> = await response.json()
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to create import batch')
+          }
+
+          const newBatch = result.data!
+          
+          // Update local state
+          set(state => ({
+            batches: [newBatch as ImportBatchWithDetails, ...state.batches],
+            currentBatch: newBatch as ImportBatchWithDetails,
+            totalCount: state.totalCount + 1,
+            loading: false
+          }))
+          
+          return newBatch
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          set({ error: errorMessage, loading: false })
+          throw error
+        }
+      },
+
+      getBatchById: async (id: string) => {
+        set({ loading: true, error: null })
+        
+        try {
+          const response = await fetch(`/api/import-batches/${id}`)
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch import batch: ${response.statusText}`)
+          }
+
+          const result: ApiResponse<ImportBatchWithDetails> = await response.json()
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch import batch')
+          }
+
+          const batch = result.data!
+          
+          set({ 
+            currentBatch: batch,
+            loading: false 
+          })
+          
+          return batch
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          set({ error: errorMessage, loading: false })
+          throw error
+        }
+      },
+
+      getBatchProgress: async (batchId: string) => {
+        try {
+          const response = await fetch(`/api/import-batches/${batchId}/progress`)
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch batch progress: ${response.statusText}`)
+          }
+
+          const result: ApiResponse<ImportProgress> = await response.json()
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch batch progress')
+          }
+
+          const progress = result.data!
+          
+          set({ progress })
+          
+          return progress
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          set({ error: errorMessage })
+          return null
+        }
+      },
+
+      startProcessing: async (batchId: string, options?: ProcessingOptions) => {
+        set({ loading: true, error: null })
+        
+        try {
+          const response = await fetch(`/api/import-batches/${batchId}/process`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(options || {}),
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to start processing: ${response.statusText}`)
+          }
+
+          const result: ApiResponse<ImportProgress> = await response.json()
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to start processing')
+          }
+
+          const progress = result.data!
+          
+          set({ 
+            progress,
+            loading: false 
+          })
+          
+          // Update batch status in local state
+          set(state => ({
+            batches: state.batches.map(batch =>
+              batch.id === batchId 
+                ? { ...batch, status: ImportBatchStatus.PROCESSING }
+                : batch
+            ),
+            currentBatch: state.currentBatch?.id === batchId
+              ? { ...state.currentBatch, status: ImportBatchStatus.PROCESSING }
+              : state.currentBatch
+          }))
+          
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          set({ error: errorMessage, loading: false })
+          throw error
+        }
+      },
+
+      cancelBatch: async (batchId: string) => {
+        set({ loading: true, error: null })
+        
+        try {
+          const response = await fetch(`/api/import-batches/${batchId}/cancel`, {
+            method: 'POST',
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to cancel batch: ${response.statusText}`)
+          }
+
+          const result: ApiResponse<void> = await response.json()
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to cancel batch')
+          }
+
+          // Update batch status in local state
+          set(state => ({
+            batches: state.batches.map(batch =>
+              batch.id === batchId 
+                ? { ...batch, status: ImportBatchStatus.CANCELLED }
+                : batch
+            ),
+            currentBatch: state.currentBatch?.id === batchId
+              ? { ...state.currentBatch, status: ImportBatchStatus.CANCELLED }
+              : state.currentBatch,
+            loading: false
+          }))
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          set({ error: errorMessage, loading: false })
+          throw error
+        }
+      },
+
+      clearError: () => set({ error: null }),
+      
+      clearProgress: () => set({ progress: null }),
+
+      // Additional helper methods for file upload and processing
+      uploadFile: async (file: File, companyId: string) => {
+        set({ loading: true, error: null })
+        
+        try {
+          const formData = new FormData()
+          formData.append('file', file)
+          formData.append('companyId', companyId)
+
+          const response = await fetch('/api/import-batches/upload', {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to upload file: ${response.statusText}`)
+          }
+
+          const result: ApiResponse<{ batchId: string, headers: string[], sampleData: Record<string, any>[] }> = await response.json()
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to upload file')
+          }
+
+          set({ loading: false })
+          
+          return result.data!
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          set({ error: errorMessage, loading: false })
+          throw error
+        }
+      },
+
+      processImport: async (batchId: string, options: { fieldMappings?: Record<string, string>, hasHeaders?: boolean, skipEmptyRows?: boolean }) => {
+        set({ loading: true, error: null })
+        
+        try {
+          const response = await fetch(`/api/import-batches/${batchId}/import`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(options),
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to process import: ${response.statusText}`)
+          }
+
+          const result: ApiResponse<ImportProgress> = await response.json()
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to process import')
+          }
+
+          const progress = result.data!
+          
+          set({ 
+            progress,
+            loading: false 
+          })
+          
+          return progress
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          set({ error: errorMessage, loading: false })
+          throw error
+        }
+      },
+
+      // Helper method for getting progress percentage
+      getProgress: async (batchId: string) => {
+        try {
+          const response = await fetch(`/api/import-batches/${batchId}/status`)
+          
+          if (!response.ok) {
+            return null
+          }
+
+          const result: ApiResponse<{ progress: number, status: ImportBatchStatus, processedCount: number, totalRecords: number }> = await response.json()
+          
+          if (!result.success || !result.data) {
+            return null
+          }
+
+          return {
+            progress: result.data.progress,
+            status: result.data.status,
+            processedCount: result.data.processedCount,
+            totalRecords: result.data.totalRecords
+          }
+        } catch (error) {
+          return null
+        }
+      },
+
+      // Method to check if current user can perform import operations
+      canImport: (userRole?: string) => {
+        // Add role-based access control if needed
+        return true
+      }
+    }),
+    {
+      name: 'import-batch-store',
+    }
+  )
+)

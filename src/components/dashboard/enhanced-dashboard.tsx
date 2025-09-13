@@ -16,8 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AEDAmount, UAEDateDisplay, InvoiceStatusBadge } from '@/components/ui/uae-formatters'
 import { ImportInterface } from '@/components/invoices/import-interface'
 import { useInvoiceStore } from '@/lib/stores/invoice-store'
-import { useImportBatchStore } from '@/lib/stores/import-batch-store'
-import { useEmailDeliveryStore } from '@/lib/stores/email-delivery-store'
+// import { useImportBatchStore } from '@/lib/stores/import-batch-store' // Temporarily disabled
+// import { useEmailDeliveryStore } from '@/lib/stores/email-delivery-store' // Temporarily disabled
 import { cn } from '@/lib/utils'
 
 interface EnhancedDashboardProps {
@@ -61,8 +61,8 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
   const [isLoading, setIsLoading] = useState(true)
 
   const { invoices, fetchInvoices, bulkUpdateStatus } = useInvoiceStore()
-  const { batches, fetchBatches } = useImportBatchStore()
-  const { deliveries, analytics, fetchDeliveries, fetchAnalytics } = useEmailDeliveryStore()
+  // const { batches, fetchBatches } = useImportBatchStore() // Temporarily disabled
+  // const { deliveries, analytics, fetchDeliveries, fetchAnalytics } = useEmailDeliveryStore() // Temporarily disabled
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -70,9 +70,9 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
       try {
         await Promise.all([
           fetchInvoices(companyId),
-          fetchBatches(companyId),
-          fetchDeliveries(companyId),
-          fetchAnalytics(companyId, selectedPeriod)
+          // fetchBatches(companyId), // Temporarily disabled
+          // fetchDeliveries(companyId), // Temporarily disabled
+          // fetchAnalytics(companyId, selectedPeriod) // Temporarily disabled
         ])
         
         // Calculate metrics from loaded data
@@ -85,7 +85,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
     }
 
     loadDashboardData()
-  }, [companyId, selectedPeriod, fetchInvoices, fetchBatches, fetchDeliveries, fetchAnalytics])
+  }, [companyId, selectedPeriod, fetchInvoices]) // Removed store dependencies
 
   const calculateMetrics = () => {
     const now = new Date()

@@ -19,11 +19,21 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Redirect all dashboard routes to localized versions
+  if (pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL(`/en${pathname}`, request.url));
+  }
+
+  // Redirect auth routes to localized versions
+  if (pathname.startsWith('/auth/')) {
+    return NextResponse.redirect(new URL(`/en${pathname}`, request.url));
+  }
+
   // Handle internationalization
   return handleI18nRouting(request);
 }
 
 export const config = {
-  // Match only internationalized pathnames
-  matcher: ['/', '/(ar|en)/:path*']
+  // Match only internationalized pathnames, dashboard, and auth routes
+  matcher: ['/', '/(ar|en)/:path*', '/dashboard/:path*', '/auth/:path*']
 };

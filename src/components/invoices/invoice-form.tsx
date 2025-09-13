@@ -17,43 +17,40 @@ import { AEDAmount } from '@/components/ui/uae-formatters'
 import { calculateVAT, calculateTotalWithVAT } from '@/lib/vat-calculator'
 import { useCustomerStore } from '@/lib/stores/customer-store'
 import { useInvoiceStore } from '@/lib/stores/invoice-store'
+import { CreateInvoiceFormData, CreateInvoiceItemFormData } from '@/types/invoice'
 import { cn } from '@/lib/utils'
 
 const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required'),
+  description_ar: z.string().optional(),
   quantity: z.coerce.number().min(0.01, 'Quantity must be greater than 0'),
-  unitPrice: z.coerce.number().min(0.01, 'Unit price must be greater than 0'),
-  vatRate: z.coerce.number().min(0).max(100).default(5),
-  discount: z.coerce.number().min(0).max(100).default(0),
+  unit_price: z.coerce.number().min(0.01, 'Unit price must be greater than 0'),
+  total: z.coerce.number().min(0),
+  vat_rate: z.coerce.number().min(0).max(100).default(5),
+  vat_amount: z.coerce.number().min(0).default(0),
+  total_with_vat: z.coerce.number().min(0).default(0),
+  tax_category: z.enum(['STANDARD', 'EXEMPT', 'ZERO_RATED']).default('STANDARD'),
 })
 
 const invoiceSchema = z.object({
-  // Customer Information
-  customerId: z.string().optional(),
-  customerName: z.string().min(1, 'Customer name is required'),
-  customerEmail: z.string().email('Invalid email address'),
-  customerPhone: z.string().regex(/^(\+971|0)(2|3|4|5|6|7|9|50|51|52|53|54|55|56|58)\d{7}$/, 'Invalid UAE phone number'),
-  customerTrn: z.string().regex(/^\d{15}$/, 'TRN must be 15 digits').optional().or(z.literal('')),
-  customerAddress: z.string().optional(),
-  
-  // Invoice Details
-  invoiceNumber: z.string().min(1, 'Invoice number is required'),
-  issueDate: z.string().min(1, 'Issue date is required'),
-  dueDate: z.string().min(1, 'Due date is required'),
-  paymentTerms: z.string().default('Net 30'),
+  // Invoice Details  
+  number: z.string().min(1, 'Invoice number is required'),
+  customer_name: z.string().min(1, 'Customer name is required'),
+  customer_email: z.string().email('Invalid email address'),
+  amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
+  subtotal: z.coerce.number().min(0).optional(),
+  vat_amount: z.coerce.number().min(0).optional(),
+  total_amount: z.coerce.number().min(0).optional(),
   currency: z.string().default('AED'),
+  due_date: z.string().min(1, 'Due date is required'),
+  description: z.string().optional(),
+  description_ar: z.string().optional(),
+  notes: z.string().optional(),
+  notes_ar: z.string().optional(),
+  trn_number: z.string().regex(/^\d{15}$/, 'TRN must be 15 digits').optional().or(z.literal('')),
   
   // Line Items
-  lineItems: z.array(lineItemSchema).min(1, 'At least one line item is required'),
-  
-  // Additional Details
-  notes: z.string().optional(),
-  terms: z.string().optional(),
-  
-  // Calculated Fields (read-only)
-  subtotal: z.number().default(0),
-  vatAmount: z.number().default(0),
-  totalAmount: z.number().default(0),
+  invoice_items: z.array(lineItemSchema).min(1, 'At least one line item is required'),
 })
 
 type InvoiceFormData = z.infer<typeof invoiceSchema>

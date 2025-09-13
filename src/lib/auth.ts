@@ -21,12 +21,12 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.users.findUnique({
           where: {
             email: credentials.email
           },
           include: {
-            company: true
+            companies: true
           }
         })
 
@@ -47,8 +47,8 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
-          companyId: user.companyId,
-          company: user.company
+          companyId: user.company_id,
+          company: user.companies
         }
       }
     })
@@ -81,7 +81,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: "/auth/signin",
-    signUp: "/auth/signup"
+    signIn: "/en/auth/signin",
+    signUp: "/en/auth/signup"
   }
 }

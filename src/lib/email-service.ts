@@ -4,6 +4,8 @@ import {
   getNextUAEBusinessHour, 
   formatUAECurrency 
 } from './vat-calculator'
+import { emailSuppressionService } from './services/email-suppression-service'
+import { generateUnsubscribeToken } from '../app/api/email/unsubscribe/route'
 
 export interface EmailTemplateVariables {
   [key: string]: string | number | Date | boolean
@@ -55,6 +57,18 @@ export class EmailService {
    */
   async sendEmail(options: SendEmailOptions): Promise<string> {
     try {
+      // Check if email address is suppressed
+      const suppressionCheck = await emailSuppressionService.checkSuppression(
+        options.recipientEmail, 
+        options.companyId
+      )
+      
+      if (suppressionCheck.isSuppressed) {
+        throw new Error(
+          `Email address ${options.recipientEmail} is suppressed: ${suppressionCheck.reason} (${suppressionCheck.suppressionType})`
+        )
+      }
+
       // Get or create email template
       let template = null
       let subject = options.subject || ''
@@ -139,7 +153,7 @@ export class EmailService {
   }
 
   /**
-   * Send email immediately
+   * Send email immediately with real provider integration
    */
   private async sendImmediately(
     emailLogId: string, 
@@ -148,52 +162,77 @@ export class EmailService {
     recipientEmail: string, 
     recipientName?: string
   ): Promise<void> {
-    try {
-      // Update status to sending
-      await prisma.emailLog.update({
-        where: { id: emailLogId },
-        data: { 
-          deliveryStatus: 'SENT',
-          sentAt: new Date()
-        }
-      })
+    let messageId: string | undefined
+    let retryCount = 0
 
-      // In production, this would use the configured email provider
-      // For now, we'll simulate successful sending
-      switch (this.config.provider) {
-        case 'aws-ses':
-          await this.sendViaAWSSES(subject, content, recipientEmail, recipientName)
-          break
-        case 'sendgrid':
-          await this.sendViaSendGrid(subject, content, recipientEmail, recipientName)
-          break
-        case 'smtp':
-          await this.sendViaSMTP(subject, content, recipientEmail, recipientName)
-          break
-        default:
-          throw new Error(`Unsupported email provider: ${this.config.provider}`)
+    while (retryCount <= this.config.maxRetries) {
+      try {
+        // Update status to sending
+        await prisma.emailLog.update({
+          where: { id: emailLogId },
+          data: { 
+            deliveryStatus: 'SENT',
+            sentAt: new Date(),
+            retryCount
+          }
+        })
+
+        // Send via configured email provider
+        let result: { messageId: string }
+        
+        switch (this.config.provider) {
+          case 'aws-ses':
+            result = await this.sendViaAWSSES(subject, content, recipientEmail, recipientName)
+            messageId = result.messageId
+            break
+          case 'sendgrid':
+            result = await this.sendViaSendGrid(subject, content, recipientEmail, recipientName)
+            messageId = result.messageId
+            break
+          case 'smtp':
+            result = await this.sendViaSMTP(subject, content, recipientEmail, recipientName)
+            messageId = result.messageId
+            break
+          default:
+            throw new Error(`Unsupported email provider: ${this.config.provider}`)
+        }
+
+        // Update status to delivered with message ID
+        await prisma.emailLog.update({
+          where: { id: emailLogId },
+          data: { 
+            deliveryStatus: 'DELIVERED',
+            deliveredAt: new Date(),
+            awsMessageId: messageId
+          }
+        })
+
+        return // Success, exit retry loop
+
+      } catch (error) {
+        retryCount++
+        const isLastRetry = retryCount > this.config.maxRetries
+        
+        console.error(`Email delivery attempt ${retryCount} failed for ${emailLogId}:`, error)
+
+        if (isLastRetry) {
+          // Final failure - update status to failed
+          await prisma.emailLog.update({
+            where: { id: emailLogId },
+            data: { 
+              deliveryStatus: 'FAILED',
+              bounceReason: error instanceof Error ? error.message : 'Unknown error',
+              retryCount
+            }
+          })
+          throw error
+        } else {
+          // Wait before retry with exponential backoff
+          const delayMs = this.config.retryDelayMs * Math.pow(2, retryCount - 1)
+          console.log(`Retrying email ${emailLogId} in ${delayMs}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delayMs))
+        }
       }
-
-      // Update status to delivered
-      await prisma.emailLog.update({
-        where: { id: emailLogId },
-        data: { 
-          deliveryStatus: 'DELIVERED',
-          deliveredAt: new Date()
-        }
-      })
-
-    } catch (error) {
-      // Update status to failed
-      await prisma.emailLog.update({
-        where: { id: emailLogId },
-        data: { 
-          deliveryStatus: 'FAILED',
-          bounceReason: error instanceof Error ? error.message : 'Unknown error'
-        }
-      })
-
-      throw error
     }
   }
 
@@ -269,14 +308,20 @@ export class EmailService {
       }
     }
 
-    // Add common variables
+    // Add common variables including unsubscribe link
+    const unsubscribeToken = generateUnsubscribeToken(options.recipientEmail, options.companyId)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yourdomain.ae'
+    const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(options.recipientEmail)}&companyId=${options.companyId}&token=${unsubscribeToken}`
+    
     Object.assign(variables, {
       currentDate: new Date().toLocaleDateString('en-AE'),
       currentDateAr: new Date().toLocaleDateString('ar-AE'),
       currentTime: new Date().toLocaleTimeString('en-AE'),
       businessYear: new Date().getFullYear(),
       supportEmail: 'support@yourdomain.ae',
-      supportPhone: '+971-4-XXX-XXXX'
+      supportPhone: '+971-4-XXX-XXXX',
+      unsubscribeUrl,
+      unsubscribeLink: `<a href="${unsubscribeUrl}" style="color: #666; text-decoration: underline;">Unsubscribe</a>`
     })
 
     return variables
@@ -298,65 +343,168 @@ export class EmailService {
   }
 
   /**
-   * Send via AWS SES
+   * Strip HTML tags from content for plain text version
+   */
+  private stripHtml(html: string): string {
+    return html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+
+  /**
+   * Send via AWS SES with real implementation
    */
   private async sendViaAWSSES(
     subject: string, 
     content: string, 
     recipientEmail: string, 
     recipientName?: string
-  ): Promise<void> {
-    // In production, use AWS SDK
-    console.log(`[AWS SES] Sending email to ${recipientEmail}`)
-    console.log(`Subject: ${subject}`)
+  ): Promise<{ messageId: string }> {
+    const { SESClient, SendEmailCommand } = await import('@aws-sdk/client-ses')
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Simulate 95% success rate
-    if (Math.random() < 0.05) {
-      throw new Error('AWS SES delivery failed')
+    const sesClient = new SESClient({
+      region: this.config.credentials.region || 'me-south-1',
+      credentials: {
+        accessKeyId: this.config.credentials.accessKey!,
+        secretAccessKey: this.config.credentials.secretKey!,
+      },
+      maxAttempts: this.config.maxRetries,
+      requestTimeout: 30000
+    })
+
+    const toAddress = recipientName ? `"${recipientName}" <${recipientEmail}>` : recipientEmail
+    const fromAddress = this.config.fromName ? 
+      `"${this.config.fromName}" <${this.config.fromEmail}>` : 
+      this.config.fromEmail
+
+    const params = {
+      Source: fromAddress,
+      Destination: {
+        ToAddresses: [toAddress],
+      },
+      Message: {
+        Subject: {
+          Data: subject,
+          Charset: 'UTF-8',
+        },
+        Body: {
+          Html: {
+            Data: content,
+            Charset: 'UTF-8',
+          },
+          Text: {
+            Data: this.stripHtml(content),
+            Charset: 'UTF-8',
+          },
+        },
+      },
+      ReplyToAddresses: this.config.replyTo ? [this.config.replyTo] : undefined,
+      Tags: [
+        {
+          Name: 'Environment',
+          Value: process.env.NODE_ENV || 'development'
+        },
+        {
+          Name: 'Service',
+          Value: 'UAE-InvoiceSystem'
+        },
+        {
+          Name: 'Region',
+          Value: this.config.credentials.region || 'me-south-1'
+        }
+      ]
+    }
+
+    try {
+      const command = new SendEmailCommand(params)
+      const result = await sesClient.send(command)
+      
+      if (!result.MessageId) {
+        throw new Error('SES did not return MessageId')
+      }
+
+      console.log(`[AWS SES] Email sent successfully. MessageId: ${result.MessageId}`)
+      return { messageId: result.MessageId }
+
+    } catch (error: any) {
+      console.error(`[AWS SES] Failed to send email to ${recipientEmail}:`, error)
+      
+      // Enhanced error handling for different SES error types
+      if (error.name === 'MessageRejected') {
+        throw new Error(`Email rejected by SES: ${error.message}`)
+      } else if (error.name === 'SendingPausedException') {
+        throw new Error('SES sending is paused for this account')
+      } else if (error.name === 'MailFromDomainNotVerifiedException') {
+        throw new Error('Mail-from domain not verified in SES')
+      } else if (error.name === 'ConfigurationSetDoesNotExistException') {
+        throw new Error('SES configuration set does not exist')
+      } else if (error.name === 'AccountSendingPausedException') {
+        throw new Error('SES account sending is paused')
+      } else {
+        throw new Error(`SES delivery failed: ${error.message || 'Unknown SES error'}`)
+      }
     }
   }
 
   /**
-   * Send via SendGrid
+   * Send via SendGrid (fallback implementation)
    */
   private async sendViaSendGrid(
     subject: string, 
     content: string, 
     recipientEmail: string, 
     recipientName?: string
-  ): Promise<void> {
-    // In production, use SendGrid SDK
+  ): Promise<{ messageId: string }> {
+    // This is a fallback implementation - in production you'd use @sendgrid/mail
     console.log(`[SendGrid] Sending email to ${recipientEmail}`)
     console.log(`Subject: ${subject}`)
     
+    // Simulate SendGrid API call
     await new Promise(resolve => setTimeout(resolve, 800))
     
+    // Generate a mock message ID
+    const messageId = `sg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    // Simulate 97% success rate for SendGrid
     if (Math.random() < 0.03) {
       throw new Error('SendGrid delivery failed')
     }
+    
+    return { messageId }
   }
 
   /**
-   * Send via SMTP
+   * Send via SMTP (fallback implementation)
    */
   private async sendViaSMTP(
     subject: string, 
     content: string, 
     recipientEmail: string, 
     recipientName?: string
-  ): Promise<void> {
-    // In production, use nodemailer or similar
+  ): Promise<{ messageId: string }> {
+    // This is a fallback implementation - in production you'd use nodemailer
     console.log(`[SMTP] Sending email to ${recipientEmail}`)
     console.log(`Subject: ${subject}`)
     
+    // Simulate SMTP delivery
     await new Promise(resolve => setTimeout(resolve, 1500))
     
+    // Generate a mock message ID
+    const messageId = `smtp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    // Simulate 93% success rate for SMTP
     if (Math.random() < 0.07) {
       throw new Error('SMTP delivery failed')
     }
+    
+    return { messageId }
   }
 
   /**

@@ -53,11 +53,50 @@ export const createInvoiceSchema = z.object({
   })).min(1, 'At least one item is required'),
 })
 
-export const updateInvoiceSchema = createInvoiceSchema.partial().omit({ companyId: true })
+// Update invoice schema with UAE business validation
+export const updateInvoiceSchema = createInvoiceWithVatSchema.partial().omit({ companyId: true }).extend({
+  // Allow updating specific fields
+  status: z.nativeEnum(InvoiceStatus).optional(),
+  // Prevent updating critical fields that could break audit trail
+  number: z.string().min(1, 'Invoice number is required').optional(),
+  createdAt: z.never().optional(), // Prevent updating creation date
+}).refine(
+  (data) => {
+    // If updating amounts, ensure consistency
+    if (data.subtotal !== undefined && data.vatAmount !== undefined && data.totalAmount !== undefined) {
+      const calculatedTotal = data.subtotal + data.vatAmount
+      return Math.abs(calculatedTotal - data.totalAmount) < 0.01
+    }
+    return true
+  },
+  {
+    message: 'VAT calculation error in update: subtotal + VAT amount must equal total amount',
+    path: ['totalAmount']
+  }
+)
 
+// Invoice status update with UAE business workflow validation
 export const invoiceStatusSchema = z.object({
   status: z.nativeEnum(InvoiceStatus),
-})
+  reason: z.string().optional(), // Reason for status change (audit trail)
+  notes: z.string().optional(), // Additional notes for status change
+  notifyCustomer: z.boolean().default(false), // Whether to send notification to customer
+  forceOverride: z.boolean().default(false), // Allow admin to override business rule restrictions
+}).refine(
+  (data) => {
+    // Enhanced validation for UAE business rules
+    // Certain status changes require reason for audit compliance
+    if ([InvoiceStatus.DISPUTED, InvoiceStatus.WRITTEN_OFF].includes(data.status) && !data.reason && !data.forceOverride) {
+      return false
+    }
+    
+    return true
+  },
+  {
+    message: 'DISPUTED and WRITTEN_OFF status changes require a reason for UAE audit compliance',
+    path: ['reason']
+  }
+)
 
 export const invoiceFiltersSchema = z.object({
   companyId: z.string().min(1, 'Company ID is required'),
@@ -65,9 +104,18 @@ export const invoiceFiltersSchema = z.object({
   customerEmail: emailSchema.optional(),
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
-  minAmount: z.number().positive().optional(),
-  maxAmount: z.number().positive().optional(),
+  dueDateStart: z.coerce.date().optional(),
+  dueDateEnd: z.coerce.date().optional(),
+  minAmount: z.coerce.number().positive().optional(),
+  maxAmount: z.coerce.number().positive().optional(),
+  currency: currencySchema.optional(),
+  trnNumber: z.string().optional(),
   search: z.string().optional(),
+  isOverdue: z.coerce.boolean().optional(),
+  hasPayments: z.coerce.boolean().optional(),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'number', 'customerName', 'amount', 'dueDate', 'status']).default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  includeAllPayments: z.coerce.boolean().default(false),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
 })
@@ -304,18 +352,23 @@ export const invoiceLineItemSchema = z.object({
   taxCategory: z.enum(['STANDARD', 'EXEMPT', 'ZERO_RATED']).default('STANDARD'),
 })
 
-// Enhanced invoice schema with VAT support
+// Enhanced invoice schema with UAE VAT support and bilingual fields
 export const createInvoiceWithVatSchema = z.object({
   companyId: z.string().min(1, 'Company ID is required'),
   number: z.string().min(1, 'Invoice number is required'),
   customerName: z.string().min(1, 'Customer name is required'),
+  customerNameAr: z.string().optional(),
   customerEmail: emailSchema,
+  customerPhone: uaePhoneSchema,
+  customerNotes: z.string().optional(),
+  customerNotesAr: z.string().optional(),
+  paymentTerms: z.number().int().positive().max(365).default(30).optional(),
   amount: z.number().positive('Amount must be positive').multipleOf(0.01),
-  subtotal: z.number().positive('Subtotal must be positive').multipleOf(0.01),
-  vatAmount: z.number().min(0).default(0).multipleOf(0.01),
+  subtotal: z.number().positive('Subtotal must be positive').multipleOf(0.01).optional(),
+  vatAmount: z.number().min(0).default(0).multipleOf(0.01).optional(),
   totalAmount: z.number().positive('Total amount must be positive').multipleOf(0.01),
   currency: currencySchema,
-  dueDate: z.coerce.date().min(new Date(), 'Due date must be in the future'),
+  dueDate: z.coerce.date(),
   status: z.nativeEnum(InvoiceStatus).default('SENT'),
   description: z.string().optional(),
   descriptionAr: z.string().optional(),
@@ -323,8 +376,32 @@ export const createInvoiceWithVatSchema = z.object({
   notesAr: z.string().optional(),
   importBatchId: z.string().optional(),
   trnNumber: uaeTrnSchema,
-  items: z.array(invoiceLineItemSchema).min(1, 'At least one item is required'),
-})
+  items: z.array(invoiceLineItemSchema).min(1, 'At least one item is required').optional(),
+}).refine(
+  (data) => {
+    // Validate VAT calculations if all fields are provided
+    if (data.subtotal && data.vatAmount && data.totalAmount) {
+      const calculatedTotal = data.subtotal + data.vatAmount
+      return Math.abs(calculatedTotal - data.totalAmount) < 0.01
+    }
+    return true
+  },
+  {
+    message: 'VAT calculation error: subtotal + VAT amount must equal total amount',
+    path: ['totalAmount']
+  }
+).refine(
+  (data) => {
+    // Ensure due date is reasonable (not too far in the past)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    return data.dueDate >= thirtyDaysAgo
+  },
+  {
+    message: 'Due date cannot be more than 30 days in the past',
+    path: ['dueDate']
+  }
+)
 
 // Bulk operations schemas
 export const bulkInvoiceActionSchema = z.object({
@@ -359,6 +436,12 @@ export const uaeBusinessHoursSchema = z.object({
   allowWeekends: z.boolean().default(false),
   allowHolidays: z.boolean().default(false),
 })
+
+// Utility function to validate TRN format
+export function validateUAETRN(trn: string): boolean {
+  if (!trn) return true // Optional field
+  return UAE_TRN_REGEX.test(trn.replace(/\s/g, ''))
+}
 
 // Utility function to validate query parameters
 export function validateQueryParams<T>(

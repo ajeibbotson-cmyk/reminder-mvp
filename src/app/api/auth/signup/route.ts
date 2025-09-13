@@ -14,8 +14,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.users.findUnique({
       where: { email },
     });
 
@@ -32,19 +33,21 @@ export async function POST(request: NextRequest) {
     // Create company and user in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create company
-      const newCompany = await tx.company.create({
+      const newCompany = await tx.companies.create({
         data: {
+          id: crypto.randomUUID(),
           name: company,
         },
       });
 
       // Create user
-      const newUser = await tx.user.create({
+      const newUser = await tx.users.create({
         data: {
+          id: crypto.randomUUID(),
           email,
           name,
           password: hashedPassword,
-          companyId: newCompany.id,
+          company_id: newCompany.id,
           role: "ADMIN", // First user is admin
         },
       });

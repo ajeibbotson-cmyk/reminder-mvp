@@ -57,6 +57,8 @@ model companies {
   import_batches      import_batches[]
   email_templates     email_templates[]
   email_logs          email_logs[]
+  email_suppression_list email_suppression_list[]
+  ab_test_config      ab_test_config[]
 }
 
 model customers {
@@ -368,6 +370,78 @@ model email_bounce_tracking {
 
   @@index([bounce_type, is_suppressed])
   @@index([arrival_date])
+}
+
+model email_suppression_list {
+  id                String    @id
+  email_address     String    // Email address to suppress
+  company_id        String
+  suppression_type  String    // hard_bounce, soft_bounce, complaint, unsubscribe, manual
+  reason            String    // Reason for suppression
+  suppressed_at     DateTime  @default(now())
+  suppressed_by     String?   // User ID who manually suppressed
+  is_active         Boolean   @default(true)
+  notes             String?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  companies         companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@unique([email_address, company_id])
+  @@index([company_id, is_active])
+  @@index([email_address])
+  @@index([suppression_type, is_active])
+}
+
+model ab_test_config {
+  id                   String    @id
+  name                 String
+  description          String?
+  company_id           String
+  variants             Json      // Array of test variants
+  target_audience      Json      // Audience targeting criteria
+  success_metrics      Json      // Primary and secondary metrics
+  minimum_sample_size  Int       @default(1000)
+  significance_level   Decimal   @db.Decimal(3, 2) @default(0.05) // 0.05 = 95% confidence
+  power                Decimal   @db.Decimal(3, 2) @default(0.80) // 0.80 = 80% power
+  status               String    @default("draft") // draft, running, paused, completed, cancelled
+  start_date           DateTime
+  end_date             DateTime?
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+  companies            companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  assignments          ab_test_assignments[]
+
+  @@index([company_id, status])
+  @@index([status, start_date])
+}
+
+model ab_test_assignments {
+  id               String    @id
+  test_id          String
+  variant_id       String    // Which variant was assigned
+  recipient_email  String
+  recipient_id     String?   // Customer ID if available
+  assigned_at      DateTime  @default(now())
+  ab_test_config   ab_test_config @relation(fields: [test_id], references: [id], onDelete: Cascade)
+  events           ab_test_events[]
+
+  @@unique([test_id, recipient_email])
+  @@index([test_id, variant_id])
+  @@index([recipient_email])
+}
+
+model ab_test_events {
+  id            String    @id
+  test_id       String
+  assignment_id String
+  event_type    String    // sent, delivered, opened, clicked, converted
+  event_data    Json?     // Additional event metadata
+  timestamp     DateTime  @default(now())
+  assignment    ab_test_assignments @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
+
+  @@index([test_id, event_type])
+  @@index([assignment_id, event_type])
+  @@index([timestamp])
 }
 
 
