@@ -12,32 +12,7 @@ import {
 import { InvoiceStatus, PaymentMethod, UserRole } from '@prisma/client'
 import { Decimal } from 'decimal.js'
 
-// Mock dependencies
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    $transaction: jest.fn(),
-    payments: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      findFirst: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      aggregate: jest.fn(),
-      groupBy: jest.fn(),
-      count: jest.fn()
-    },
-    invoices: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn()
-    },
-    activities: {
-      create: jest.fn(),
-      findMany: jest.fn()
-    }
-  }
-}))
+// Mock dependencies (Prisma is mocked globally in jest.setup.js)
 
 jest.mock('../invoice-status-service', () => ({
   invoiceStatusService: {
@@ -49,6 +24,7 @@ jest.mock('../invoice-status-service', () => ({
 jest.mock('@/lib/vat-calculator', () => ({
   formatUAECurrency: jest.fn((amount: any, currency: string) => {
     const num = amount instanceof Decimal ? amount.toNumber() : amount
+    // Format without commas to match test expectations
     return `${currency} ${num.toFixed(2)}`
   })
 }))
@@ -172,15 +148,22 @@ describe('PaymentWorkflowService', () => {
         }
       }
 
-      prisma.$transaction.mockImplementation(async (callback) => {
-        return await callback({
-          payments: {
-            findUnique: jest.fn().mockResolvedValue(fullPaymentMock)
-          },
-          activities: {
-            create: jest.fn().mockResolvedValue({ id: 'activity-123' })
+      // Setup global mock responses instead of overriding transaction
+      prisma.payments.findUnique.mockResolvedValue(fullPaymentMock)
+      prisma.activities.create.mockResolvedValue({ id: 'activity-123' })
+      
+      // Mock the invoice data that invoice-status-service needs
+      prisma.invoices.findUnique.mockResolvedValue({
+        id: 'invoice-123',
+        totalAmount: new Decimal(2000),
+        paidAmount: new Decimal(2000),
+        status: InvoiceStatus.SENT,
+        payments: [
+          {
+            amount: new Decimal(2000),
+            paymentDate: new Date()
           }
-        })
+        ]
       })
 
       invoiceStatusService.updateInvoiceStatus.mockResolvedValue({

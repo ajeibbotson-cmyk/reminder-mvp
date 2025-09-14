@@ -40,7 +40,19 @@ jest.mock('next-intl', () => ({
   useLocale: jest.fn(() => 'en'),
 }))
 
-// Mock Prisma - handled in individual tests
+// Mock Prisma globally
+const { mockPrisma } = require('./src/__tests__/mocks/prisma')
+
+jest.mock('@/lib/prisma', () => ({
+  prisma: mockPrisma,
+  default: mockPrisma
+}))
+
+// Also mock it with direct path
+jest.mock('./src/lib/prisma', () => ({
+  prisma: mockPrisma,
+  default: mockPrisma
+}))
 
 // Setup test environment variables
 process.env.NEXTAUTH_SECRET = 'test-secret'

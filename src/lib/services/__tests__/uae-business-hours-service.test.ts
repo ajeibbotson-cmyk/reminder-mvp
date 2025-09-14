@@ -17,10 +17,17 @@ import {
   getOptimalSendTime
 } from '../uae-business-hours-service'
 
-// Mock the vat-calculator module
+// Mock the vat-calculator module functions that are used
+const mockIsUAEBusinessHours = jest.fn()
+const mockGetNextUAEBusinessHour = jest.fn()
+
 jest.mock('@/lib/vat-calculator', () => ({
-  isUAEBusinessHours: jest.fn(),
-  getNextUAEBusinessHour: jest.fn()
+  isUAEBusinessHours: mockIsUAEBusinessHours,
+  getNextUAEBusinessHour: mockGetNextUAEBusinessHour,
+  // Add other exports that might be needed
+  calculateVAT: jest.fn(),
+  formatUAECurrency: jest.fn(),
+  validateUAETRN: jest.fn()
 }))
 
 describe('UAEBusinessHoursService', () => {
@@ -28,12 +35,12 @@ describe('UAEBusinessHoursService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    
+    // Set up mocks before creating the service
+    mockIsUAEBusinessHours.mockReturnValue(true)
+    mockGetNextUAEBusinessHour.mockReturnValue(new Date('2024-01-01T08:00:00.000Z'))
+    
     service = new UAEBusinessHoursService()
-
-    // Mock the imported functions
-    const { isUAEBusinessHours: mockIsBusinessHours, getNextUAEBusinessHour: mockGetNextBusinessHour } = require('@/lib/vat-calculator')
-    mockIsBusinessHours.mockReturnValue(true)
-    mockGetNextBusinessHour.mockReturnValue(new Date())
   })
 
   afterEach(() => {
@@ -96,14 +103,13 @@ describe('UAEBusinessHoursService', () => {
 
   describe('Business Hours Detection', () => {
     it('should delegate to vat-calculator for business hours check', () => {
-      const { isUAEBusinessHours: mockIsBusinessHours } = require('@/lib/vat-calculator')
-      mockIsBusinessHours.mockReturnValue(true)
+      mockIsUAEBusinessHours.mockReturnValue(true)
 
       const testDate = new Date('2024-01-01T10:00:00.000Z') // Monday 10 AM
       const result = service.isBusinessHours(testDate)
 
       expect(result).toBe(true)
-      expect(mockIsBusinessHours).toHaveBeenCalledWith(testDate, {
+      expect(mockIsUAEBusinessHours).toHaveBeenCalledWith(testDate, {
         workingDays: [0, 1, 2, 3, 4],
         startHour: 8,
         endHour: 18,
@@ -112,8 +118,7 @@ describe('UAEBusinessHoursService', () => {
     })
 
     it('should return false outside business hours', () => {
-      const { isUAEBusinessHours: mockIsBusinessHours } = require('@/lib/vat-calculator')
-      mockIsBusinessHours.mockReturnValue(false)
+      mockIsUAEBusinessHours.mockReturnValue(false)
 
       const testDate = new Date('2024-01-05T10:00:00.000Z') // Friday 10 AM (weekend)
       const result = service.isBusinessHours(testDate)
@@ -122,6 +127,8 @@ describe('UAEBusinessHoursService', () => {
     })
 
     it('should handle different timezones correctly', () => {
+      mockIsUAEBusinessHours.mockReturnValue(true)
+      
       const customService = new UAEBusinessHoursService({
         timezone: 'UTC'
       })
@@ -129,8 +136,7 @@ describe('UAEBusinessHoursService', () => {
       const testDate = new Date('2024-01-01T10:00:00.000Z')
       customService.isBusinessHours(testDate)
 
-      const { isUAEBusinessHours: mockIsBusinessHours } = require('@/lib/vat-calculator')
-      expect(mockIsBusinessHours).toHaveBeenCalledWith(testDate, 
+      expect(mockIsUAEBusinessHours).toHaveBeenCalledWith(testDate, 
         expect.objectContaining({
           timezone: 'UTC'
         })
@@ -140,15 +146,14 @@ describe('UAEBusinessHoursService', () => {
 
   describe('Next Business Hour Calculation', () => {
     it('should delegate to vat-calculator for next business hour', () => {
-      const { getNextUAEBusinessHour: mockGetNextBusinessHour } = require('@/lib/vat-calculator')
       const expectedDate = new Date('2024-01-01T08:00:00.000Z')
-      mockGetNextBusinessHour.mockReturnValue(expectedDate)
+      mockGetNextUAEBusinessHour.mockReturnValue(expectedDate)
 
       const testDate = new Date('2024-01-01T07:00:00.000Z')
       const result = service.getNextBusinessHour(testDate)
 
       expect(result).toBe(expectedDate)
-      expect(mockGetNextBusinessHour).toHaveBeenCalledWith(testDate, {
+      expect(mockGetNextUAEBusinessHour).toHaveBeenCalledWith(testDate, {
         workingDays: [0, 1, 2, 3, 4],
         startHour: 8,
         endHour: 18,
@@ -157,9 +162,8 @@ describe('UAEBusinessHoursService', () => {
     })
 
     it('should handle weekend transitions', () => {
-      const { getNextUAEBusinessHour: mockGetNextBusinessHour } = require('@/lib/vat-calculator')
       const nextSunday = new Date('2024-01-07T08:00:00.000Z') // Next Sunday 8 AM
-      mockGetNextBusinessHour.mockReturnValue(nextSunday)
+      mockGetNextUAEBusinessHour.mockReturnValue(nextSunday)
 
       const fridayEvening = new Date('2024-01-05T20:00:00.000Z') // Friday 8 PM
       const result = service.getNextBusinessHour(fridayEvening)
@@ -343,9 +347,8 @@ describe('UAEBusinessHoursService', () => {
       jest.spyOn(service, 'isUAEHoliday').mockReturnValue(true) // All days are holidays
       jest.spyOn(service, 'isPrayerTime').mockReturnValue(true) // All times are prayer times
 
-      const { getNextUAEBusinessHour } = require('@/lib/vat-calculator')
       const fallbackTime = new Date(baseDate.getTime() + 24 * 60 * 60 * 1000)
-      getNextUAEBusinessHour.mockReturnValue(fallbackTime)
+      mockGetNextUAEBusinessHour.mockReturnValue(fallbackTime)
 
       const optimalTime = service.getOptimalSendTime(baseDate)
 
@@ -405,11 +408,10 @@ describe('UAEBusinessHoursService', () => {
     })
 
     it('should respect business hours', () => {
-      const { isUAEBusinessHours, getNextUAEBusinessHour } = require('@/lib/vat-calculator')
-      isUAEBusinessHours.mockReturnValue(false)
+      mockIsUAEBusinessHours.mockReturnValue(false)
       
       const nextBusinessTime = new Date('2024-01-08T08:00:00.000Z') // Next Monday 8 AM
-      getNextUAEBusinessHour.mockReturnValue(nextBusinessTime)
+      mockGetNextUAEBusinessHour.mockReturnValue(nextBusinessTime)
 
       const eveningTime = new Date('2024-01-01T20:00:00.000Z') // Monday 8 PM
       const nextTime = service.getNextAvailableSendTime(eveningTime)
@@ -427,9 +429,8 @@ describe('UAEBusinessHoursService', () => {
     })
 
     it('should use fallback when no optimal time found within iterations', () => {
-      const { getNextUAEBusinessHour } = require('@/lib/vat-calculator')
       const fallbackTime = new Date('2024-01-08T08:00:00.000Z')
-      getNextUAEBusinessHour.mockReturnValue(fallbackTime)
+      mockGetNextUAEBusinessHour.mockReturnValue(fallbackTime)
 
       // Mock impossible conditions
       jest.spyOn(service, 'isBusinessHours').mockReturnValue(false)
@@ -477,8 +478,7 @@ describe('UAEBusinessHoursService', () => {
 
   describe('Schedule Validation', () => {
     it('should validate appropriate scheduling times', () => {
-      const { isUAEBusinessHours } = require('@/lib/vat-calculator')
-      isUAEBusinessHours.mockReturnValue(true)
+      mockIsUAEBusinessHours.mockReturnValue(true)
       jest.spyOn(service, 'isUAEHoliday').mockReturnValue(false)
       jest.spyOn(service, 'isPrayerTime').mockReturnValue(false)
 
@@ -491,8 +491,7 @@ describe('UAEBusinessHoursService', () => {
     })
 
     it('should flag outside business hours', () => {
-      const { isUAEBusinessHours } = require('@/lib/vat-calculator')
-      isUAEBusinessHours.mockReturnValue(false)
+      mockIsUAEBusinessHours.mockReturnValue(false)
 
       const badTime = new Date('2024-01-05T10:00:00.000Z') // Friday 10 AM
       const validation = service.validateScheduledTime(badTime)
@@ -549,8 +548,7 @@ describe('UAEBusinessHoursService', () => {
     })
 
     it('should provide comprehensive validation for multiple issues', () => {
-      const { isUAEBusinessHours } = require('@/lib/vat-calculator')
-      isUAEBusinessHours.mockReturnValue(false)
+      mockIsUAEBusinessHours.mockReturnValue(false)
       jest.spyOn(service, 'isUAEHoliday').mockReturnValue(true)
       jest.spyOn(service, 'isPrayerTime').mockReturnValue(true)
       jest.spyOn(service, 'isRamadan').mockReturnValue(true)

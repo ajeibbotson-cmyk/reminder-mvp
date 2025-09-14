@@ -1,12 +1,13 @@
 import { create } from 'zustand'
-import { devtools } from 'zustand/middleware'
-import { EmailTemplate, EmailTemplateType } from '@prisma/client'
+import { subscribeWithSelector } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
 import { 
   EmailTemplateState,
   EmailTemplateWithDetails,
   EmailTemplateFilters,
   ApiResponse
 } from '../types/store'
+import { EmailTemplate, EmailTemplateType } from '@prisma/client'
 
 // API utility functions
 const api = {
@@ -61,204 +62,201 @@ const api = {
   }
 }
 
-export const useEmailTemplateStore = create<EmailTemplateState>()(
-  devtools(
-    (set, get) => ({
-      // State
-      templates: [],
-      currentTemplate: null,
-      loading: false,
-      error: null,
-      totalCount: 0,
+export const useEmailTemplateStore = create<EmailTemplateState>()(subscribeWithSelector(immer((set, get) => ({
+  // State
+  templates: [],
+  currentTemplate: null,
+  loading: false,
+  error: null,
+  totalCount: 0,
 
-      // Actions
-      fetchTemplates: async (companyId: string, filters: EmailTemplateFilters = {}) => {
-        set({ loading: true, error: null })
+  // Actions
+  fetchTemplates: async (companyId: string, filters: EmailTemplateFilters = {}) => {
+    set(state => {
+      state.loading = true
+      state.error = null
+    })
 
-        try {
-          const result = await api.fetchTemplates(companyId, filters)
-          
-          if (result.success && result.data) {
-            set({
-              templates: result.data.templates,
-              totalCount: result.data.totalCount,
-              loading: false
-            })
-          } else {
-            throw new Error(result.error || 'Failed to fetch email templates')
-          }
-        } catch (error) {
-          set({
-            error: error instanceof Error ? error.message : 'Failed to fetch email templates',
-            loading: false
-          })
-        }
-      },
-
-      createTemplate: async (templateData: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
-        set({ loading: true, error: null })
-
-        try {
-          const result = await api.createTemplate(templateData)
-          
-          if (result.success && result.data) {
-            set({ loading: false })
-            
-            // Refresh templates to include the new one
-            await get().fetchTemplates(templateData.companyId)
-            
-            return result.data
-          } else {
-            throw new Error(result.error || 'Failed to create email template')
-          }
-        } catch (error) {
-          set({
-            error: error instanceof Error ? error.message : 'Failed to create email template',
-            loading: false
-          })
-          throw error
-        }
-      },
-
-      updateTemplate: async (id: string, updates: Partial<EmailTemplate>) => {
-        set({ loading: true, error: null })
-
-        try {
-          const result = await api.updateTemplate(id, updates)
-          
-          if (result.success && result.data) {
-            const { templates, currentTemplate } = get()
-            
-            // Update template in local state
-            const updatedTemplates = templates.map(t => 
-              t.id === id ? { ...t, ...updates } : t
-            )
-            
-            // Update current template if it's the one being updated
-            const updatedCurrentTemplate = currentTemplate?.id === id 
-              ? { ...currentTemplate, ...updates }
-              : currentTemplate
-
-            set({
-              templates: updatedTemplates,
-              currentTemplate: updatedCurrentTemplate,
-              loading: false
-            })
-          } else {
-            throw new Error(result.error || 'Failed to update email template')
-          }
-        } catch (error) {
-          set({
-            error: error instanceof Error ? error.message : 'Failed to update email template',
-            loading: false
-          })
-          throw error
-        }
-      },
-
-      deleteTemplate: async (id: string) => {
-        set({ loading: true, error: null })
-
-        try {
-          const result = await api.deleteTemplate(id)
-          
-          if (result.success) {
-            const { templates, currentTemplate, totalCount } = get()
-            
-            let updatedTemplates = templates
-            let updatedCurrentTemplate = currentTemplate
-            let updatedTotalCount = totalCount
-
-            // Remove template from local state if actually deleted
-            if (result.data?.action === 'deleted') {
-              updatedTemplates = templates.filter(t => t.id !== id)
-              updatedTotalCount = Math.max(0, totalCount - 1)
-            } else if (result.data?.action === 'deactivated') {
-              // Update template status to inactive
-              updatedTemplates = templates.map(t =>
-                t.id === id ? { ...t, isActive: false } : t
-              )
-            }
-            
-            // Clear current template if it was deleted/deactivated
-            if (currentTemplate?.id === id) {
-              updatedCurrentTemplate = null
-            }
-
-            set({
-              templates: updatedTemplates,
-              currentTemplate: updatedCurrentTemplate,
-              totalCount: updatedTotalCount,
-              loading: false
-            })
-          } else {
-            throw new Error(result.error || 'Failed to delete email template')
-          }
-        } catch (error) {
-          set({
-            error: error instanceof Error ? error.message : 'Failed to delete email template',
-            loading: false
-          })
-          throw error
-        }
-      },
-
-      duplicateTemplate: async (id: string, newName: string) => {
-        const templateToDuplicate = get().templates.find(t => t.id === id)
-        if (!templateToDuplicate) {
-          throw new Error('Template not found')
-        }
-
-        const duplicateData = {
-          companyId: templateToDuplicate.companyId,
-          name: newName,
-          description: `Copy of ${templateToDuplicate.description || templateToDuplicate.name}`,
-          templateType: templateToDuplicate.templateType,
-          subjectEn: templateToDuplicate.subjectEn,
-          subjectAr: templateToDuplicate.subjectAr,
-          contentEn: templateToDuplicate.contentEn,
-          contentAr: templateToDuplicate.contentAr,
-          variables: templateToDuplicate.variables,
-          isActive: true,
-          isDefault: false, // Duplicates are never default
-          uaeBusinessHoursOnly: templateToDuplicate.uaeBusinessHoursOnly,
-          createdBy: templateToDuplicate.createdBy
-        }
-
-        return get().createTemplate(duplicateData)
-      },
-
-      setAsDefault: async (id: string, templateType: EmailTemplateType) => {
-        try {
-          await get().updateTemplate(id, { isDefault: true, templateType })
-          
-          // Update other templates of same type to not be default
-          const { templates } = get()
-          const updatedTemplates = templates.map(template =>
-            template.templateType === templateType && template.id !== id
-              ? { ...template, isDefault: false }
-              : template
-          )
-          
-          set({ templates: updatedTemplates })
-        } catch (error) {
-          throw error
-        }
-      },
-
-      getTemplateById: (id: string) => {
-        return get().templates.find(t => t.id === id) || null
-      },
-
-      clearError: () => {
-        set({ error: null })
+    try {
+      const result = await api.fetchTemplates(companyId, filters)
+      
+      if (result.success && result.data) {
+        set(state => {
+          state.templates = result.data!.templates
+          state.totalCount = result.data!.totalCount
+          state.loading = false
+        })
+      } else {
+        throw new Error(result.error || 'Failed to fetch email templates')
       }
-    }),
-    {
-      name: 'email-template-store',
+    } catch (error) {
+      set(state => {
+        state.error = error instanceof Error ? error.message : 'Failed to fetch email templates'
+        state.loading = false
+      })
     }
-  )
-)
+  },
+
+  createTemplate: async (templateData: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
+    set(state => {
+      state.loading = true
+      state.error = null
+    })
+
+    try {
+      const result = await api.createTemplate(templateData)
+      
+      if (result.success && result.data) {
+        set(state => {
+          state.loading = false
+        })
+        
+        // Refresh templates to include the new one
+        await get().fetchTemplates(templateData.companyId)
+        
+        return result.data
+      } else {
+        throw new Error(result.error || 'Failed to create email template')
+      }
+    } catch (error) {
+      set(state => {
+        state.error = error instanceof Error ? error.message : 'Failed to create email template'
+        state.loading = false
+      })
+      throw error
+    }
+  },
+
+  updateTemplate: async (id: string, updates: Partial<EmailTemplate>) => {
+    set(state => {
+      state.loading = true
+      state.error = null
+    })
+
+    try {
+      const result = await api.updateTemplate(id, updates)
+      
+      if (result.success && result.data) {
+        set(state => {
+          state.loading = false
+          
+          // Update template in local state
+          const templateIndex = state.templates.findIndex(t => t.id === id)
+          if (templateIndex !== -1) {
+            state.templates[templateIndex] = { ...state.templates[templateIndex], ...updates }
+          }
+          
+          // Update current template if it's the one being updated
+          if (state.currentTemplate?.id === id) {
+            state.currentTemplate = { ...state.currentTemplate, ...updates }
+          }
+        })
+      } else {
+        throw new Error(result.error || 'Failed to update email template')
+      }
+    } catch (error) {
+      set(state => {
+        state.error = error instanceof Error ? error.message : 'Failed to update email template'
+        state.loading = false
+      })
+      throw error
+    }
+  },
+
+  deleteTemplate: async (id: string) => {
+    set(state => {
+      state.loading = true
+      state.error = null
+    })
+
+    try {
+      const result = await api.deleteTemplate(id)
+      
+      if (result.success) {
+        set(state => {
+          state.loading = false
+          
+          // Remove template from local state if actually deleted
+          if (result.data?.action === 'deleted') {
+            state.templates = state.templates.filter(t => t.id !== id)
+            state.totalCount = Math.max(0, state.totalCount - 1)
+          } else if (result.data?.action === 'deactivated') {
+            // Update template status to inactive
+            const templateIndex = state.templates.findIndex(t => t.id === id)
+            if (templateIndex !== -1) {
+              state.templates[templateIndex].isActive = false
+            }
+          }
+          
+          // Clear current template if it was deleted/deactivated
+          if (state.currentTemplate?.id === id) {
+            state.currentTemplate = null
+          }
+        })
+      } else {
+        throw new Error(result.error || 'Failed to delete email template')
+      }
+    } catch (error) {
+      set(state => {
+        state.error = error instanceof Error ? error.message : 'Failed to delete email template'
+        state.loading = false
+      })
+      throw error
+    }
+  },
+
+  duplicateTemplate: async (id: string, newName: string) => {
+    const templateToDuplicate = get().templates.find(t => t.id === id)
+    if (!templateToDuplicate) {
+      throw new Error('Template not found')
+    }
+
+    const duplicateData = {
+      companyId: templateToDuplicate.companyId,
+      name: newName,
+      description: `Copy of ${templateToDuplicate.description || templateToDuplicate.name}`,
+      templateType: templateToDuplicate.templateType,
+      subjectEn: templateToDuplicate.subjectEn,
+      subjectAr: templateToDuplicate.subjectAr,
+      contentEn: templateToDuplicate.contentEn,
+      contentAr: templateToDuplicate.contentAr,
+      variables: templateToDuplicate.variables,
+      isActive: true,
+      isDefault: false, // Duplicates are never default
+      uaeBusinessHoursOnly: templateToDuplicate.uaeBusinessHoursOnly,
+      createdBy: templateToDuplicate.createdBy
+    }
+
+    return get().createTemplate(duplicateData)
+  },
+
+  setAsDefault: async (id: string, templateType: EmailTemplateType) => {
+    try {
+      await get().updateTemplate(id, { isDefault: true, templateType })
+      
+      // Update other templates of same type to not be default
+      set(state => {
+        state.templates.forEach(template => {
+          if (template.templateType === templateType && template.id !== id) {
+            template.isDefault = false
+          }
+        })
+      })
+    } catch (error) {
+      throw error
+    }
+  },
+
+  getTemplateById: (id: string) => {
+    return get().templates.find(t => t.id === id) || null
+  },
+
+  clearError: () => {
+    set(state => {
+      state.error = null
+    })
+  }
+})));
 
 // Utility functions for template management
 export const emailTemplateUtils = {
