@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { InvoiceTable } from "@/components/invoices/invoice-table";
 import { InvoiceStats } from "@/components/invoices/invoice-stats";
@@ -23,6 +24,7 @@ export default function InvoicesPage() {
   const { data: session, status } = useSession();
   const t = useTranslations();
   const locale = useLocale();
+  const router = useRouter();
   const isRTL = locale === 'ar';
 
   // Store and state
@@ -91,8 +93,8 @@ export default function InvoicesPage() {
 
   // Handle invoice selection from search
   const handleInvoiceSelect = (invoice: InvoiceWithDetails) => {
-    // Navigate to invoice detail or perform some action
-    window.location.href = `/dashboard/invoices/${invoice.id}`;
+    // Navigate to invoice detail page
+    router.push(`/dashboard/invoices/${invoice.id}`);
   };
 
   // Handle refresh
@@ -202,11 +204,11 @@ export default function InvoicesPage() {
               </Button>
               
               <Button 
-                onClick={() => window.location.href = '/dashboard/invoices/create'}
+                onClick={() => router.push('/dashboard/invoices/create')}
                 className="gap-2"
               >
                 <Plus className="h-4 w-4" />
-                {locale === 'ar' ? 'إضافة فاتورة' : 'Add Invoice'}
+                {locale === 'ar' ? 'إنشاء فاتورة جديدة' : 'Create New Invoice'}
               </Button>
             </div>
           </div>

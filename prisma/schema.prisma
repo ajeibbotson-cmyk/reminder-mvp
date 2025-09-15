@@ -47,6 +47,8 @@ model companies {
   default_vat_rate    Decimal?              @db.Decimal(5, 2) @default(5.00) // UAE VAT rate
   email_settings      Json?                 // Email configuration settings
   business_hours      Json?                 // UAE business hours configuration
+  is_active           Boolean               @default(true) // Soft delete flag
+  archived_at         DateTime?             // Archival timestamp
   created_at          DateTime              @default(now())
   updated_at          DateTime              @updatedAt
   activities          activities[]
@@ -59,27 +61,87 @@ model companies {
   email_logs          email_logs[]
   email_suppression_list email_suppression_list[]
   ab_test_config      ab_test_config[]
+  audit_logs          audit_logs[]
+  bank_reconciliation bank_reconciliation[]
+
+  @@index([is_active, created_at])
+  @@index([trn])
 }
 
 model customers {
-  id            String     @id
-  company_id    String
-  name          String
-  name_ar       String?    // Arabic name for UAE bilingual support
-  email         String
-  phone         String?
-  payment_terms Int?
-  notes         String?
-  notes_ar      String?    // Arabic notes for UAE bilingual support
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
-  companies     companies  @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  invoices      invoices[]
-  email_logs    email_logs[]
+  id                    String          @id
+  company_id            String
+  name                  String
+  name_ar               String?         // Arabic name for UAE bilingual support
+  email                 String
+  phone                 String?
+  payment_terms         Int?            @default(30) // Default 30 days for UAE
+  notes                 String?
+  notes_ar              String?         // Arabic notes for UAE bilingual support
+  is_active             Boolean         @default(true) // Soft delete flag
+  archived_at           DateTime?       // Archival timestamp
+  credit_limit          Decimal?        @db.Decimal(12, 2) // Customer credit limit
+  
+  // UAE-Specific Business Fields
+  trn                   String?         // UAE Trade Registration Number (15 digits)
+  business_type         UaeBusinessType? // UAE business entity type
+  business_name         String?         // Official business name
+  business_name_ar      String?         // Arabic business name
+  address               String?         // Business address
+  address_ar            String?         // Arabic business address
+  contact_person        String?         // Primary contact person name
+  contact_person_ar     String?         // Arabic contact person name
+  
+  // Enhanced Customer Analytics
+  risk_score            Decimal?        @db.Decimal(3, 2) // Risk assessment (0.00-10.00)
+  payment_behavior      Json?           @default("{}") // Payment behavior analytics
+  last_payment_date     DateTime?       // Last successful payment
+  outstanding_balance   Decimal?        @db.Decimal(12, 2) @default(0.00) // Current outstanding amount
+  lifetime_value        Decimal?        @db.Decimal(12, 2) @default(0.00) // Total lifetime value
+  
+  // Metadata and Tracking
+  preferred_language    String?         @default("en") // en, ar
+  payment_method_pref   String?         // Preferred payment method
+  communication_pref    String?         @default("email") // email, sms, both
+  last_interaction      DateTime?       // Last customer interaction
+  customer_since        DateTime?       // When they became a customer
+  
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @updatedAt
+  companies             companies       @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  invoices              invoices[]
+  email_logs            email_logs[]
 
+  // Unique constraints
   @@unique([email, company_id])
-  @@index([name])
-  @@index([company_id, name])
+  @@unique([trn, company_id]) // TRN unique within company scope
+  
+  // Performance indexes for customer search and filtering
+  @@index([name]) // Basic name search
+  @@index([name_ar]) // Arabic name search
+  @@index([company_id, name]) // Company-scoped name search
+  @@index([company_id, email]) // Company-scoped email search
+  @@index([company_id, is_active, created_at]) // Active customers list
+  @@index([company_id, trn]) // TRN lookup
+  @@index([company_id, business_type]) // Business type filtering
+  @@index([phone]) // Phone number search
+  @@index([company_id, outstanding_balance]) // Outstanding balance queries
+  @@index([company_id, risk_score]) // Risk-based filtering
+  @@index([company_id, last_payment_date]) // Payment history analysis
+  @@index([company_id, customer_since]) // Customer acquisition analysis
+  
+  // Composite indexes for complex queries
+  @@index([name, email]) // Full-text search support
+  @@index([name_ar, business_name_ar]) // Arabic search optimization
+  @@index([company_id, is_active, outstanding_balance]) // Active customers with balances
+  @@index([company_id, business_type, is_active]) // Active customers by business type
+  @@index([company_id, payment_terms, risk_score]) // Payment terms analysis
+  @@index([company_id, preferred_language, is_active]) // Language-based customer segmentation
+  
+  // Analytics and reporting indexes
+  @@index([company_id, created_at, lifetime_value]) // Customer value analysis
+  @@index([company_id, last_interaction, is_active]) // Customer engagement tracking
+  @@index([business_type, risk_score, company_id]) // Cross-company risk analysis
 }
 
 model follow_up_logs {
@@ -152,6 +214,10 @@ model invoices {
   notes_ar         String?          // Arabic notes for UAE bilingual support
   import_batch_id  String?          // Link to CSV import batch
   trn_number       String?          // UAE TRN for tax calculations
+  is_active        Boolean          @default(true) // Soft delete flag
+  archived_at      DateTime?        // Archival timestamp
+  last_reminder_sent DateTime?      // Track follow-up timing
+  payment_link     String?          // Payment portal link
   created_at       DateTime         @default(now())
   updated_at       DateTime         @updatedAt
   follow_up_logs   follow_up_logs[]
@@ -165,18 +231,56 @@ model invoices {
   @@unique([company_id, number])
   @@index([import_batch_id])
   @@index([trn_number])
+  // Performance optimization indexes for search and filtering
+  @@index([company_id, status, created_at])
+  @@index([company_id, status, due_date])
+  @@index([company_id, customer_email, status])
+  @@index([company_id, created_at])
+  @@index([company_id, due_date])
+  @@index([company_id, total_amount])
+  @@index([company_id, currency, status])
+  @@index([status, due_date]) // Overdue invoice queries
+  @@index([company_id, is_active, created_at])
+  // Full-text search support
+  @@index([customer_name, customer_email])
+  @@index([number, customer_name])
+  // Analytics and reporting indexes
+  @@index([company_id, status, total_amount])
+  @@index([company_id, created_at, total_amount])
+  @@index([company_id, currency, created_at])
 }
 
 model payments {
-  id           String        @id
-  invoice_id   String
-  amount       Decimal       @db.Decimal(10, 2)
-  payment_date DateTime
-  method       PaymentMethod @default(BANK_TRANSFER)
-  reference    String?
-  notes        String?
-  created_at   DateTime      @default(now())
-  invoices     invoices      @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  id                  String        @id
+  invoice_id          String
+  amount              Decimal       @db.Decimal(10, 2)
+  payment_date        DateTime
+  method              PaymentMethod @default(BANK_TRANSFER)
+  reference           String?
+  notes               String?
+  is_verified         Boolean       @default(false) // Payment verification status
+  verified_by         String?       // User who verified payment
+  verified_at         DateTime?     // Verification timestamp
+  bank_reference      String?       // Bank transaction reference
+  reconciliation_id   String?       // Link to bank reconciliation batch
+  fees_amount         Decimal?      @db.Decimal(10, 2) @default(0.00) // Transaction fees
+  exchange_rate       Decimal?      @db.Decimal(10, 6) // For multi-currency payments
+  original_amount     Decimal?      @db.Decimal(10, 2) // Original amount in foreign currency
+  original_currency   String?       // Original currency code
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+  invoices            invoices      @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  @@index([invoice_id, payment_date])
+  @@index([payment_date, method])
+  @@index([method, is_verified])
+  @@index([reference])
+  @@index([bank_reference])
+  @@index([reconciliation_id])
+  @@index([verified_by, verified_at])
+  // Performance indexes for payment reconciliation
+  @@index([payment_date, amount, method])
+  @@index([is_verified, payment_date])
 }
 
 model sessions {
@@ -444,6 +548,102 @@ model ab_test_events {
   @@index([timestamp])
 }
 
+// Comprehensive audit log model for UAE compliance and data integrity
+model audit_logs {
+  id              String    @id
+  company_id      String
+  user_id         String?
+  entity_type     String    // invoices, payments, customers, companies, etc.
+  entity_id       String    // ID of the affected entity
+  action          String    // CREATE, UPDATE, DELETE, VIEW, EXPORT, etc.
+  old_values      Json?     // Previous values (for updates)
+  new_values      Json?     // New values (for creates/updates)
+  changed_fields  String[]  // List of fields that changed
+  ip_address      String?   // Client IP address
+  user_agent      String?   // Client user agent
+  session_id      String?   // Session identifier
+  request_id      String?   // Request correlation ID
+  compliance_flag Boolean   @default(false) // Mark for compliance review
+  risk_level      String    @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  metadata        Json?     // Additional context data
+  created_at      DateTime  @default(now())
+  companies       companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id, created_at])
+  @@index([entity_type, entity_id])
+  @@index([user_id, created_at])
+  @@index([action, created_at])
+  @@index([compliance_flag, risk_level])
+  @@index([company_id, entity_type, action])
+  @@index([created_at, risk_level])
+  // Performance indexes for audit reporting
+  @@index([company_id, entity_type, created_at])
+  @@index([user_id, action, created_at])
+}
+
+// Database performance monitoring table
+model db_performance_logs {
+  id              String    @id
+  query_type      String    // SELECT, INSERT, UPDATE, DELETE, AGGREGATE
+  table_name      String    // Primary table accessed
+  execution_time  Int       // Execution time in milliseconds
+  rows_affected   Int?      // Number of rows processed
+  query_hash      String    // Hash of the query for grouping
+  slow_query      Boolean   @default(false) // Mark queries over threshold
+  company_id      String?   // Company context if applicable
+  user_id         String?   // User context if applicable
+  endpoint        String?   // API endpoint that triggered the query
+  created_at      DateTime  @default(now())
+
+  @@index([query_type, created_at])
+  @@index([table_name, execution_time])
+  @@index([slow_query, created_at])
+  @@index([company_id, created_at])
+  @@index([query_hash, created_at])
+}
+
+// Data retention and archival tracking
+model data_retention_policies {
+  id                String    @id
+  entity_type       String    // invoices, payments, audit_logs, etc.
+  retention_days    Int       // Days to retain active data
+  archive_days      Int       // Days to retain in archive
+  auto_delete_days  Int?      // Days before permanent deletion
+  is_active         Boolean   @default(true)
+  compliance_rule   String?   // UAE/Legal requirement reference
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  @@unique([entity_type])
+  @@index([entity_type, is_active])
+}
+
+// Bank reconciliation tracking for payment processing
+model bank_reconciliation {
+  id                String    @id
+  company_id        String
+  bank_account      String    // Bank account identifier
+  statement_date    DateTime  // Bank statement date
+  statement_ref     String?   // Bank statement reference
+  opening_balance   Decimal   @db.Decimal(12, 2)
+  closing_balance   Decimal   @db.Decimal(12, 2)
+  total_credits     Decimal   @db.Decimal(12, 2)
+  total_debits      Decimal   @db.Decimal(12, 2)
+  reconciled_amount Decimal   @db.Decimal(12, 2)
+  unreconciled_amount Decimal @db.Decimal(12, 2)
+  status            String    @default("PENDING") // PENDING, COMPLETED, FAILED
+  reconciled_by     String?   // User who performed reconciliation
+  reconciled_at     DateTime?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  companies         companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id, statement_date])
+  @@index([bank_account, statement_date])
+  @@index([status, created_at])
+  @@index([reconciled_by, reconciled_at])
+}
+
 
 enum InvoiceStatus {
   DRAFT
@@ -519,4 +719,15 @@ enum EmailDeliveryStatus {
   COMPLAINED
   UNSUBSCRIBED
   FAILED
+}
+
+enum UaeBusinessType {
+  LLC
+  FREE_ZONE
+  SOLE_PROPRIETORSHIP
+  PARTNERSHIP
+  BRANCH
+  PUBLIC_SHAREHOLDING_COMPANY
+  PRIVATE_SHAREHOLDING_COMPANY
+  GOVERNMENT_ENTITY
 }

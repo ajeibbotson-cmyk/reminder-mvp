@@ -21,6 +21,12 @@ export const uaeTrnSchema = z.string()
   .regex(UAE_TRN_REGEX, 'TRN must be exactly 15 digits')
   .optional()
 
+// Required TRN schema for customer creation
+export const requiredUaeTrnSchema = z.string()
+  .regex(UAE_TRN_REGEX, 'TRN must be exactly 15 digits')
+  .min(15, 'TRN must be exactly 15 digits')
+  .max(15, 'TRN must be exactly 15 digits')
+
 export const uaePhoneSchema = z.string()
   .regex(UAE_PHONE_REGEX, 'Please enter a valid UAE phone number')
   .optional()
@@ -130,17 +136,56 @@ export const invoiceFiltersSchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
 })
 
+// UAE Business Types for customer validation
+export const UAE_BUSINESS_TYPES = ['LLC', 'FREE_ZONE', 'SOLE_PROPRIETORSHIP', 'PARTNERSHIP', 'BRANCH'] as const
+export type UAEBusinessType = typeof UAE_BUSINESS_TYPES[number]
+
 // Customer validation schemas
 export const createCustomerSchema = z.object({
   companyId: z.string().min(1, 'Company ID is required'),
-  name: z.string().min(1, 'Customer name is required'),
+  name: z.string().min(1, 'Customer name is required').max(200, 'Customer name is too long'),
+  nameAr: z.string().max(200, 'Arabic name is too long').optional(),
+  businessName: z.string().max(200, 'Business name is too long').optional(),
   email: emailSchema,
   phone: uaePhoneSchema,
-  paymentTerms: z.number().int().positive().max(365).optional(),
-  notes: z.string().optional(),
-})
+  trn: uaeTrnSchema.optional(),
+  businessType: z.enum(UAE_BUSINESS_TYPES).optional(),
+  paymentTerms: z.number().int().min(1).max(365).default(30).optional(),
+  creditLimit: z.number().positive().multipleOf(0.01).max(9999999999.99).optional(),
+  notes: z.string().max(1000, 'Notes are too long').optional(),
+  notesAr: z.string().max(1000, 'Arabic notes are too long').optional(),
+}).refine(
+  (data) => {
+    // If business type is provided, business name should also be provided for proper record keeping
+    if (data.businessType && !data.businessName) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Business name is required when business type is specified',
+    path: ['businessName']
+  }
+)
 
 export const updateCustomerSchema = createCustomerSchema.partial().omit({ companyId: true })
+
+// Customer search and filtering schema
+export const customerFiltersSchema = z.object({
+  companyId: z.string().min(1, 'Company ID is required'),
+  search: z.string().optional(),
+  businessType: z.enum(UAE_BUSINESS_TYPES).optional(),
+  hasOutstandingBalance: z.coerce.boolean().optional(),
+  minCreditLimit: z.coerce.number().positive().optional(),
+  maxCreditLimit: z.coerce.number().positive().optional(),
+  paymentTermsMin: z.coerce.number().int().positive().optional(),
+  paymentTermsMax: z.coerce.number().int().positive().optional(),
+  isActive: z.coerce.boolean().default(true),
+  sortBy: z.enum(['name', 'email', 'createdAt', 'creditLimit', 'paymentTerms']).default('name'),
+  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+})
 
 // Company validation schemas
 export const createCompanySchema = z.object({
@@ -357,8 +402,8 @@ export const invoiceLineItemSchema = z.object({
   unitPrice: z.number().positive('Unit price must be positive').multipleOf(0.01),
   total: z.number().positive('Total must be positive').multipleOf(0.01),
   vatRate: z.number().min(0).max(100).default(5),
-  vatAmount: z.number().min(0).default(0).multipleOf(0.01),
-  totalWithVat: z.number().min(0).optional().multipleOf(0.01),
+  vatAmount: z.number().min(0).multipleOf(0.01).default(0),
+  totalWithVat: z.number().min(0).multipleOf(0.01).optional(),
   taxCategory: z.enum(['STANDARD', 'EXEMPT', 'ZERO_RATED']).default('STANDARD'),
 })
 
@@ -375,7 +420,7 @@ export const createInvoiceWithVatSchema = z.object({
   paymentTerms: z.number().int().positive().max(365).default(30).optional(),
   amount: z.number().positive('Amount must be positive').multipleOf(0.01),
   subtotal: z.number().positive('Subtotal must be positive').multipleOf(0.01).optional(),
-  vatAmount: z.number().min(0).default(0).multipleOf(0.01).optional(),
+  vatAmount: z.number().min(0).multipleOf(0.01).default(0).optional(),
   totalAmount: z.number().positive('Total amount must be positive').multipleOf(0.01),
   currency: currencySchema,
   dueDate: z.coerce.date(),

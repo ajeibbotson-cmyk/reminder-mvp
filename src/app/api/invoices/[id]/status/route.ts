@@ -5,6 +5,7 @@ import { requireRole, canManageInvoices } from '@/lib/auth-utils'
 import { invoiceStatusSchema, validateRequestBody } from '@/lib/validations'
 import { formatUAECurrency } from '@/lib/vat-calculator'
 import { invoiceStatusService } from '@/lib/services/invoice-status-service'
+import { auditTrailService, AuditEventType } from '@/lib/services/audit-trail-service'
 import { UserRole, InvoiceStatus } from '@prisma/client'
 import { Decimal } from 'decimal.js'
 
@@ -39,6 +40,33 @@ export async function PATCH(
     if (!result.success) {
       throw new Error('Failed to update invoice status')
     }
+
+    // Log comprehensive audit trail for status change
+    await auditTrailService.logInvoiceEvent(
+      AuditEventType.INVOICE_STATUS_CHANGED,
+      { ...result.auditTrail.businessContext, id, number: result.auditTrail.invoiceNumber },
+      {
+        userId: authContext.user.id,
+        userRole: authContext.user.role,
+        companyId: authContext.user.companyId,
+        ipAddress: request.headers.get('x-forwarded-for') || undefined,
+        userAgent: request.headers.get('user-agent') || undefined,
+        apiEndpoint: '/api/invoices/[id]/status',
+        requestId: crypto.randomUUID()
+      },
+      {
+        before: { status: result.oldStatus },
+        after: { status: result.newStatus },
+        changedFields: ['status']
+      },
+      {
+        reason,
+        notes,
+        notifyCustomer,
+        forceOverride,
+        complianceFlags: result.auditTrail.metadata.complianceFlags
+      }
+    )
 
     // Fetch the updated invoice with full details for response
     const updatedInvoice = await prisma.invoices.findUnique({

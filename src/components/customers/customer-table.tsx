@@ -43,6 +43,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import { CustomerFormDialog } from './customer-form-dialog'
+import { CustomerDetailsModal } from './customer-details-modal'
 
 interface CustomerTableProps {
   companyId: string
@@ -143,10 +145,15 @@ export function CustomerTable({ companyId }: CustomerTableProps) {
             <FileDown className="h-4 w-4" />
             {locale === 'ar' ? 'تصدير' : 'Export'}
           </Button>
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            {locale === 'ar' ? 'إضافة عميل' : 'Add Customer'}
-          </Button>
+          <CustomerFormDialog
+            companyId={companyId}
+            trigger={
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                {locale === 'ar' ? 'إضافة عميل' : 'Add Customer'}
+              </Button>
+            }
+          />
         </div>
       </div>
 
@@ -191,10 +198,15 @@ export function CustomerTable({ companyId }: CustomerTableProps) {
                 }
               </p>
               {!searchQuery && (
-                <Button className="mt-4">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {locale === 'ar' ? 'إضافة عميل' : 'Add Customer'}
-                </Button>
+                <CustomerFormDialog
+                  companyId={companyId}
+                  trigger={
+                    <Button className="mt-4">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {locale === 'ar' ? 'إضافة عميل' : 'Add Customer'}
+                    </Button>
+                  }
+                />
               )}
             </div>
           ) : (
@@ -287,30 +299,34 @@ export function CustomerTable({ companyId }: CustomerTableProps) {
                         />
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align={isRTL ? 'start' : 'end'}>
-                            <DropdownMenuItem>
-                              <Eye className="h-4 w-4 mr-2" />
-                              {locale === 'ar' ? 'عرض' : 'View'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="h-4 w-4 mr-2" />
-                              {locale === 'ar' ? 'تعديل' : 'Edit'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => handleDeleteCustomer(customer.id)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              {locale === 'ar' ? 'حذف' : 'Delete'}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex items-center gap-2">
+                          <CustomerDetailsModal
+                            customer={customer}
+                            companyId={companyId}
+                            trigger={
+                              <Button variant="ghost" size="sm">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
+                          <CustomerFormDialog
+                            companyId={companyId}
+                            customer={customer}
+                            trigger={
+                              <Button variant="ghost" size="sm">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDeleteCustomer(customer.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
