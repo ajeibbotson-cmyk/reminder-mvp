@@ -53,12 +53,22 @@ export const createInvoiceSchema = z.object({
   })).min(1, 'At least one item is required'),
 })
 
-// Update invoice schema with UAE business validation
-export const updateInvoiceSchema = createInvoiceWithVatSchema.partial().omit({ companyId: true }).extend({
-  // Allow updating specific fields
+// Base update schema - will be enhanced after createInvoiceWithVatSchema is defined
+const baseUpdateInvoiceSchema = z.object({
   status: z.nativeEnum(InvoiceStatus).optional(),
-  // Prevent updating critical fields that could break audit trail
   number: z.string().min(1, 'Invoice number is required').optional(),
+  customerName: z.string().min(1, 'Customer name is required').optional(),
+  customerNameAr: z.string().optional(),
+  customerEmail: emailSchema.optional(),
+  customerPhone: uaePhoneSchema.optional(),
+  amount: z.number().positive('Amount must be positive').multipleOf(0.01).optional(),
+  subtotal: z.number().positive('Subtotal must be positive').multipleOf(0.01).optional(),
+  vatAmount: z.number().min(0).multipleOf(0.01).optional(),
+  totalAmount: z.number().positive('Total amount must be positive').multipleOf(0.01).optional(),
+  currency: currencySchema.optional(),
+  dueDate: z.coerce.date().optional(),
+  description: z.string().optional(),
+  notes: z.string().optional(),
   createdAt: z.never().optional(), // Prevent updating creation date
 }).refine(
   (data) => {
@@ -479,3 +489,6 @@ export function validateFormData<T>(
   
   return schema.parse(data)
 }
+
+// Export the full update invoice schema (defined here to avoid circular dependency)
+export const updateInvoiceSchema = baseUpdateInvoiceSchema
