@@ -212,7 +212,7 @@ export function getNextUAEBusinessDay(
   startDate: Date,
   businessHours: UAEBusinessHours = DEFAULT_UAE_BUSINESS_HOURS
 ): Date {
-  let nextDay = new Date(startDate)
+  const nextDay = new Date(startDate)
   nextDay.setDate(nextDay.getDate() + 1)
   
   while (!businessHours.workingDays.includes(nextDay.getDay())) {

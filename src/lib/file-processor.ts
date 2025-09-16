@@ -653,7 +653,7 @@ export class FileProcessor {
           const invoiceData = row.processedData as any
           
           // Create or find customer first
-          let customer = await prisma.customer.upsert({
+          const customer = await prisma.customer.upsert({
             where: {
               email_companyId: {
                 email: invoiceData.customerEmail,

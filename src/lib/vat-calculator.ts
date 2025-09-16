@@ -330,7 +330,7 @@ export function getNextUAEBusinessHour(
     timezone = 'Asia/Dubai'
   } = options
 
-  let currentDate = new Date(fromDate)
+  const currentDate = new Date(fromDate)
   const maxDays = 14 // Prevent infinite loop
 
   for (let i = 0; i < maxDays; i++) {
@@ -377,7 +377,7 @@ export function calculatePaymentDueDate(
   excludeHolidays = false,
   uaeHolidays: Date[] = []
 ): Date {
-  let dueDate = new Date(invoiceDate)
+  const dueDate = new Date(invoiceDate)
   let daysAdded = 0
 
   while (daysAdded < paymentTermsDays) {

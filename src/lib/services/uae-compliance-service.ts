@@ -389,7 +389,7 @@ export class UAEComplianceService {
    * Get next UAE business day (excluding weekends and holidays)
    */
   public getNextUAEBusinessDay(fromDate: Date, emirate?: Emirates): Date {
-    let nextDate = new Date(fromDate)
+    const nextDate = new Date(fromDate)
     nextDate.setDate(nextDate.getDate() + 1)
 
     while (UAE_WEEKEND_DAYS.includes(nextDate.getDay()) || this.isUAEHoliday(nextDate, emirate)) {

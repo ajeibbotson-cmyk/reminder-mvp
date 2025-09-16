@@ -243,7 +243,7 @@ export function SequenceTester({ sequence, onClose }: SequenceTesterProps) {
 
   const simulateStepOutcome = (step: any, scenario: TestScenario) => {
     // Base rates influenced by customer type and payment history
-    let baseDeliveryRate = 95
+    const baseDeliveryRate = 95
     let baseOpenRate = 25
     let baseClickRate = 5
     let baseResponseRate = 2

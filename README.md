@@ -1,6 +1,6 @@
-# UAEPay MVP - UAE E-Invoice Payment Collection Platform
+# Reminder - Payment Reminder Platform
 
-**E-invoicing gets your invoices delivered. UAEPay gets them paid.**
+**E-invoicing gets your invoices delivered. Reminder gets them paid.**
 
 A Next.js 15 SaaS platform designed to capture first-mover advantage in the UAE e-invoice payment collection market, launching before the July 2026 mandate.
 

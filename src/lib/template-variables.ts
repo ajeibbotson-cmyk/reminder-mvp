@@ -496,11 +496,11 @@ export function generatePreviewContent(
     totalOutstanding: language === 'ar' ? '3,250.00 د.إ' : 'AED 3,250.00',
 
     // Company variables
-    companyName: language === 'ar' ? 'حلول الفواتير الذكية' : 'Smart Invoice Solutions',
+    companyName: language === 'ar' ? 'ريماندر' : 'Reminder',
     companyTrn: '100123456789001',
     companyAddress: language === 'ar' ? 'دبي، الإمارات العربية المتحدة' : 'Dubai, United Arab Emirates',
-    supportEmail: 'support@smartinvoice.ae',
-    supportPhone: '+971 4 567 8901',
+    supportEmail: 'support@usereminder.com',
+    supportPhone: '+971 4 REMINDER',
 
     // System variables
     currentDate: language === 'ar' ? '20 يناير 2025' : 'January 20, 2025',

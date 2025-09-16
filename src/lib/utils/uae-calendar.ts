@@ -229,7 +229,7 @@ export function getNextBusinessTime(
   fromDate: Date, 
   config: UAECalendarConfig = DEFAULT_UAE_CONFIG
 ): Date {
-  let nextDate = new Date(fromDate)
+  const nextDate = new Date(fromDate)
   
   // Find next business day
   while (!isUAEBusinessDay(nextDate, config)) {

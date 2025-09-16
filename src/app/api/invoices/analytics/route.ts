@@ -196,7 +196,7 @@ export async function GET(request: NextRequest) {
 function calculateDateRange(period: string, customStart?: Date, customEnd?: Date) {
   const now = new Date()
   let startDate: Date
-  let endDate = now
+  const endDate = now
 
   if (period === 'custom' && customStart && customEnd) {
     return { startDate: customStart, endDate: customEnd }

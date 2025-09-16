@@ -318,8 +318,8 @@ export class EmailService {
       currentDateAr: new Date().toLocaleDateString('ar-AE'),
       currentTime: new Date().toLocaleTimeString('en-AE'),
       businessYear: new Date().getFullYear(),
-      supportEmail: 'support@yourdomain.ae',
-      supportPhone: '+971-4-XXX-XXXX',
+      supportEmail: 'support@usereminder.com',
+      supportPhone: '+971-4-REMINDER',
       unsubscribeUrl,
       unsubscribeLink: `<a href="${unsubscribeUrl}" style="color: #666; text-decoration: underline;">Unsubscribe</a>`
     })
@@ -707,8 +707,8 @@ export const getDefaultEmailService = (): EmailService => {
       secretKey: process.env.AWS_SECRET_ACCESS_KEY,
       region: process.env.AWS_REGION || 'me-south-1' // UAE region
     },
-    fromEmail: process.env.FROM_EMAIL || 'noreply@yourdomain.ae',
-    fromName: process.env.FROM_NAME || 'Invoice Management System',
+    fromEmail: process.env.FROM_EMAIL || 'noreply@usereminder.com',
+    fromName: process.env.FROM_NAME || 'Reminder - Payment Collection',
     replyTo: process.env.REPLY_TO_EMAIL,
     maxRetries: 3,
     retryDelayMs: 5000

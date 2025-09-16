@@ -350,7 +350,7 @@ function analyzeSequenceTiming(steps: any[]): {
 } {
   const suggestions: string[] = []
   let totalDays = 0
-  let businessHoursCompliant = true
+  const businessHoursCompliant = true
   let culturallyOptimal = true
 
   for (const step of steps) {

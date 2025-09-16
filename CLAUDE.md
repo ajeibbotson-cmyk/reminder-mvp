@@ -2,11 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# UAEPay MVP - Payment Collection Platform
+# Reminder - Payment Collection Platform
 
-**E-invoicing gets your invoices delivered. UAEPay gets them paid.**
+**E-invoicing gets your invoices delivered. Reminder gets them paid.**
 
-A Next.js 15 SaaS platform targeting UAE SMEs for automated invoice payment collection, designed to capture first-mover advantage before the July 2026 UAE e-invoicing mandate.
+A Next.js 15 SaaS platform targeting UAE SMEs for automated invoice payment collection and reminder management, designed to capture first-mover advantage before the July 2026 UAE e-invoicing mandate.
 
 ## Development Commands
 
@@ -209,4 +209,4 @@ src/
     └── utils.ts          # Helper functions
 ```
 
-This UAE-focused platform is architected for rapid feature development with strong foundations in authentication, database design, and internationalization.
+This UAE-focused platform is architected for rapid feature development with strong foundations in authentication, database design, and internationalization. Reminder.com provides businesses with automated payment reminder capabilities.

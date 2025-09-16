@@ -126,7 +126,7 @@ describe('Payment-Status Workflow Integration', () => {
 
       // Mock database responses for status transitions
       let currentStatus = InvoiceStatus.DRAFT
-      let currentPayments: any[] = []
+      const currentPayments: any[] = []
 
       prisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
@@ -322,8 +322,8 @@ describe('Payment-Status Workflow Integration', () => {
         ]
       }
 
-      let currentStatus = InvoiceStatus.PAID
-      let currentPayments = [...paidInvoice.payments]
+      const currentStatus = InvoiceStatus.PAID
+      const currentPayments = [...paidInvoice.payments]
 
       prisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {

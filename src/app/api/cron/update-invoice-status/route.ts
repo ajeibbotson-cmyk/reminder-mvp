@@ -61,7 +61,7 @@ const UAE_HOLIDAYS = [
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
-  let processingSummary: {
+  const processingSummary: {
     companiesProcessed: number
     totalInvoicesChecked: number
     invoicesUpdated: number
@@ -304,7 +304,7 @@ function validateUAEBusinessSchedule(): {
 function getNextBusinessDayRunTime(): string {
   const now = new Date()
   const dubaiTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Dubai' }))
-  let nextRun = new Date(dubaiTime)
+  const nextRun = new Date(dubaiTime)
 
   // Set to 9:00 AM
   nextRun.setHours(9, 0, 0, 0)
