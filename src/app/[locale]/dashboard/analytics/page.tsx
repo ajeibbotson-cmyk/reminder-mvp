@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import { redirect } from "next/navigation"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { UAEErrorBoundary } from '@/components/error-boundaries/uae-error-boundary'
-import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard"
+import { MainAnalyticsDashboard } from "@/components/analytics/MainAnalyticsDashboard"
 import { SequencePerformance } from "@/components/analytics/sequence-performance" 
 import { EmailAnalytics } from "@/components/analytics/email-analytics"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -229,9 +229,8 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                   </CardContent>
                 </Card>
               }>
-                <AnalyticsDashboard 
+                <MainAnalyticsDashboard
                   companyId={session.user.companyId}
-                  dateRange={dateRange}
                   locale={params.locale}
                 />
               </Suspense>
