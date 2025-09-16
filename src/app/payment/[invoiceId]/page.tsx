@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PaymentPageProps): Promise<Me
 
   if (!invoice) {
     return {
-      title: 'Invoice Not Found - UAEPay',
+      title: 'Invoice Not Found - Reminder',
     }
   }
 
@@ -335,7 +335,7 @@ export default async function PaymentPage({ params, searchParams }: PaymentPageP
 
         {/* Footer */}
         <div className="mt-12 text-center text-xs text-gray-500">
-          <p>Powered by UAEPay Reminder Platform • Secured by Stripe • PCI DSS Compliant</p>
+          <p>Powered by Reminder Reminder Platform • Secured by Stripe • PCI DSS Compliant</p>
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
-# UAEPay MVP - Production Environment Setup
+# Reminder MVP - Production Environment Setup
 
 ## Overview
 
-This document provides step-by-step instructions for setting up the UAEPay MVP in production. The application is production-ready with comprehensive testing and robust architecture.
+This document provides step-by-step instructions for setting up the Reminder MVP in production. The application is production-ready with comprehensive testing and robust architecture.
 
 ## ✅ Services You Have Set Up
 - **AWS SES** - Email delivery service

@@ -53,7 +53,7 @@ const { prisma } = require('@/lib/prisma')
 // Test data setup
 const testCompany = {
   id: 'company-test-123',
-  name: 'UAEPay Test Company',
+  name: 'Reminder Test Company',
   trn: '123456789012345'
 }
 

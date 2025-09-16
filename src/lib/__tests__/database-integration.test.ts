@@ -2,7 +2,7 @@
  * Database Integration Tests
  * 
  * Tests critical business logic around multi-tenancy, data isolation,
- * and database operations for UAEPay platform
+ * and database operations for Reminder platform
  */
 
 import { PrismaClient } from '@prisma/client'

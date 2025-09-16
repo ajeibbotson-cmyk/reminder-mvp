@@ -346,7 +346,7 @@ async function sendPaymentConfirmationEmail(
 
       <p>Best regards,<br>
       ${invoice.company.name}<br>
-      Powered by UAEPay Reminder Platform</p>
+      Powered by Reminder Reminder Platform</p>
     </div>
   `
 
@@ -370,7 +370,7 @@ async function sendPaymentConfirmationEmail(
 
     Best regards,
     ${invoice.company.name}
-    Powered by UAEPay Reminder Platform
+    Powered by Reminder Reminder Platform
   `
 
   await sendEmail({

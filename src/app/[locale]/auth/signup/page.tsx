@@ -69,7 +69,7 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">UAEPay</CardTitle>
+          <CardTitle className="text-2xl text-center">Reminder</CardTitle>
           <CardDescription className="text-center">
             Create your account to get started
           </CardDescription>

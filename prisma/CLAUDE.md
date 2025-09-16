@@ -1,11 +1,11 @@
 # CLAUDE.md - Database Schema
 
-This file provides guidance for working with the UAEPay database schema and Prisma ORM.
+This file provides guidance for working with the Reminder database schema and Prisma ORM.
 
 ## Database Architecture
 
 ### Multi-tenant Design
-UAEPay uses a **shared database, shared schema** multi-tenancy model where:
+Reminder uses a **shared database, shared schema** multi-tenancy model where:
 - All companies share the same database and tables
 - Data isolation is enforced through `companyId` foreign keys
 - Row-level security ensures companies only access their own data

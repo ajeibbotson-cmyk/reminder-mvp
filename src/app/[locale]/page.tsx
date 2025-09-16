@@ -8,10 +8,10 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            UAEPay
+            Reminder
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            E-invoicing gets your invoices delivered. UAEPay gets them paid.
+            E-invoicing gets your invoices delivered. Reminder gets them paid.
           </p>
           <p className="text-lg text-gray-500 mb-12 max-w-2xl mx-auto">
             Reduce payment delays by 25% with automated, culturally-appropriate follow-ups for UAE businesses.
@@ -80,7 +80,7 @@ export default function HomePage() {
             Ready for UAE's E-Invoicing Mandate (July 2026)?
           </h2>
           <p className="text-gray-600 mb-6">
-            Join 200+ UAE businesses already collecting payments faster with UAEPay. 
+            Join 200+ UAE businesses already collecting payments faster with Reminder. 
             Get first-mover advantage before the e-invoicing mandate hits.
           </p>
           <Button asChild size="lg" className="text-lg px-8 py-3">

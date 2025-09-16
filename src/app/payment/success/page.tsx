@@ -274,7 +274,7 @@ async function PaymentSuccessPage({ searchParams }: PaymentSuccessProps) {
 
         {/* Footer */}
         <div className="mt-8 text-center text-xs text-gray-500 space-y-1">
-          <p>Powered by UAEPay Reminder Platform</p>
+          <p>Powered by Reminder Reminder Platform</p>
           <p>Secured by Stripe • PCI DSS Compliant • Data Protected</p>
         </div>
       </div>

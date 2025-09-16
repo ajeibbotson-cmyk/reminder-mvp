@@ -1,6 +1,6 @@
 # CLAUDE.md - Library Utilities
 
-This file provides guidance for working with UAEPay core services and utility functions.
+This file provides guidance for working with Reminder core services and utility functions.
 
 ## Core Services
 

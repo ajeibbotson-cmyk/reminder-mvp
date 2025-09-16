@@ -45,10 +45,10 @@ describe('SignInPage', () => {
       expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
     })
 
-    it('should render UAEPay branding', () => {
+    it('should render Reminder branding', () => {
       render(<SignInPage />)
 
-      expect(screen.getByText('UAEPay')).toBeInTheDocument()
+      expect(screen.getByText('Reminder')).toBeInTheDocument()
       expect(screen.getByText('Sign in to your account')).toBeInTheDocument()
     })
 

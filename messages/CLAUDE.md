@@ -1,6 +1,6 @@
 # CLAUDE.md - Internationalization
 
-This file provides guidance for working with UAEPay multilingual content and cultural localization.
+This file provides guidance for working with Reminder multilingual content and cultural localization.
 
 ## Message Structure
 

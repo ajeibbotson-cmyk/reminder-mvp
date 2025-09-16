@@ -1,11 +1,11 @@
 # CLAUDE.md - Components
 
-This file provides guidance for working with UAEPay UI components and design system.
+This file provides guidance for working with Reminder UI components and design system.
 
 ## Component Architecture
 
 ### Design System - shadcn/ui
-UAEPay uses shadcn/ui components with "new-york" style and custom theme configuration.
+Reminder uses shadcn/ui components with "new-york" style and custom theme configuration.
 
 #### Adding New Components
 ```bash

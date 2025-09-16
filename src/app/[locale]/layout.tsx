@@ -10,8 +10,8 @@ import "../globals.css";
 const inter = Inter({ subsets: ["latin", "latin-ext"] });
 
 export const metadata: Metadata = {
-  title: "UAEPay - UAE E-Invoice Payment Collection Platform",
-  description: "E-invoicing gets your invoices delivered. UAEPay gets them paid.",
+  title: "Reminder - UAE E-Invoice Payment Collection Platform",
+  description: "E-invoicing gets your invoices delivered. Reminder gets them paid.",
 };
 
 interface LocaleLayoutProps {

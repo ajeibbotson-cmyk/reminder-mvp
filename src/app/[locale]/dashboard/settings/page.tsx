@@ -26,7 +26,7 @@ export default function SettingsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-gray-600">Manage your UAEPay account and preferences</p>
+          <p className="text-gray-600">Manage your Reminder account and preferences</p>
         </div>
         <Button>
           <Save className="h-4 w-4 mr-2" />
@@ -293,7 +293,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Available Integrations</CardTitle>
-              <CardDescription>Connect UAEPay with your existing business tools</CardDescription>
+              <CardDescription>Connect Reminder with your existing business tools</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -383,7 +383,7 @@ export default function SettingsPage() {
                 <CreditCard className="h-5 w-5" />
                 Current Plan
               </CardTitle>
-              <CardDescription>Manage your UAEPay subscription</CardDescription>
+              <CardDescription>Manage your Reminder subscription</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between p-6 bg-blue-50 rounded-lg">

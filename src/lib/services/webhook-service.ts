@@ -379,7 +379,7 @@ export class WebhookService {
         'X-Webhook-Signature': signature,
         'X-Webhook-Event-Type': delivery.payload.eventType,
         'X-Webhook-Delivery-ID': delivery.id,
-        'User-Agent': 'UAEPay-Webhook/1.0',
+        'User-Agent': 'Reminder-Webhook/1.0',
         ...config.headers
       }
 

@@ -1,6 +1,6 @@
 # CLAUDE.md - API Routes
 
-This file provides guidance for working with UAEPay API routes and backend logic.
+This file provides guidance for working with Reminder API routes and backend logic.
 
 ## API Architecture
 

@@ -565,7 +565,7 @@ const defaultEmailConfig = {
     smtpPass: process.env.SMTP_PASS || ''
   },
   fromEmail: process.env.FROM_EMAIL || 'noreply@uaepay.com',
-  fromName: process.env.FROM_NAME || 'UAEPay Invoice System',
+  fromName: process.env.FROM_NAME || 'Reminder Invoice System',
   maxRetries: 3,
   retryDelayMs: 5000
 }

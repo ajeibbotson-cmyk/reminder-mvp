@@ -214,6 +214,7 @@ model invoices {
   notes_ar         String?          // Arabic notes for UAE bilingual support
   import_batch_id  String?          // Link to CSV import batch
   trn_number       String?          // UAE TRN for tax calculations
+  payment_intent_id String?         // Stripe Payment Intent ID for payment tracking
   is_active        Boolean          @default(true) // Soft delete flag
   archived_at      DateTime?        // Archival timestamp
   last_reminder_sent DateTime?      // Track follow-up timing

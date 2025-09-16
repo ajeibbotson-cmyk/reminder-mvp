@@ -1,6 +1,6 @@
 /**
  * Invoice Management Types
- * TypeScript definitions for UAEPay invoice system
+ * TypeScript definitions for Reminder invoice system
  */
 
 import { 

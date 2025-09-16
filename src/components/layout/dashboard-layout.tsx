@@ -112,7 +112,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className={`flex items-center justify-between px-4 py-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <div className="flex items-center gap-2">
               <Building2 className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold">UAEPay</span>
+              <span className="text-xl font-bold">Reminder</span>
             </div>
             <Button
               variant="ghost"
@@ -155,7 +155,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4">
             <Building2 className="h-8 w-8 text-blue-600" />
-            <span className={`text-xl font-bold ${isRTL ? 'mr-2' : 'ml-2'}`}>UAEPay</span>
+            <span className={`text-xl font-bold ${isRTL ? 'mr-2' : 'ml-2'}`}>Reminder</span>
           </div>
           <div className="mt-5 flex-grow flex flex-col">
             <nav className="flex-1 px-2 space-y-1">
@@ -204,7 +204,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className={`lg:hidden ${isRTL ? 'mr-4' : 'ml-4'}`}>
                 <div className="flex items-center gap-2">
                   <Building2 className="h-6 w-6 text-blue-600" />
-                  <span className="font-bold">UAEPay</span>
+                  <span className="font-bold">Reminder</span>
                 </div>
               </div>
             </div>

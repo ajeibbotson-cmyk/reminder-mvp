@@ -49,10 +49,10 @@ describe('SignUpPage', () => {
       expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument()
     })
 
-    it('should render UAEPay branding', () => {
+    it('should render Reminder branding', () => {
       render(<SignUpPage />)
 
-      expect(screen.getByText('UAEPay')).toBeInTheDocument()
+      expect(screen.getByText('Reminder')).toBeInTheDocument()
       expect(screen.getByText('Create your account to get started')).toBeInTheDocument()
     })
 

@@ -30,7 +30,7 @@ const ERROR_MESSAGES = {
     contactSupport: 'Contact Support',
     supportHours: 'UAE Business Hours: 8:00 AM - 6:00 PM GST',
     supportPhone: '+971-4-XXX-XXXX',
-    supportEmail: 'support@uaepay.ae',
+    supportEmail: 'support@reminder.ae',
     errorId: 'Error ID',
     timestamp: 'Time'
   },
@@ -43,7 +43,7 @@ const ERROR_MESSAGES = {
     contactSupport: 'اتصل بالدعم',
     supportHours: 'ساعات العمل الإماراتية: 8:00 ص - 6:00 م بتوقيت الخليج',
     supportPhone: '+971-4-XXX-XXXX',
-    supportEmail: 'support@uaepay.ae',
+    supportEmail: 'support@reminder.ae',
     errorId: 'معرف الخطأ',
     timestamp: 'الوقت'
   }
@@ -87,9 +87,9 @@ export class UAEErrorBoundary extends Component<Props, State> {
   }
 
   handleContactSupport = () => {
-    const subject = `UAEPay Error Report - ${this.errorId}`
+    const subject = `Reminder Error Report - ${this.errorId}`
     const body = `Error ID: ${this.errorId}\nTimestamp: ${new Date().toISOString()}\nUser Agent: ${typeof window !== 'undefined' ? navigator.userAgent : 'server'}\n\nPlease describe what you were doing when this error occurred:`
-    window.open(`mailto:support@uaepay.ae?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+    window.open(`mailto:support@reminder.ae?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
   }
 
   render() {
