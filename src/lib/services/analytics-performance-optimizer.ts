@@ -74,7 +74,7 @@ export class AnalyticsPerformanceOptimizer {
     // Execute query with performance monitoring
     let data: T
     let executionTime: number
-    let indexesUsed: string[] = []
+    const indexesUsed: string[] = []
     let optimizationApplied: string[] = []
 
     try {

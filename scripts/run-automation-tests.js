@@ -269,11 +269,11 @@ class TestRunner {
     const benchmarks = [
       {
         name: 'UAE Business Hours Validation',
-        command: 'node -e \"const service = require(\\'./dist/lib/services/uae-business-hours-service.js\\'); const start = Date.now(); for(let i = 0; i < 10000; i++) { service.uaeBusinessHours.isBusinessHours(new Date()); } console.log(\\'Time:\\', Date.now() - start, \\'ms\\');\"'
+        command: 'node -e "const service = require(\'./dist/lib/services/uae-business-hours-service.js\'); const start = Date.now(); for(let i = 0; i < 10000; i++) { service.uaeBusinessHours.isBusinessHours(new Date()); } console.log(\'Time:\', Date.now() - start, \'ms\');"'
       },
       {
         name: 'Cultural Compliance Check',
-        command: 'node -e \"const service = require(\\'./dist/lib/services/cultural-compliance-service.js\\'); const start = Date.now(); for(let i = 0; i < 1000; i++) { service.CulturalComplianceService.calculateCulturalScore(\\'Test content\\'); } console.log(\\'Time:\\', Date.now() - start, \\'ms\\');\"'
+        command: 'node -e "const service = require(\'./dist/lib/services/cultural-compliance-service.js\'); const start = Date.now(); for(let i = 0; i < 1000; i++) { service.CulturalComplianceService.calculateCulturalScore(\'Test content\'); } console.log(\'Time:\', Date.now() - start, \'ms\');"'
       }
     ]
 

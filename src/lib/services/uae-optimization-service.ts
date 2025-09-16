@@ -101,7 +101,7 @@ export class UAEOptimizationService {
     const isBusinessHours = this.isBusinessHours(uaeNow)
     const isPrayerTime = this.isPrayerTime(uaeNow, prayerTimes)
 
-    let optimization: CulturalOptimization = {
+    const optimization: CulturalOptimization = {
       currentPeriod,
       recommendedCacheTTL: this.calculateOptimalCacheTTL(currentPeriod, isBusinessHours),
       emailSendingOptimal: this.isOptimalForEmailSending(uaeNow, currentPeriod, isPrayerTime),
@@ -166,7 +166,7 @@ export class UAEOptimizationService {
     const uaeNow = utcToZonedTime(new Date(), this.UAE_TIMEZONE)
     const isBusinessHours = this.isBusinessHours(uaeNow)
 
-    let strategy = {
+    const strategy = {
       ttl: optimization.recommendedCacheTTL,
       tier: 'L2_REDIS' as const,
       warmup: false,
@@ -444,7 +444,7 @@ export class UAEOptimizationService {
   }
 
   private calculateOptimalCacheTTL(period: CulturalOptimization['currentPeriod'], isBusinessHours: boolean): number {
-    let baseTTL = isBusinessHours ? 120000 : 300000 // 2min vs 5min
+    const baseTTL = isBusinessHours ? 120000 : 300000 // 2min vs 5min
 
     switch (period) {
       case 'ramadan':
@@ -476,7 +476,7 @@ export class UAEOptimizationService {
   }
 
   private getQueryOptimizationLevel(period: CulturalOptimization['currentPeriod'], isBusinessHours: boolean): number {
-    let baseLevel = isBusinessHours ? 1.0 : 0.7
+    const baseLevel = isBusinessHours ? 1.0 : 0.7
 
     switch (period) {
       case 'ramadan':
@@ -490,7 +490,7 @@ export class UAEOptimizationService {
   }
 
   private getRealTimeUpdateFrequency(period: CulturalOptimization['currentPeriod'], isBusinessHours: boolean): number {
-    let baseFrequency = isBusinessHours ? 1000 : 5000 // 1s vs 5s
+    const baseFrequency = isBusinessHours ? 1000 : 5000 // 1s vs 5s
 
     switch (period) {
       case 'ramadan':

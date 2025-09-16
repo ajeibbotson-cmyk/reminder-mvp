@@ -174,8 +174,8 @@ interface BusinessTypeProps {
   locale?: string
 }
 
-export function BusinessTypeDisplay({ 
-  type, 
+export function BusinessTypeDisplay({
+  type,
   className,
   locale = 'en'
 }: BusinessTypeProps) {
@@ -186,13 +186,31 @@ export function BusinessTypeDisplay({
     'PARTNERSHIP': { en: 'Partnership', ar: 'شراكة' },
     'BRANCH': { en: 'Branch', ar: 'فرع' }
   }
-  
+
   const config = businessTypes[type as keyof typeof businessTypes]
   const text = config ? (config[locale as keyof typeof config] || config.en) : type
-  
+
   return (
     <span className={cn("text-sm", className)}>
       {text}
     </span>
   )
+}
+
+// Export utility functions that are expected by analytics components
+export function formatAEDCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-AE', {
+    style: 'currency',
+    currency: 'AED',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount)
+}
+
+export function formatPercentage(value: number): string {
+  return new Intl.NumberFormat('en-AE', {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  }).format(value / 100)
 }

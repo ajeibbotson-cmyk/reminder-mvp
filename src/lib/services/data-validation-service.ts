@@ -246,7 +246,7 @@ export class DataValidationService {
     const errors: ValidationError[] = []
     const warnings: ValidationWarning[] = []
     const securityFlags: SecurityFlag[] = []
-    let sanitizedResponse = { ...response }
+    const sanitizedResponse = { ...response }
 
     try {
       // Validate response structure

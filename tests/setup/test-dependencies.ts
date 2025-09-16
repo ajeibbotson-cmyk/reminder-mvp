@@ -85,11 +85,13 @@ jest.mock('@aws-sdk/client-ses', () => ({
 
 // Mock react-day-picker
 jest.mock('react-day-picker', () => ({
-  DayPicker: ({ onSelect }: { onSelect: (date: Date) => void }) => (
-    <div data-testid="day-picker" onClick={() => onSelect(new Date())}>
-      Mock Calendar
-    </div>
-  ),
+  DayPicker: ({ onSelect }: { onSelect: (date: Date) => void }) => {
+    const React = require('react');
+    return React.createElement('div', {
+      'data-testid': 'day-picker',
+      onClick: () => onSelect(new Date())
+    }, 'Mock Calendar');
+  },
 }));
 
 // Setup timezone for UAE

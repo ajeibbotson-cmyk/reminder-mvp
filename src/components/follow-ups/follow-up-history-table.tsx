@@ -130,7 +130,7 @@ export function FollowUpHistoryTable({
 
   // Filter and sort records
   const filteredAndSortedRecords = useMemo(() => {
-    let filtered = records.filter(record => {
+    const filtered = records.filter(record => {
       const matchesSearch =
         record.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         record.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||

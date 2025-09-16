@@ -142,7 +142,7 @@ export class AnalyticsIntegrationOrchestrator {
   }> {
     const startTime = performance.now()
     let strategy: OptimizationResult['strategy'] = 'fallback'
-    let optimizationsApplied: string[] = []
+    const optimizationsApplied: string[] = []
     let cacheHit = false
     let dbQueries = 0
     let dbExecutionTime = 0

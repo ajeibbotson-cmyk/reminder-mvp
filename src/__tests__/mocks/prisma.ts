@@ -16,6 +16,10 @@ export const createMockPrisma = () => {
       const mockTx = createMockTx()
       return await fn(mockTx)
     }),
+
+    // Raw query methods
+    $queryRaw: jest.fn(),
+    $executeRaw: jest.fn(),
     
     // Individual model mocks
     invoices: {
