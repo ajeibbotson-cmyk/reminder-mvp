@@ -1,6 +1,8 @@
 import { z } from 'zod'
+import { Decimal } from 'decimal.js'
+import { formatEnhancedUAECurrency, UAE_CURRENCY_PRESETS, UAECurrencyConfig } from './enhanced-uae-currency'
 
-// UAE Business Hours Configuration
+// Enhanced UAE Business Hours Configuration with granular controls
 export interface UAEBusinessHours {
   timezone: string
   workingDays: number[] // 0 = Sunday, 1 = Monday, etc.
@@ -12,9 +14,42 @@ export interface UAEBusinessHours {
     startHour: number
     endHour: number
   }
+  // Enhanced granular controls
+  prayerTimeBuffer: number // Minutes buffer around prayer times
+  lunchBreak?: {
+    startHour: number
+    endHour: number
+    enabled: boolean
+  }
+  fridayPrayerBreak?: {
+    startHour: number
+    endHour: number
+    enabled: boolean
+  }
+  emergencyOverride?: {
+    enabled: boolean
+    contactHours: number[] // Hours when emergency contact is allowed
+  }
+  customHolidays: Date[]
+  seasonalAdjustments?: {
+    ramadan: {
+      enabled: boolean
+      startHour: number
+      endHour: number
+      noLunchBreak: boolean
+    }
+    summer: {
+      enabled: boolean
+      adjustedStartHour: number
+      adjustedEndHour: number
+      applicableMonths: number[] // Months where summer hours apply
+    }
+  }
+  strictMode: boolean // Whether to enforce business hours strictly
+  gracePeriod: number // Minutes before/after hours still considered acceptable
 }
 
-// Default UAE business hours
+// Enhanced default UAE business hours with granular controls
 export const DEFAULT_UAE_BUSINESS_HOURS: UAEBusinessHours = {
   timezone: 'Asia/Dubai',
   workingDays: [0, 1, 2, 3, 4], // Sunday to Thursday
@@ -22,10 +57,38 @@ export const DEFAULT_UAE_BUSINESS_HOURS: UAEBusinessHours = {
   endHour: 17,
   allowWeekends: false,
   allowHolidays: false,
-  ramadanHours: {
-    startHour: 9,
-    endHour: 15
-  }
+  prayerTimeBuffer: 15, // 15 minutes buffer around prayer times
+  lunchBreak: {
+    startHour: 12,
+    endHour: 13,
+    enabled: true
+  },
+  fridayPrayerBreak: {
+    startHour: 12,
+    endHour: 13,
+    enabled: true
+  },
+  emergencyOverride: {
+    enabled: true,
+    contactHours: [8, 9, 10, 11, 14, 15, 16, 17] // Excluding lunch and prayer times
+  },
+  customHolidays: [],
+  seasonalAdjustments: {
+    ramadan: {
+      enabled: true,
+      startHour: 9,
+      endHour: 15,
+      noLunchBreak: true
+    },
+    summer: {
+      enabled: true,
+      adjustedStartHour: 7,
+      adjustedEndHour: 16,
+      applicableMonths: [6, 7, 8] // June, July, August
+    }
+  },
+  strictMode: false,
+  gracePeriod: 30 // 30 minutes grace period
 }
 
 // UAE Business Types with validation rules
@@ -162,33 +225,166 @@ export function validateBusinessTypeRules(
   }
 }
 
-// Check if current time is within UAE business hours
+// Enhanced business hours validation with granular controls
 export function isWithinUAEBusinessHours(
   businessHours: UAEBusinessHours = DEFAULT_UAE_BUSINESS_HOURS,
   dateTime?: Date
-): boolean {
+): {
+  isWithinHours: boolean
+  reason?: string
+  nextAvailableTime?: Date
+  contextInfo: {
+    currentHour: number
+    isWorkingDay: boolean
+    isRamadan: boolean
+    isSummer: boolean
+    isLunchBreak: boolean
+    isPrayerTime: boolean
+    isHoliday: boolean
+    gracePeriodActive: boolean
+  }
+} {
   const now = dateTime || new Date()
-  
+
   // Convert to Dubai timezone
   const dubaiTime = new Date(now.toLocaleString('en-US', { timeZone: businessHours.timezone }))
-  
+
   const dayOfWeek = dubaiTime.getDay()
   const hour = dubaiTime.getHours()
-  
-  // Check if it's a working day
-  if (!businessHours.workingDays.includes(dayOfWeek) && !businessHours.allowWeekends) {
-    return false
-  }
-  
-  // Check if it's within working hours
-  // During Ramadan, use different hours (this would need actual Ramadan detection)
+  const minute = dubaiTime.getMinutes()
+  const month = dubaiTime.getMonth() + 1 // JavaScript months are 0-indexed
+
+  // Context information
+  const isWorkingDay = businessHours.workingDays.includes(dayOfWeek)
   const isRamadan = isRamadanPeriod(dubaiTime)
-  const startHour = isRamadan && businessHours.ramadanHours ? 
-    businessHours.ramadanHours.startHour : businessHours.startHour
-  const endHour = isRamadan && businessHours.ramadanHours ? 
-    businessHours.ramadanHours.endHour : businessHours.endHour
-  
-  return hour >= startHour && hour < endHour
+  const isSummer = businessHours.seasonalAdjustments?.summer.enabled &&
+    businessHours.seasonalAdjustments.summer.applicableMonths.includes(month)
+  const isHoliday = isUAEHoliday(dubaiTime, businessHours.customHolidays)
+
+  // Determine effective working hours
+  let effectiveStartHour = businessHours.startHour
+  let effectiveEndHour = businessHours.endHour
+
+  if (isRamadan && businessHours.seasonalAdjustments?.ramadan.enabled) {
+    effectiveStartHour = businessHours.seasonalAdjustments.ramadan.startHour
+    effectiveEndHour = businessHours.seasonalAdjustments.ramadan.endHour
+  } else if (isSummer && businessHours.seasonalAdjustments?.summer.enabled) {
+    effectiveStartHour = businessHours.seasonalAdjustments.summer.adjustedStartHour
+    effectiveEndHour = businessHours.seasonalAdjustments.summer.adjustedEndHour
+  }
+
+  // Check various time restrictions
+  const isLunchBreak = businessHours.lunchBreak?.enabled &&
+    hour >= businessHours.lunchBreak.startHour &&
+    hour < businessHours.lunchBreak.endHour &&
+    !(isRamadan && businessHours.seasonalAdjustments?.ramadan.noLunchBreak)
+
+  const isFridayPrayerTime = dayOfWeek === 5 && // Friday
+    businessHours.fridayPrayerBreak?.enabled &&
+    hour >= businessHours.fridayPrayerBreak.startHour &&
+    hour < businessHours.fridayPrayerBreak.endHour
+
+  const isPrayerTime = isPrayerTimeHour(hour, minute, businessHours.prayerTimeBuffer)
+
+  // Grace period calculation
+  const totalMinutes = hour * 60 + minute
+  const startMinutes = effectiveStartHour * 60
+  const endMinutes = effectiveEndHour * 60
+  const gracePeriod = businessHours.gracePeriod
+
+  const gracePeriodActive = !businessHours.strictMode && (
+    (totalMinutes >= startMinutes - gracePeriod && totalMinutes < startMinutes) ||
+    (totalMinutes >= endMinutes && totalMinutes < endMinutes + gracePeriod)
+  )
+
+  const contextInfo = {
+    currentHour: hour,
+    isWorkingDay,
+    isRamadan,
+    isSummer,
+    isLunchBreak,
+    isPrayerTime: isPrayerTime || isFridayPrayerTime,
+    isHoliday,
+    gracePeriodActive
+  }
+
+  // Main validation logic
+  if (!isWorkingDay && !businessHours.allowWeekends) {
+    return {
+      isWithinHours: false,
+      reason: `${getDayName(dayOfWeek)} is not a working day`,
+      nextAvailableTime: getNextWorkingDay(dubaiTime, businessHours),
+      contextInfo
+    }
+  }
+
+  if (isHoliday && !businessHours.allowHolidays) {
+    return {
+      isWithinHours: false,
+      reason: 'Today is a UAE public holiday',
+      nextAvailableTime: getNextWorkingDay(dubaiTime, businessHours),
+      contextInfo
+    }
+  }
+
+  if (hour < effectiveStartHour || hour >= effectiveEndHour) {
+    if (gracePeriodActive) {
+      return {
+        isWithinHours: true,
+        reason: 'Within grace period',
+        contextInfo
+      }
+    }
+
+    return {
+      isWithinHours: false,
+      reason: `Outside business hours (${effectiveStartHour}:00 - ${effectiveEndHour}:00)`,
+      nextAvailableTime: getNextAvailableTime(dubaiTime, businessHours),
+      contextInfo
+    }
+  }
+
+  if (isLunchBreak) {
+    return {
+      isWithinHours: false,
+      reason: 'During lunch break',
+      nextAvailableTime: getNextAvailableTime(dubaiTime, businessHours),
+      contextInfo
+    }
+  }
+
+  if (isFridayPrayerTime) {
+    return {
+      isWithinHours: false,
+      reason: 'During Friday prayer time',
+      nextAvailableTime: getNextAvailableTime(dubaiTime, businessHours),
+      contextInfo
+    }
+  }
+
+  if (isPrayerTime && businessHours.prayerTimeBuffer > 0) {
+    return {
+      isWithinHours: false,
+      reason: 'During prayer time buffer',
+      nextAvailableTime: getNextAvailableTime(dubaiTime, businessHours),
+      contextInfo
+    }
+  }
+
+  // Emergency override check
+  if (businessHours.emergencyOverride?.enabled &&
+      businessHours.emergencyOverride.contactHours.includes(hour)) {
+    return {
+      isWithinHours: true,
+      reason: 'Emergency contact hours',
+      contextInfo
+    }
+  }
+
+  return {
+    isWithinHours: true,
+    contextInfo
+  }
 }
 
 // Simple Ramadan detection (would need more sophisticated implementation)
@@ -393,5 +589,196 @@ export function assessCustomerRisk(customerData: {
     riskScore: Math.min(riskScore, 100),
     factors,
     recommendations
+  }
+}
+
+// Enhanced helper functions for business hours enforcement
+
+/**
+ * Check if current time is during prayer time
+ */
+function isPrayerTimeHour(hour: number, minute: number, bufferMinutes: number): boolean {
+  // Simplified prayer time detection (would need proper Islamic prayer time library)
+  const prayerTimes = [
+    { start: 5, end: 6 },   // Fajr
+    { start: 12, end: 13 }, // Dhuhr
+    { start: 15, end: 16 }, // Asr
+    { start: 18, end: 19 }, // Maghrib
+    { start: 20, end: 21 }  // Isha
+  ]
+
+  const currentMinutes = hour * 60 + minute
+
+  return prayerTimes.some(prayer => {
+    const startMinutes = prayer.start * 60 - bufferMinutes
+    const endMinutes = prayer.end * 60 + bufferMinutes
+    return currentMinutes >= startMinutes && currentMinutes <= endMinutes
+  })
+}
+
+/**
+ * Check if date is a UAE public holiday
+ */
+function isUAEHoliday(date: Date, customHolidays: Date[]): boolean {
+  // Check custom holidays
+  const isCustomHoliday = customHolidays.some(holiday =>
+    holiday.getFullYear() === date.getFullYear() &&
+    holiday.getMonth() === date.getMonth() &&
+    holiday.getDate() === date.getDate()
+  )
+
+  if (isCustomHoliday) return true
+
+  // UAE National Day (December 2)
+  if (date.getMonth() === 11 && date.getDate() === 2) return true
+
+  // UAE Commemoration Day (November 30)
+  if (date.getMonth() === 10 && date.getDate() === 30) return true
+
+  // New Year's Day (January 1)
+  if (date.getMonth() === 0 && date.getDate() === 1) return true
+
+  // Would need Islamic calendar library for Eid holidays, Prophet's Birthday, etc.
+  return false
+}
+
+/**
+ * Get day name for error messages
+ */
+function getDayName(dayOfWeek: number): string {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  return days[dayOfWeek] || 'Unknown'
+}
+
+/**
+ * Get next working day
+ */
+function getNextWorkingDay(currentDate: Date, businessHours: UAEBusinessHours): Date {
+  const nextDay = new Date(currentDate)
+  nextDay.setDate(nextDay.getDate() + 1)
+  nextDay.setHours(businessHours.startHour, 0, 0, 0)
+
+  // Keep advancing until we find a working day
+  let attempts = 0
+  while (attempts < 14) { // Prevent infinite loop
+    const dayOfWeek = nextDay.getDay()
+    const isWorkingDay = businessHours.workingDays.includes(dayOfWeek)
+    const isHoliday = isUAEHoliday(nextDay, businessHours.customHolidays)
+
+    if (isWorkingDay && (!isHoliday || businessHours.allowHolidays)) {
+      return nextDay
+    }
+
+    nextDay.setDate(nextDay.getDate() + 1)
+    attempts++
+  }
+
+  return nextDay // Fallback
+}
+
+/**
+ * Get next available time considering all restrictions
+ */
+function getNextAvailableTime(currentDate: Date, businessHours: UAEBusinessHours): Date {
+  const nextTime = new Date(currentDate)
+  const hour = nextTime.getHours()
+
+  // If we're in the same day, try to find next available hour
+  const dayOfWeek = nextTime.getDay()
+  const isWorkingDay = businessHours.workingDays.includes(dayOfWeek)
+  const isHoliday = isUAEHoliday(nextTime, businessHours.customHolidays)
+
+  if (isWorkingDay && (!isHoliday || businessHours.allowHolidays)) {
+    // Check if we can schedule later today
+    const isRamadan = isRamadanPeriod(nextTime)
+    const month = nextTime.getMonth() + 1
+    const isSummer = businessHours.seasonalAdjustments?.summer.enabled &&
+      businessHours.seasonalAdjustments.summer.applicableMonths.includes(month)
+
+    let effectiveEndHour = businessHours.endHour
+    if (isRamadan && businessHours.seasonalAdjustments?.ramadan.enabled) {
+      effectiveEndHour = businessHours.seasonalAdjustments.ramadan.endHour
+    } else if (isSummer && businessHours.seasonalAdjustments?.summer.enabled) {
+      effectiveEndHour = businessHours.seasonalAdjustments.summer.adjustedEndHour
+    }
+
+    // If we're before end of day, try scheduling later today
+    if (hour < effectiveEndHour - 1) {
+      // Skip lunch break if applicable
+      if (businessHours.lunchBreak?.enabled &&
+          hour < businessHours.lunchBreak.endHour) {
+        nextTime.setHours(businessHours.lunchBreak.endHour, 0, 0, 0)
+        return nextTime
+      }
+
+      // Otherwise, schedule for next hour
+      nextTime.setHours(hour + 1, 0, 0, 0)
+      return nextTime
+    }
+  }
+
+  // Schedule for next working day
+  return getNextWorkingDay(currentDate, businessHours)
+}
+
+/**
+ * Enhanced currency formatting for UAE business context
+ */
+export function formatUAEBusinessCurrency(
+  amount: number | string | Decimal,
+  context: 'invoice' | 'receipt' | 'statement' | 'banking' | 'regulatory' = 'invoice'
+): string {
+  const amountDecimal = new Decimal(amount)
+  const config = UAE_CURRENCY_PRESETS[context.toUpperCase() as keyof typeof UAE_CURRENCY_PRESETS]
+
+  const result = formatEnhancedUAECurrency(amountDecimal, config)
+  return result.formatted
+}
+
+/**
+ * Validate and format currency for specific business context
+ */
+export function validateAndFormatUAECurrency(
+  amount: number | string | Decimal,
+  context: 'invoice' | 'receipt' | 'statement' | 'banking' | 'regulatory' = 'invoice'
+): {
+  isValid: boolean
+  formatted?: string
+  errors: string[]
+  warnings: string[]
+} {
+  try {
+    const amountDecimal = new Decimal(amount)
+    const config = UAE_CURRENCY_PRESETS[context.toUpperCase() as keyof typeof UAE_CURRENCY_PRESETS]
+
+    const result = formatEnhancedUAECurrency(amountDecimal, config)
+
+    const errors: string[] = []
+    const warnings: string[] = []
+
+    if (!result.compliance.isValidAmount) {
+      errors.push('Invalid amount')
+    }
+
+    if (!result.compliance.invoiceCompliant && context === 'invoice') {
+      warnings.push('Amount may require additional verification for invoicing')
+    }
+
+    if (!result.compliance.withinBankingLimits) {
+      errors.push('Amount exceeds banking transaction limits')
+    }
+
+    return {
+      isValid: errors.length === 0,
+      formatted: result.formatted,
+      errors,
+      warnings
+    }
+  } catch (error) {
+    return {
+      isValid: false,
+      errors: ['Invalid amount format'],
+      warnings: []
+    }
   }
 }
