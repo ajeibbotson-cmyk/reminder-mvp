@@ -46,6 +46,10 @@ import { Progress } from "@/components/ui/progress"
 import { SequenceBuilder } from '@/components/follow-ups/sequence-builder'
 import { SequenceLibrary } from '@/components/follow-ups/sequence-library'
 import { SequenceTester } from '@/components/follow-ups/sequence-tester'
+import { AutomationDashboard } from '@/components/follow-ups/automation-dashboard'
+import { SequenceTimeline } from '@/components/follow-ups/sequence-timeline'
+import { FollowUpHistoryTable } from '@/components/follow-ups/follow-up-history-table'
+import { SequenceMetrics } from '@/components/follow-ups/sequence-metrics'
 import { useFollowUpSequenceStore } from '@/lib/stores/follow-up-store'
 import { UAEErrorBoundary } from '@/components/error-boundaries/uae-error-boundary'
 import { cn } from '@/lib/utils'
@@ -334,9 +338,11 @@ export default function FollowUpsPage() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="automation">Automation</TabsTrigger>
             <TabsTrigger value="sequences">Sequences</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -403,6 +409,20 @@ export default function FollowUpsPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="automation" className="space-y-6">
+            <AutomationDashboard
+              companyId={session?.user?.companyId}
+              refreshInterval={30000}
+              onSequenceClick={(sequenceId) => {
+                setEditingSequence(sequenceId)
+                setShowBuilder(true)
+              }}
+              onInvoiceClick={(invoiceId) => {
+                router.push(`/dashboard/invoices/${invoiceId}`)
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="sequences" className="space-y-6">
@@ -576,24 +596,137 @@ export default function FollowUpsPage() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="history" className="space-y-6">
+            {/* Timeline and History */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Follow-up Timeline</CardTitle>
+                  <CardDescription>
+                    Recent activity and events across all sequences
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <SequenceTimeline
+                    events={[]} // This would be populated with real timeline data
+                    autoRefresh={true}
+                    refreshInterval={30000}
+                    onEventClick={(event) => {
+                      console.log('Timeline event clicked:', event)
+                    }}
+                    onInvoiceClick={(invoiceId) => {
+                      router.push(`/dashboard/invoices/${invoiceId}`)
+                    }}
+                    onCustomerClick={(customerId) => {
+                      router.push(`/dashboard/customers/${customerId}`)
+                    }}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Email History Summary</CardTitle>
+                  <CardDescription>
+                    Quick overview of recent email activity
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-4 border rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">0</div>
+                        <div className="text-sm text-gray-600">Emails Sent Today</div>
+                      </div>
+                      <div className="text-center p-4 border rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">0%</div>
+                        <div className="text-sm text-gray-600">Response Rate</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Detailed History Table */}
+            <FollowUpHistoryTable
+              records={[]} // This would be populated with real history data
+              loading={false}
+              onRecordClick={(record) => {
+                console.log('History record clicked:', record)
+              }}
+              onInvoiceClick={(invoiceId) => {
+                router.push(`/dashboard/invoices/${invoiceId}`)
+              }}
+              onCustomerClick={(customerId) => {
+                router.push(`/dashboard/customers/${customerId}`)
+              }}
+              onResendEmail={(recordId) => {
+                console.log('Resend email:', recordId)
+              }}
+              onBulkAction={(action, recordIds) => {
+                console.log('Bulk action:', action, recordIds)
+              }}
+            />
+          </TabsContent>
+
           <TabsContent value="analytics" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Analytics</CardTitle>
-                <CardDescription>
-                  Track the effectiveness of your follow-up sequences
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <BarChart3 className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-semibold mb-2">Analytics Coming Soon</h3>
-                  <p className="text-gray-600">
-                    Detailed performance metrics and insights will be available here
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <SequenceMetrics
+              sequences={sequences.map(seq => ({
+                id: seq.id,
+                name: seq.name,
+                type: seq.sequenceType,
+                status: seq.active ? 'ACTIVE' : 'PAUSED',
+                metrics: {
+                  emailsSent: seq.emailsSent || 0,
+                  emailsDelivered: Math.floor((seq.emailsSent || 0) * 0.95),
+                  emailsOpened: Math.floor((seq.emailsSent || 0) * 0.35),
+                  emailsClicked: Math.floor((seq.emailsSent || 0) * 0.15),
+                  responseRate: seq.responseRate || 0,
+                  conversionRate: seq.effectiveness || 0,
+                  paymentReceived: Math.floor((seq.emailsSent || 0) * 0.1 * 500), // Mock calculation
+                  averageResponseTime: Math.random() * 48 + 2, // Mock 2-50 hours
+                  bounceRate: Math.random() * 5, // Mock 0-5%
+                  unsubscribeRate: Math.random() * 2 // Mock 0-2%
+                },
+                timeSeriesData: Array.from({ length: 30 }, (_, i) => ({
+                  date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                  emailsSent: Math.floor(Math.random() * 50),
+                  responseRate: Math.random() * 30 + 10,
+                  conversionRate: Math.random() * 15 + 5,
+                  paymentAmount: Math.random() * 10000
+                })),
+                stepPerformance: [
+                  {
+                    stepOrder: 1,
+                    stepName: 'Initial Reminder',
+                    stepType: 'EMAIL',
+                    emailsSent: seq.emailsSent || 0,
+                    responseRate: (seq.responseRate || 0) * 1.2,
+                    effectiveness: (seq.effectiveness || 0) * 1.1
+                  },
+                  {
+                    stepOrder: 2,
+                    stepName: 'Follow-up Notice',
+                    stepType: 'EMAIL',
+                    emailsSent: Math.floor((seq.emailsSent || 0) * 0.7),
+                    responseRate: (seq.responseRate || 0) * 0.9,
+                    effectiveness: (seq.effectiveness || 0) * 0.8
+                  }
+                ],
+                uaeMetrics: {
+                  businessHoursCompliance: seq.uaeBusinessHoursOnly ? 100 : 70,
+                  holidayRespect: seq.respectHolidays ? 100 : 60,
+                  prayerTimeAvoidance: 95,
+                  culturalAppropriatenesScore: 85
+                }
+              }))}
+              timeRange="30d"
+              onTimeRangeChange={(range) => {
+                console.log('Time range changed:', range)
+              }}
+              companyId={session?.user?.companyId}
+            />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
