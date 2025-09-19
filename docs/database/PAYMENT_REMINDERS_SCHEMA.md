@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document details the database schema extensions required for implementing customer-consolidated payment reminders in SendAChaser. The schema builds upon the existing contact management system while adding invoice tracking and automated reminder capabilities.
+This document details the database schema extensions required for implementing customer-consolidated payment reminders in the reminder-mvp application. The schema builds upon the existing contact management system while adding invoice tracking and automated reminder capabilities.
 
 ## Existing Schema Integration
 

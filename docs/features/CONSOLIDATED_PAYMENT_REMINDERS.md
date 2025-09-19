@@ -2,12 +2,12 @@
 
 ## Overview
 
-This feature implements intelligent customer-consolidated payment reminders for SendAChaser, specifically designed for the UAE business market. The system groups multiple outstanding invoices by customer and sends professional, culturally-appropriate reminder emails that reduce communication volume while maintaining effectiveness.
+This feature implements intelligent customer-consolidated payment reminders for the reminder-mvp application, specifically designed for the UAE business market. The system groups multiple outstanding invoices by customer and sends professional, culturally-appropriate reminder emails that reduce communication volume while maintaining effectiveness.
 
 ## Business Context
 
 ### Problem Statement
-UAE businesses using SendAChaser face challenges with:
+UAE businesses using invoice reminder systems face challenges with:
 - **Email fatigue**: Customers receive multiple individual reminder emails for different invoices
 - **Relationship strain**: Excessive communication can damage professional relationships
 - **Inefficient collections**: Fragmented communication reduces payment response rates
@@ -143,7 +143,7 @@ UAE businesses using SendAChaser face challenges with:
 ## Integration Requirements
 
 ### INT1: Contact Management System
-**Description**: Seamless integration with existing SendAChaser contact management.
+**Description**: Seamless integration with existing contact management system.
 
 **Integration Points**:
 - Use existing `contacts` table for customer information

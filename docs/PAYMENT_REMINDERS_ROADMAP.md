@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document outlines the implementation plan for customer-consolidated payment reminders in SendAChaser, designed specifically for the UAE market. The feature will reduce email volume by 70%+ while maintaining professional customer relationships through intelligent invoice grouping and culturally-appropriate communication.
+This document outlines the implementation plan for customer-consolidated payment reminders in the reminder-mvp application, designed specifically for the UAE market. The feature will reduce email volume by 70%+ while maintaining professional customer relationships through intelligent invoice grouping and culturally-appropriate communication.
 
 ## Current System Analysis
 

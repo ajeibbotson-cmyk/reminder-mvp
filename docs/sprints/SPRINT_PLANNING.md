@@ -2,7 +2,7 @@
 
 ## Sprint Overview
 
-This document provides detailed sprint breakdowns for implementing customer-consolidated payment reminders in SendAChaser. Each sprint builds incrementally on SendAChaser's existing infrastructure to deliver maximum value with minimum risk.
+This document provides detailed sprint breakdowns for implementing customer-consolidated payment reminders in the reminder-mvp application. Each sprint builds incrementally on the existing infrastructure to deliver maximum value with minimum risk.
 
 **Total Timeline**: 8 weeks (4 sprints × 2 weeks each)
 **Total Story Points**: 68 points
@@ -85,7 +85,7 @@ Establish the data foundation required for invoice tracking and customer consoli
 - [ ] Write unit tests for core functions
 
 **Acceptance Criteria**:
-- Services follow existing SendAChaser patterns
+- Services follow existing application patterns
 - All CRUD operations work correctly
 - Error handling provides meaningful messages
 - Test coverage >80% for core business logic
@@ -208,7 +208,7 @@ Implement the core business logic for customer consolidation and automated remin
 **Duration**: Weeks 5-6 | **Story Points**: 18 | **Risk**: Medium
 
 ### Sprint Goal
-Create intuitive user interfaces for invoice management and reminder oversight that integrate seamlessly with existing SendAChaser design patterns.
+Create intuitive user interfaces for invoice management and reminder oversight that integrate seamlessly with existing design patterns.
 
 ### User Stories
 
@@ -289,7 +289,7 @@ Create intuitive user interfaces for invoice management and reminder oversight t
 - Editing preserves user changes
 
 ### Sprint Definition of Done
-- [ ] All UI components follow SendAChaser design system
+- [ ] All UI components follow existing design system
 - [ ] Invoice management fully functional
 - [ ] CSV import tested with various file formats
 - [ ] Reminder dashboard integrates with existing navigation

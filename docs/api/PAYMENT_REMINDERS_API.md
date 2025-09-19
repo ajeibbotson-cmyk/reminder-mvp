@@ -2,13 +2,13 @@
 
 ## Overview
 
-This document specifies the REST API endpoints for the customer-consolidated payment reminders feature in SendAChaser. The API follows existing SendAChaser patterns and integrates seamlessly with the current authentication and rate limiting systems.
+This document specifies the REST API endpoints for the customer-consolidated payment reminders feature in the reminder-mvp application. The API follows existing patterns and integrates seamlessly with the current authentication and rate limiting systems.
 
 ## Base Configuration
 
 **Base URL**: `/api/v1`
 **Authentication**: Bearer token (Supabase JWT)
-**Rate Limiting**: Inherits existing SendAChaser limits
+**Rate Limiting**: Inherits existing application limits
 **Content-Type**: `application/json`
 
 ## Authentication
@@ -634,7 +634,7 @@ Content-Disposition: attachment; filename="invoices-{date}.zip"
 
 ## Rate Limiting
 
-### Current Limits (inherited from SendAChaser)
+### Current Limits (inherited from existing system)
 - **Email sending**: 50 emails per day per user
 - **API requests**: 1000 requests per hour per user
 - **PDF generation**: 100 PDFs per hour per user
