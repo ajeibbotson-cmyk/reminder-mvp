@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import { useInvoiceStore } from '@/lib/stores/invoice-store'
 import { InvoiceWithDetails, InvoiceFilters, BulkActionType } from '@/types/invoice'
 import { Button } from '@/components/ui/button'
@@ -66,6 +67,7 @@ export function InvoiceTable({
 }: InvoiceTableProps) {
   const t = useTranslations()
   const locale = useLocale()
+  const router = useRouter()
   const isRTL = locale === 'ar'
   
   const { 
@@ -304,9 +306,12 @@ export function InvoiceTable({
                 }
               </p>
               {totalCount === 0 && (
-                <Button className="mt-4">
+                <Button
+                  className="mt-4"
+                  onClick={() => router.push(`/${locale}/dashboard/invoices/import`)}
+                >
                   <Plus className="h-4 w-4 mr-2" />
-                  {t('invoices.addInvoice')}
+                  {locale === 'ar' ? 'رفع فواتير' : 'Import Invoices'}
                 </Button>
               )}
             </div>

@@ -12,16 +12,16 @@ import { Decimal } from 'decimal.js'
 // PATCH /api/invoices/[id]/status - Update invoice status with enhanced business rules
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
-    
+
     if (!canManageInvoices(authContext.user.role)) {
       throw new Error('Insufficient permissions to update invoice status')
     }
 
-    const { id } = params
+    const { id } = await params
     const { status, reason, notes, notifyCustomer, forceOverride } = await validateRequestBody(request, invoiceStatusSchema)
 
     // Use the comprehensive invoice status service
@@ -169,10 +169,10 @@ export async function PATCH(
     }, `Invoice status successfully updated from ${result.oldStatus} to ${result.newStatus}`)
 
   } catch (error) {
-    logError('PATCH /api/invoices/[id]/status', error, { 
+    logError('PATCH /api/invoices/[id]/status', error, {
       userId: 'authContext.user?.id',
       companyId: 'authContext.user?.companyId',
-      invoiceId: params.id
+      invoiceId: (await params).id
     })
     return handleApiError(error)
   }
@@ -181,11 +181,11 @@ export async function PATCH(
 // GET /api/invoices/[id]/status - Get invoice status insights and history
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.USER])
-    const { id } = params
+    const { id } = await params
 
     // Get invoice with full details
     const invoice = await prisma.invoices.findUnique({
@@ -306,7 +306,7 @@ export async function GET(
     logError('GET /api/invoices/[id]/status', error, {
       userId: 'authContext.user?.id',
       companyId: 'authContext.user?.companyId',
-      invoiceId: params.id
+      invoiceId: (await params).id
     })
     return handleApiError(error)
   }

@@ -115,7 +115,6 @@ export const invoiceStatusSchema = z.object({
 )
 
 export const invoiceFiltersSchema = z.object({
-  companyId: z.string().min(1, 'Company ID is required'),
   status: z.nativeEnum(InvoiceStatus).optional(),
   customerEmail: emailSchema.optional(),
   startDate: z.coerce.date().optional(),

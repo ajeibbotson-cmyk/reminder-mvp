@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate that all customers belong to the user's company
-    const customersToProcess = await prisma.customer.findMany({
+    const customersToProcess = await prisma.customers.findMany({
       where: {
         id: { in: bulkAction.customerIds },
         companyId: authContext.user.companyId,
@@ -367,7 +367,7 @@ async function performBulkMerge(
   }
 
   try {
-    const primaryCustomer = await prisma.customer.findUnique({
+    const primaryCustomer = await prisma.customers.findUnique({
       where: { 
         id: mergeData.primaryCustomerId,
         companyId,
@@ -382,7 +382,7 @@ async function performBulkMerge(
       throw new Error('Primary customer not found')
     }
 
-    const secondaryCustomers = await prisma.customer.findMany({
+    const secondaryCustomers = await prisma.customers.findMany({
       where: {
         id: { in: mergeData.secondaryCustomerIds },
         companyId,

@@ -15,7 +15,7 @@ import { InvoiceFilters as FilterType, InvoiceWithDetails } from '@/types/invoic
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Plus, FileDown, RefreshCw, Download } from 'lucide-react';
+import { FileDown, RefreshCw, Download, FileText, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import UAEErrorBoundaryWrapper from "@/components/error-boundaries/uae-error-boundary";
@@ -55,30 +55,41 @@ export default function InvoicesPage() {
   }, [status]);
 
   // Fetch invoices
-  const loadInvoices = useCallback(async (appliedFilters: FilterType = filters) => {
+  const loadInvoices = useCallback(async (appliedFilters?: FilterType) => {
     if (!session?.user?.companyId) return;
-    
+
     try {
+      const currentFilters = appliedFilters || filters;
       const filtersWithSearch = {
-        ...appliedFilters,
+        ...currentFilters,
         search: searchQuery || undefined
       };
-      
-      await fetchInvoices(session.user.companyId, filtersWithSearch);
+
+      await fetchInvoices(filtersWithSearch);
     } catch (error) {
       toast.error(
         locale === 'ar' ? 'فشل في تحميل الفواتير' : 'Failed to load invoices'
       );
       console.error('Failed to fetch invoices:', error);
     }
-  }, [session?.user?.companyId, fetchInvoices, filters, searchQuery, locale]);
+  }, [session?.user?.companyId, fetchInvoices, locale]);
 
-  // Load invoices on mount and when dependencies change
+  // Load invoices when company, filters, or search changes
   useEffect(() => {
     if (session?.user?.companyId) {
-      loadInvoices();
+      const filtersWithSearch = {
+        ...filters,
+        search: searchQuery || undefined
+      };
+
+      fetchInvoices(filtersWithSearch).catch(error => {
+        toast.error(
+          locale === 'ar' ? 'فشل في تحميل الفواتير' : 'Failed to load invoices'
+        );
+        console.error('Failed to fetch invoices:', error);
+      });
     }
-  }, [session?.user?.companyId, loadInvoices]);
+  }, [session?.user?.companyId, filters, searchQuery, fetchInvoices, locale]);
 
   // Handle filters change
   const handleFiltersChange = useCallback((newFilters: FilterType) => {
@@ -184,8 +195,9 @@ export default function InvoicesPage() {
             </div>
             
             <div className="flex items-center gap-2 flex-wrap">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleRefresh}
                 disabled={refreshing || loading}
                 className="gap-2"
@@ -193,23 +205,27 @@ export default function InvoicesPage() {
                 <RefreshCw className={cn('h-4 w-4', (refreshing || loading) && 'animate-spin')} />
                 {locale === 'ar' ? 'تحديث' : 'Refresh'}
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleExport}
                 className="gap-2"
               >
                 <FileDown className="h-4 w-4" />
                 {locale === 'ar' ? 'تصدير' : 'Export'}
               </Button>
-              
-              <Button 
-                onClick={() => router.push('/dashboard/invoices/create')}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/dashboard/invoices/import')}
                 className="gap-2"
               >
-                <Plus className="h-4 w-4" />
-                {locale === 'ar' ? 'إنشاء فاتورة جديدة' : 'Create New Invoice'}
+                <Upload className="h-4 w-4" />
+                {locale === 'ar' ? 'رفع' : 'Upload'}
               </Button>
+
             </div>
           </div>
 

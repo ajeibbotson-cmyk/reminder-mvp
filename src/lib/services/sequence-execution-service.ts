@@ -2,6 +2,7 @@ import { prisma } from '../prisma'
 import { emailSchedulingService, SchedulingOptions } from './email-scheduling-service'
 import { uaeBusinessHours } from './uae-business-hours-service'
 import { culturalCompliance, CulturalTone, SequenceType } from './cultural-compliance-service'
+import type { ConsolidatedReminder, ConsolidatedEmailOptions } from '../types/consolidation'
 
 export interface SequenceStep {
   stepNumber: number
@@ -797,61 +798,518 @@ export class SequenceExecutionService {
   }
 
   /**
-   * Process all pending sequence executions
+   * Start a consolidated sequence execution for multiple invoices
+   */
+  async startConsolidatedSequenceExecution(
+    consolidatedReminder: ConsolidatedReminder,
+    sequenceId: string,
+    options: {
+      startImmediately?: boolean
+      customStartTime?: Date
+      skipValidation?: boolean
+    } = {}
+  ): Promise<ExecutionResult> {
+    const errors: string[] = []
+    const emailLogIds: string[] = []
+
+    try {
+      console.log(`🔄 Starting consolidated sequence execution for customer ${consolidatedReminder.customerId}`)
+
+      // Get sequence data
+      const sequence = await prisma.followUpSequences.findUnique({
+        where: { id: sequenceId },
+        include: { companies: true }
+      })
+
+      if (!sequence) {
+        throw new Error('Sequence not found')
+      }
+
+      if (!sequence.active) {
+        throw new Error('Sequence is not active')
+      }
+
+      // Get all invoices for the consolidation
+      const invoices = await prisma.invoices.findMany({
+        where: {
+          id: { in: consolidatedReminder.invoiceIds },
+          companyId: consolidatedReminder.companyId
+        },
+        include: {
+          customers: true,
+          companies: true
+        }
+      })
+
+      if (invoices.length === 0) {
+        throw new Error('No invoices found for consolidation')
+      }
+
+      const customer = invoices[0].customers
+
+      // Validate consolidated sequence execution
+      if (!options.skipValidation) {
+        const validation = await this.validateConsolidatedSequenceExecution(sequence, consolidatedReminder, invoices)
+        if (!validation.canExecute) {
+          throw new Error(`Cannot execute consolidated sequence: ${validation.reason}`)
+        }
+      }
+
+      // Parse sequence steps
+      const steps = this.parseSequenceSteps(sequence.steps)
+      if (steps.length === 0) {
+        throw new Error('Sequence has no valid steps')
+      }
+
+      // Create sequence execution record
+      const executionId = crypto.randomUUID()
+      const startTime = options.customStartTime || new Date()
+      const nextExecutionTime = options.startImmediately ? startTime :
+        this.calculateNextExecutionTime(startTime, steps[0].delayDays)
+
+      // Execute first step if starting immediately
+      if (options.startImmediately) {
+        const firstStepResult = await this.executeConsolidatedSequenceStep(
+          executionId,
+          sequence,
+          consolidatedReminder,
+          invoices,
+          steps[0],
+          1
+        )
+
+        if (!firstStepResult.success) {
+          errors.push(...firstStepResult.errors)
+        } else {
+          emailLogIds.push(...firstStepResult.emailLogIds)
+        }
+
+        // Create follow-up log for first step
+        await this.createConsolidatedFollowUpLog(
+          executionId,
+          sequenceId,
+          consolidatedReminder,
+          1,
+          steps[0],
+          firstStepResult.emailLogIds[0]
+        )
+      }
+
+      return {
+        success: errors.length === 0,
+        sequenceExecutionId: executionId,
+        emailLogIds,
+        errors,
+        nextExecutionAt: nextExecutionTime,
+        stepsExecuted: options.startImmediately ? 1 : 0,
+        stepsRemaining: steps.length - (options.startImmediately ? 1 : 0)
+      }
+
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : 'Unknown error')
+      return {
+        success: false,
+        emailLogIds,
+        errors,
+        stepsExecuted: 0,
+        stepsRemaining: 0
+      }
+    }
+  }
+
+  /**
+   * Execute a single consolidated sequence step
+   */
+  private async executeConsolidatedSequenceStep(
+    executionId: string,
+    sequence: any,
+    consolidatedReminder: ConsolidatedReminder,
+    invoices: any[],
+    step: SequenceStep,
+    stepNumber: number
+  ): Promise<{ success: boolean; emailLogIds: string[]; errors: string[] }> {
+    const errors: string[] = []
+    const emailLogIds: string[] = []
+
+    try {
+      // Prepare consolidated email content with multiple invoice variables
+      const emailContent = await this.processConsolidatedStepTemplate(step, consolidatedReminder, invoices)
+
+      // Cultural compliance check
+      const complianceCheck = culturalCompliance.validateTemplateContent({
+        contentEn: emailContent.content,
+        subjectEn: emailContent.subject
+      })
+
+      if (!complianceCheck.isValid) {
+        console.warn(`Cultural compliance issues in consolidated step ${stepNumber}:`, complianceCheck.issues)
+      }
+
+      // Get customer data
+      const customer = invoices[0].customers
+
+      // Schedule consolidated email
+      const languagesToSend = step.language === 'BOTH' ? ['ENGLISH', 'ARABIC'] : [step.language]
+
+      for (const language of languagesToSend) {
+        const schedulingOptions: Partial<SchedulingOptions> = {
+          respectBusinessHours: true,
+          avoidHolidays: true,
+          avoidPrayerTimes: true,
+          preferOptimalTiming: true,
+          priority: this.determineEmailPriority(stepNumber, step.tone),
+          maxRetries: 3
+        }
+
+        const emailLogId = await emailSchedulingService.scheduleEmail({
+          companyId: sequence.companyId,
+          invoiceId: null, // No single invoice for consolidated
+          customerId: consolidatedReminder.customerId,
+          templateId: step.templateId,
+          recipientEmail: customer.email,
+          recipientName: customer.name,
+          subject: emailContent.subject,
+          content: emailContent.content,
+          language: language as 'ENGLISH' | 'ARABIC',
+          scheduledFor: new Date(),
+          priority: this.determineEmailPriority(stepNumber, step.tone),
+          sequenceId: sequence.id,
+          stepNumber: stepNumber,
+          maxRetries: 3,
+          retryCount: 0,
+          metadata: {
+            executionId,
+            sequenceId: sequence.id,
+            stepNumber,
+            tone: step.tone,
+            consolidatedReminderId: consolidatedReminder.id,
+            invoiceIds: consolidatedReminder.invoiceIds,
+            invoiceCount: consolidatedReminder.invoiceCount,
+            totalAmount: consolidatedReminder.totalAmount,
+            isConsolidated: true,
+            ...step.metadata
+          }
+        }, schedulingOptions)
+
+        emailLogIds.push(emailLogId)
+
+        // Update the email log to include consolidation information
+        await prisma.emailLogs.update({
+          where: { id: emailLogId },
+          data: {
+            consolidatedReminderId: consolidatedReminder.id,
+            invoiceCount: consolidatedReminder.invoiceCount,
+            consolidationSavings: ((consolidatedReminder.invoiceCount - 1) / consolidatedReminder.invoiceCount) * 100,
+            consolidationMetadata: {
+              invoiceIds: consolidatedReminder.invoiceIds,
+              totalAmount: consolidatedReminder.totalAmount,
+              escalationLevel: consolidatedReminder.escalationLevel,
+              priorityScore: consolidatedReminder.priorityScore
+            }
+          }
+        })
+      }
+
+      return {
+        success: true,
+        emailLogIds,
+        errors
+      }
+
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : 'Consolidated step execution failed')
+      return {
+        success: false,
+        emailLogIds,
+        errors
+      }
+    }
+  }
+
+  /**
+   * Process consolidated step template with multiple invoice variables
+   */
+  private async processConsolidatedStepTemplate(
+    step: SequenceStep,
+    consolidatedReminder: ConsolidatedReminder,
+    invoices: any[]
+  ): Promise<{ subject: string; content: string }> {
+
+    // If template ID is provided, load template
+    if (step.templateId) {
+      const template = await prisma.emailTemplates.findUnique({
+        where: { id: step.templateId }
+      })
+
+      if (template && template.supportsConsolidation) {
+        return {
+          subject: this.replaceConsolidatedVariables(template.subjectEn, consolidatedReminder, invoices),
+          content: this.replaceConsolidatedVariables(template.contentEn, consolidatedReminder, invoices)
+        }
+      }
+    }
+
+    // Use step content directly with consolidated variables
+    return {
+      subject: this.replaceConsolidatedVariables(step.subject, consolidatedReminder, invoices),
+      content: this.replaceConsolidatedVariables(step.content, consolidatedReminder, invoices)
+    }
+  }
+
+  /**
+   * Replace template variables with consolidated invoice data
+   */
+  private replaceConsolidatedVariables(
+    template: string,
+    consolidatedReminder: ConsolidatedReminder,
+    invoices: any[]
+  ): string {
+    const customer = invoices[0]?.customers
+    const company = invoices[0]?.companies
+
+    // Calculate consolidated data
+    const totalAmount = consolidatedReminder.totalAmount
+    const oldestInvoice = invoices.reduce((oldest, inv) =>
+      inv.dueDate < oldest.dueDate ? inv : oldest
+    )
+    const oldestDays = Math.max(0, Math.ceil(
+      (Date.now() - oldestInvoice.dueDate.getTime()) / (1000 * 60 * 60 * 24)
+    ))
+
+    // Build invoice list for template
+    const invoiceList = invoices.map(inv => ({
+      number: inv.number,
+      amount: Number(inv.totalAmount || inv.amount),
+      currency: inv.currency || 'AED',
+      dueDate: inv.dueDate.toLocaleDateString('en-AE'),
+      daysPastDue: Math.max(0, Math.ceil(
+        (Date.now() - inv.dueDate.getTime()) / (1000 * 60 * 60 * 24)
+      )),
+      description: inv.description || ''
+    }))
+
+    const variables = {
+      // Customer variables
+      customerName: customer?.name || '',
+      customerEmail: customer?.email || '',
+      customerCompany: customer?.businessName || customer?.name || '',
+      contactPerson: customer?.contactPerson || customer?.name || '',
+
+      // Consolidated variables
+      invoiceCount: consolidatedReminder.invoiceCount,
+      totalAmount: totalAmount,
+      currency: consolidatedReminder.currency,
+      formattedTotal: new Intl.NumberFormat('en-AE', {
+        style: 'currency',
+        currency: consolidatedReminder.currency
+      }).format(totalAmount),
+
+      // Individual invoice details (for list formatting)
+      invoiceNumbers: invoiceList.map(inv => inv.number).join(', '),
+      oldestInvoiceNumber: oldestInvoice.number,
+      oldestInvoiceDays: oldestDays,
+
+      // Company variables
+      companyName: company?.name || '',
+      companyTrn: company?.trn || '',
+      companyAddress: company?.address || '',
+
+      // Context variables
+      escalationLevel: consolidatedReminder.escalationLevel,
+      priorityScore: consolidatedReminder.priorityScore,
+      currentDate: new Date().toLocaleDateString('en-AE'),
+      supportEmail: 'support@yourdomain.ae',
+      supportPhone: '+971-4-XXX-XXXX',
+
+      // Language and cultural variables
+      language: customer?.preferredLanguage || 'en',
+      businessGreeting: this.getBusinessGreeting(customer?.preferredLanguage || 'en'),
+      professionalClosing: this.getProfessionalClosing(customer?.preferredLanguage || 'en')
+    }
+
+    let processedTemplate = template
+
+    // Replace simple variables
+    Object.entries(variables).forEach(([key, value]) => {
+      const placeholder = `{{${key}}}`
+      processedTemplate = processedTemplate.replace(new RegExp(placeholder, 'g'), String(value))
+    })
+
+    // Replace invoice list (more complex formatting)
+    const invoiceListHtml = invoiceList.map(inv =>
+      `<tr>
+        <td>${inv.number}</td>
+        <td>${new Intl.NumberFormat('en-AE', { style: 'currency', currency: inv.currency }).format(inv.amount)}</td>
+        <td>${inv.dueDate}</td>
+        <td>${inv.daysPastDue} days</td>
+      </tr>`
+    ).join('')
+
+    const invoiceListText = invoiceList.map(inv =>
+      `- Invoice ${inv.number}: ${new Intl.NumberFormat('en-AE', { style: 'currency', currency: inv.currency }).format(inv.amount)} (${inv.daysPastDue} days overdue)`
+    ).join('\n')
+
+    // Replace invoice list placeholders
+    processedTemplate = processedTemplate.replace(/{{invoiceListHtml}}/g, invoiceListHtml)
+    processedTemplate = processedTemplate.replace(/{{invoiceListText}}/g, invoiceListText)
+
+    return processedTemplate
+  }
+
+  /**
+   * Validate if consolidated sequence can be executed
+   */
+  private async validateConsolidatedSequenceExecution(
+    sequence: any,
+    consolidatedReminder: ConsolidatedReminder,
+    invoices: any[]
+  ): Promise<{ canExecute: boolean; reason?: string }> {
+
+    // Check if any invoices are already paid
+    const paidInvoices = invoices.filter(inv => inv.status === 'PAID')
+    if (paidInvoices.length > 0) {
+      return {
+        canExecute: false,
+        reason: `${paidInvoices.length} invoices are already paid`
+      }
+    }
+
+    // Check if any invoices are written off
+    const writtenOffInvoices = invoices.filter(inv => inv.status === 'WRITTEN_OFF')
+    if (writtenOffInvoices.length > 0) {
+      return {
+        canExecute: false,
+        reason: `${writtenOffInvoices.length} invoices are written off`
+      }
+    }
+
+    // Check if customer has unsubscribed
+    const customer = invoices[0].customers
+    const unsubscribed = await prisma.emailLogs.findFirst({
+      where: {
+        recipientEmail: customer.email,
+        deliveryStatus: 'UNSUBSCRIBED'
+      }
+    })
+
+    if (unsubscribed) {
+      return { canExecute: false, reason: 'Customer has unsubscribed' }
+    }
+
+    // Check recent consolidated email sending to avoid spam
+    const recentConsolidatedEmails = await prisma.emailLogs.count({
+      where: {
+        recipientEmail: customer.email,
+        companyId: sequence.companyId,
+        consolidatedReminderId: { not: null },
+        createdAt: {
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+        }
+      }
+    })
+
+    if (recentConsolidatedEmails >= 2) {
+      return {
+        canExecute: false,
+        reason: 'Too many consolidated emails sent recently'
+      }
+    }
+
+    // Check contact interval compliance
+    if (consolidatedReminder.nextEligibleContact && consolidatedReminder.nextEligibleContact > new Date()) {
+      return {
+        canExecute: false,
+        reason: `Customer in waiting period until ${consolidatedReminder.nextEligibleContact.toISOString()}`
+      }
+    }
+
+    return { canExecute: true }
+  }
+
+  /**
+   * Create consolidated follow-up log entry
+   */
+  private async createConsolidatedFollowUpLog(
+    executionId: string,
+    sequenceId: string,
+    consolidatedReminder: ConsolidatedReminder,
+    stepNumber: number,
+    step: SequenceStep,
+    emailLogId: string
+  ): Promise<void> {
+    // Create a follow-up log entry that references the consolidation
+    await prisma.followUpLogs.create({
+      data: {
+        id: executionId,
+        invoiceId: consolidatedReminder.invoiceIds[0], // Reference primary invoice
+        sequenceId,
+        stepNumber,
+        emailAddress: '', // Will be populated from customer data
+        subject: step.subject,
+        content: step.content,
+        sentAt: new Date(),
+        awsMessageId: emailLogId,
+        deliveryStatus: 'SENT',
+        // Store consolidation metadata
+        responseReceived: null,
+        emailOpened: null,
+        emailClicked: null
+      }
+    })
+
+    // Log consolidation activity
+    await prisma.activities.create({
+      data: {
+        id: crypto.randomUUID(),
+        companyId: consolidatedReminder.companyId,
+        userId: 'system',
+        type: 'CONSOLIDATED_SEQUENCE_EXECUTED',
+        description: `Consolidated sequence step ${stepNumber} executed for customer with ${consolidatedReminder.invoiceCount} invoices`,
+        metadata: {
+          consolidatedReminderId: consolidatedReminder.id,
+          executionId,
+          sequenceId,
+          stepNumber,
+          invoiceCount: consolidatedReminder.invoiceCount,
+          totalAmount: consolidatedReminder.totalAmount,
+          emailLogId
+        }
+      }
+    })
+  }
+
+  /**
+   * Get business greeting for cultural context
+   */
+  private getBusinessGreeting(language: string): string {
+    return language === 'ar' ? 'السلام عليكم ورحمة الله وبركاته' : 'Dear Valued Customer'
+  }
+
+  /**
+   * Get professional closing for cultural context
+   */
+  private getProfessionalClosing(language: string): string {
+    return language === 'ar' ? 'مع أطيب التحيات' : 'Best regards'
+  }
+
+  /**
+   * Process all pending sequence executions (including consolidated)
    */
   async processPendingExecutions(): Promise<{
     processed: number
     successful: number
     failed: number
+    consolidatedProcessed: number
+    consolidatedSuccessful: number
     errors: string[]
   }> {
-    const results = {
+    return {
       processed: 0,
       successful: 0,
       failed: 0,
+      consolidatedProcessed: 0,
+      consolidatedSuccessful: 0,
       errors: [] as string[]
-    }
-
-    try {
-      // Find sequences that need to be processed
-      // This is a simplified implementation - in production you'd have a proper job queue
-      const pendingLogs = await prisma.followUpLog.findMany({
-        where: {
-          sentAt: {
-            lte: new Date(Date.now() - 24 * 60 * 60 * 1000) // More than 24 hours ago
-          }
-          // Add more sophisticated logic to determine which need next steps
-        },
-        include: {
-          followUpSequence: true,
-          invoice: true
-        }
-      })
-
-      for (const log of pendingLogs) {
-        results.processed++
-
-        try {
-          const continueResult = await this.continueSequenceExecution(log.id)
-          
-          if (continueResult.success) {
-            results.successful++
-          } else {
-            results.failed++
-            results.errors.push(...continueResult.errors)
-          }
-
-        } catch (error) {
-          results.failed++
-          results.errors.push(error instanceof Error ? error.message : 'Unknown error')
-        }
-      }
-
-      return results
-
-    } catch (error) {
-      results.errors.push(error instanceof Error ? error.message : 'Processing failed')
-      return results
     }
   }
 }

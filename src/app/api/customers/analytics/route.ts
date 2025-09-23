@@ -51,14 +51,14 @@ export async function GET(request: NextRequest) {
     // Total and Active Customers
     if (filters.metrics.includes('totalCustomers') || filters.metrics.includes('activeCustomers')) {
       queries.push(
-        prisma.customer.aggregate({
+        prisma.customers.aggregate({
           where: baseWhereClause,
           _count: { id: true }
         }).then(result => ({ totalCustomers: result._count.id }))
       )
 
       queries.push(
-        prisma.customer.aggregate({
+        prisma.customers.aggregate({
           where: {
             ...baseWhereClause,
             isActive: true
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     // New Customers in period
     if (filters.metrics.includes('newCustomers')) {
       queries.push(
-        prisma.customer.aggregate({
+        prisma.customers.aggregate({
           where: {
             ...baseWhereClause,
             createdAt: {
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     // Outstanding Balance calculations
     if (filters.metrics.includes('outstandingBalance')) {
       queries.push(
-        prisma.invoice.aggregate({
+        prisma.invoices.aggregate({
           where: {
             companyId: authContext.user.companyId,
             isActive: true,
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
     // Total Invoiced and Average Invoice Value
     if (filters.metrics.includes('totalInvoiced') || filters.metrics.includes('averageInvoiceValue')) {
       queries.push(
-        prisma.invoice.aggregate({
+        prisma.invoices.aggregate({
           where: {
             companyId: authContext.user.companyId,
             isActive: true,
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
     // Top Customers by Revenue
     if (filters.metrics.includes('topCustomers')) {
       queries.push(
-        prisma.customer.findMany({
+        prisma.customers.findMany({
           where: baseWhereClause,
           include: {
             invoices: {
@@ -333,7 +333,7 @@ async function generateBusinessTypeMetrics(companyId: string, includeInactive: b
 // Helper function to generate payment terms metrics
 async function generatePaymentTermsMetrics(companyId: string, includeInactive: boolean) {
   try {
-    const paymentTermsData = await prisma.customer.groupBy({
+    const paymentTermsData = await prisma.customers.groupBy({
       by: ['paymentTerms'],
       where: {
         companyId,

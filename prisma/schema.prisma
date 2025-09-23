@@ -63,6 +63,7 @@ model companies {
   ab_test_config      ab_test_config[]
   audit_logs          audit_logs[]
   bank_reconciliation bank_reconciliation[]
+  customer_consolidated_reminders customer_consolidated_reminders[]
 
   @@index([is_active, created_at])
   @@index([trn])
@@ -105,12 +106,18 @@ model customers {
   communication_pref    String?         @default("email") // email, sms, both
   last_interaction      DateTime?       // Last customer interaction
   customer_since        DateTime?       // When they became a customer
-  
+
+  // Consolidation preferences
+  consolidation_preference  ConsolidationPreference @default(ENABLED) // Customer preference for consolidated vs individual reminders
+  max_consolidation_amount  Decimal?        @db.Decimal(12, 2) // Maximum amount for auto-consolidation (NULL = no limit)
+  preferred_contact_interval Int           @default(7) // Preferred days between reminder contacts
+
   created_at            DateTime        @default(now())
   updated_at            DateTime        @updatedAt
   companies             companies       @relation(fields: [company_id], references: [id], onDelete: Cascade)
   invoices              invoices[]
   email_logs            email_logs[]
+  customer_consolidated_reminders customer_consolidated_reminders[]
 
   // Unique constraints
   @@unique([email, company_id])
@@ -299,6 +306,8 @@ model users {
   password        String?
   company_id      String
   role            UserRole          @default(FINANCE)
+  reset_token     String?           // Password reset token
+  reset_token_expiry DateTime?      // Token expiration time
   created_at      DateTime          @default(now())
   updated_at      DateTime          @updatedAt
   accounts        accounts[]
@@ -307,6 +316,7 @@ model users {
   companies       companies         @relation(fields: [company_id], references: [id], onDelete: Cascade)
   import_batches  import_batches[]
   email_templates email_templates[]
+  customer_consolidated_reminders customer_consolidated_reminders[]
 }
 
 model verification_tokens {
@@ -404,16 +414,26 @@ model email_templates {
   is_active       Boolean             @default(true)
   is_default      Boolean             @default(false)
   uae_business_hours_only Boolean    @default(true) // Send only during UAE business hours
+
+  // Consolidation support
+  supports_consolidation Boolean      @default(false) // Whether this template supports multiple invoices in a single email
+  max_invoice_count      Int          @default(1) // Maximum number of invoices this template can handle
+  consolidation_variables Json?       @default("{}") // Template variables specific to consolidation features
+
   created_by      String
   created_at      DateTime            @default(now())
   updated_at      DateTime            @updatedAt
   companies       companies           @relation(fields: [company_id], references: [id], onDelete: Cascade)
   users           users               @relation(fields: [created_by], references: [id])
   email_logs      email_logs[]
+  customer_consolidated_reminders customer_consolidated_reminders[]
 
   @@unique([company_id, name, version])
   @@index([company_id, template_type, is_active])
   @@index([is_default, template_type])
+  // Consolidation template indexes
+  @@index([template_type, supports_consolidation, is_active])
+  @@index([template_type, max_invoice_count, is_active])
 }
 
 model email_logs {
@@ -444,6 +464,13 @@ model email_logs {
   uae_send_time         DateTime?          // Adjusted for UAE timezone
   retry_count           Int                @default(0)
   max_retries           Int                @default(3)
+
+  // Consolidation tracking
+  consolidated_reminder_id String?          // Links email log to consolidated reminder record
+  invoice_count           Int              @default(1) // Number of invoices included in this email (1 for individual, 2+ for consolidated)
+  consolidation_savings   Decimal?         @db.Decimal(5, 2) @default(0.00) // Percentage of emails saved through consolidation (0-100)
+  consolidation_metadata  Json?            @default("{}") // Additional metadata about consolidation process
+
   created_at            DateTime           @default(now())
   updated_at            DateTime           @updatedAt
   email_templates       email_templates?       @relation(fields: [template_id], references: [id])
@@ -451,6 +478,7 @@ model email_logs {
   invoices              invoices?              @relation(fields: [invoice_id], references: [id])
   customers             customers?             @relation(fields: [customer_id], references: [id])
   follow_up_logs        follow_up_logs?        @relation(fields: [follow_up_log_id], references: [id])
+  consolidated_reminder customer_consolidated_reminders? @relation(fields: [consolidated_reminder_id], references: [id])
   email_bounce_tracking email_bounce_tracking?
 
   @@index([company_id, delivery_status])
@@ -459,6 +487,10 @@ model email_logs {
   @@index([delivery_status, created_at])
   @@index([recipient_email, company_id])
   @@index([uae_send_time])
+  // Consolidation indexes
+  @@index([consolidated_reminder_id, delivery_status])
+  @@index([company_id, sent_at, invoice_count, consolidation_savings])
+  @@index([company_id, delivered_at, opened_at, clicked_at])
 }
 
 model email_bounce_tracking {
@@ -645,6 +677,75 @@ model bank_reconciliation {
   @@index([reconciled_by, reconciled_at])
 }
 
+// Customer Consolidation Enhancement: Main Consolidation Table
+
+model customer_consolidated_reminders {
+  id                          String                @id
+  customer_id                 String
+  company_id                  String
+
+  // Consolidation details
+  invoice_ids                 String[]              // Array of invoice IDs included in this consolidation
+  total_amount                Decimal               @db.Decimal(12, 2) // Total amount across all invoices
+  currency                    String                @default("AED")
+  invoice_count               Int                   // Number of invoices in this consolidation
+
+  // Reminder configuration
+  reminder_type               ReminderType          @default(CONSOLIDATED)
+  escalation_level            EscalationLevel       @default(POLITE)
+  template_id                 String?
+
+  // Scheduling and delivery
+  scheduled_for               DateTime?
+  sent_at                     DateTime?
+  delivery_status             EmailDeliveryStatus   @default(QUEUED)
+  aws_message_id              String?               // AWS SES message ID
+
+  // Contact management
+  last_contact_date           DateTime?
+  next_eligible_contact       DateTime?
+  contact_interval_days       Int                   @default(7) // Days between contacts
+
+  // Priority and metadata
+  priority_score              Int                   @default(0) // 0-100 priority score
+  consolidation_reason        String?               // Why these invoices were consolidated
+  business_rules_applied      Json?                 @default("{}")  // Business rules applied during consolidation
+  cultural_compliance_flags   Json?                 @default("{}")  // UAE cultural compliance checks
+
+  // Response tracking
+  email_opened_at             DateTime?
+  email_clicked_at            DateTime?
+  customer_responded_at       DateTime?
+  payment_received_at         DateTime?
+
+  // Audit fields
+  created_at                  DateTime              @default(now())
+  updated_at                  DateTime              @updatedAt
+  created_by                  String?
+
+  // Relations
+  customer                    customers             @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  company                     companies             @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  email_template              email_templates?      @relation(fields: [template_id], references: [id])
+  creator                     users?                @relation(fields: [created_by], references: [id])
+  email_logs                  email_logs[]
+
+  // Constraints and validation
+  @@index([customer_id, company_id])
+  @@index([company_id, delivery_status])
+  @@index([scheduled_for, delivery_status])
+  @@index([company_id, priority_score])
+  @@index([customer_id, next_eligible_contact])
+  @@index([company_id, sent_at])
+  @@index([company_id, escalation_level, delivery_status])
+  @@index([company_id, created_at])
+
+  // Composite indexes for complex queries
+  @@index([company_id, delivery_status, priority_score])
+  @@index([customer_id, sent_at, delivery_status])
+  @@index([company_id, reminder_type, escalation_level])
+}
+
 
 enum InvoiceStatus {
   DRAFT
@@ -703,6 +804,8 @@ enum EmailTemplateType {
   PAYMENT_CONFIRMATION
   OVERDUE_NOTICE
   SYSTEM_NOTIFICATION
+  CONSOLIDATED_REMINDER
+  URGENT_CONSOLIDATED_REMINDER
 }
 
 enum EmailLanguage {
@@ -731,4 +834,26 @@ enum UaeBusinessType {
   PUBLIC_SHAREHOLDING_COMPANY
   PRIVATE_SHAREHOLDING_COMPANY
   GOVERNMENT_ENTITY
+}
+
+// Customer Consolidation Enhancement: New Enums for Consolidation Feature
+
+enum ReminderType {
+  CONSOLIDATED
+  URGENT_CONSOLIDATED
+  FINAL_CONSOLIDATED
+  MANUAL_CONSOLIDATED
+}
+
+enum EscalationLevel {
+  POLITE
+  FIRM
+  URGENT
+  FINAL
+}
+
+enum ConsolidationPreference {
+  ENABLED
+  DISABLED
+  AUTO
 }

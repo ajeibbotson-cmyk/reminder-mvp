@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { handleApiError, successResponse, logError, ValidationError } from '@/lib/errors';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,10 +9,18 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!email || !password || !name || !company) {
-      return NextResponse.json(
-        { message: "All fields are required" },
-        { status: 400 }
-      );
+      throw new ValidationError("All fields are required");
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new ValidationError("Invalid email format", "email");
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      throw new ValidationError("Password must be at least 8 characters", "password");
     }
 
 
@@ -21,10 +30,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { message: "User already exists with this email" },
-        { status: 400 }
-      );
+      throw new ValidationError("User already exists with this email", "email");
     }
 
     // Hash password
@@ -55,23 +61,22 @@ export async function POST(request: NextRequest) {
       return { user: newUser, company: newCompany };
     });
 
-    return NextResponse.json(
-      { 
-        message: "Account created successfully",
+    return successResponse(
+      {
         user: {
           id: result.user.id,
           email: result.user.email,
           name: result.user.name,
         }
       },
-      { status: 201 }
+      "Account created successfully"
     );
 
   } catch (error) {
-    console.error("Signup error:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    logError('POST /api/auth/signup', error, {
+      email: request.body?.email || 'unknown',
+      company: request.body?.company || 'unknown'
+    });
+    return handleApiError(error);
   }
 }

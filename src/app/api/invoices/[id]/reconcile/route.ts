@@ -38,11 +38,11 @@ interface ReconciliationResult {
 // GET /api/invoices/[id]/reconcile - Get payment reconciliation status
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.USER])
-    const { id: invoiceId } = params
+    const { id: invoiceId } = await params
 
     // Get comprehensive reconciliation data
     const reconciliation = await paymentReconciliationService.getInvoiceReconciliation(
@@ -80,7 +80,7 @@ export async function GET(
     logError('GET /api/invoices/[id]/reconcile', error, {
       userId: 'authContext.user?.id',
       companyId: 'authContext.user?.companyId',
-      invoiceId: params.id
+      invoiceId: (await params).id
     })
     return handleApiError(error)
   }
@@ -89,7 +89,7 @@ export async function GET(
 // POST /api/invoices/[id]/reconcile - Perform payment reconciliation action
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
@@ -98,7 +98,7 @@ export async function POST(
       throw new Error('Insufficient permissions to perform reconciliation actions')
     }
 
-    const { id: invoiceId } = params
+    const { id: invoiceId } = await params
     const body = await request.json()
     const actionData = reconcileActionSchema.parse(body)
 
@@ -182,7 +182,7 @@ export async function POST(
     logError('POST /api/invoices/[id]/reconcile', error, {
       userId: 'authContext.user?.id',
       companyId: 'authContext.user?.companyId',
-      invoiceId: params.id
+      invoiceId: (await params).id
     })
     return handleApiError(error)
   }

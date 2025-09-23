@@ -1,0 +1,4 @@
+Invoice Test PDF
+Sample Invoice #123
+Customer: Test Company
+Amount: AED 1000

@@ -9,23 +9,43 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // Primary Emirates Blue - Main CTAs
         default:
-          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md active:scale-[0.98] transition-all duration-200",
+
+        // Desert Gold - Premium actions
+        premium:
+          "bg-accent text-accent-foreground shadow-sm hover:bg-accent/90 hover:shadow-md active:scale-[0.98] transition-all duration-200 font-semibold",
+
+        // Success Emerald - Confirmation actions
+        success:
+          "bg-[oklch(0.55_0.15_155)] text-white shadow-sm hover:bg-[oklch(0.50_0.15_155)] hover:shadow-md active:scale-[0.98] transition-all duration-200",
+
+        // Error Crimson - Destructive actions
         destructive:
-          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-destructive text-white shadow-sm hover:bg-destructive/90 hover:shadow-md active:scale-[0.98] focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 transition-all duration-200",
+
+        // Professional outline
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:shadow-md dark:bg-input/30 dark:border-input dark:hover:bg-input/50 transition-all duration-200",
+
+        // Subtle secondary
         secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md transition-all duration-200",
+
+        // Ghost for subtle actions
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 transition-all duration-200",
+
+        // Link style
+        link: "text-primary underline-offset-4 hover:underline transition-colors",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        default: "h-10 px-5 py-2 has-[>svg]:px-4", // Slightly larger for better touch targets
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
+        lg: "h-12 rounded-lg px-8 has-[>svg]:px-6 text-base", // More premium feel
+        icon: "size-10", // Better touch target
+        xl: "h-14 rounded-lg px-10 has-[>svg]:px-8 text-lg font-semibold", // Hero CTAs
       },
     },
     defaultVariants: {

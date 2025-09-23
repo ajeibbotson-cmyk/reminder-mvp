@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
         orderBy.email = filters.sortOrder
         break
       case 'createdAt':
-        orderBy.createdAt = filters.sortOrder
+        orderBy.created_at = filters.sortOrder
         break
       case 'creditLimit':
         orderBy.creditLimit = filters.sortOrder
@@ -131,11 +131,11 @@ export async function GET(request: NextRequest) {
 
     // Execute queries in parallel for performance
     const [customers, totalCount] = await Promise.all([
-      prisma.customer.findMany({
+      prisma.customers.findMany({
         where: whereClause,
         include: {
           invoices: {
-            orderBy: { createdAt: 'desc' },
+            orderBy: { created_at: 'desc' },
             take: 5, // Limit recent invoices for performance
             select: {
               id: true,
@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
               totalAmount: true,
               status: true,
               dueDate: true,
-              createdAt: true,
+              created_at: true,
               payments: {
                 select: {
                   amount: true,
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: filters.limit
       }),
-      prisma.customer.count({ where: whereClause })
+      prisma.customers.count({ where: whereClause })
     ])
 
     // Calculate outstanding balances and enrich customer data
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
     // Check for duplicate TRN within the company
     if (customerData.trn) {
-      const existingTrnCustomer = await prisma.customer.findFirst({
+      const existingTrnCustomer = await prisma.customers.findFirst({
         where: {
           companyId: authContext.user.companyId,
           // Note: TRN field needs to be added to customer schema
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicate email within the company
-    const existingEmailCustomer = await prisma.customer.findFirst({
+    const existingEmailCustomer = await prisma.customers.findFirst({
       where: {
         companyId: authContext.user.companyId,
         email: customerData.email,
@@ -282,7 +282,7 @@ export async function POST(request: NextRequest) {
 
     const customer = await prisma.$transaction(async (tx) => {
       // Create customer with UAE-specific fields
-      const newCustomer = await tx.customer.create({
+      const newCustomer = await tx.customers.create({
         data: {
           companyId: customerData.companyId,
           name: customerData.name,
@@ -301,13 +301,13 @@ export async function POST(request: NextRequest) {
         include: {
           invoices: {
             take: 5,
-            orderBy: { createdAt: 'desc' }
+            orderBy: { created_at: 'desc' }
           }
         }
       })
 
       // Log activity with detailed metadata
-      await tx.activity.create({
+      await tx.activities.create({
         data: {
           companyId: authContext.user.companyId,
           userId: authContext.user.id,

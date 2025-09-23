@@ -42,7 +42,7 @@ interface PaymentReconciliationResult {
 // POST /api/invoices/[id]/payments - Record new payment for invoice
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
@@ -276,7 +276,7 @@ export async function POST(
     logError('POST /api/invoices/[id]/payments', error, { 
       userId: 'authContext.user?.id',
       companyId: 'authContext.user?.companyId',
-      invoiceId: params.id
+      invoiceId: (await params).id
     })
     return handleApiError(error)
   }
@@ -285,7 +285,7 @@ export async function POST(
 // GET /api/invoices/[id]/payments - Get payment history and reconciliation
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.USER])
@@ -401,7 +401,7 @@ export async function GET(
     logError('GET /api/invoices/[id]/payments', error, {
       userId: 'authContext.user?.id',
       companyId: 'authContext.user?.companyId',
-      invoiceId: params.id
+      invoiceId: (await params).id
     })
     return handleApiError(error)
   }

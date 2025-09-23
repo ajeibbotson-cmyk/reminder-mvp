@@ -103,8 +103,8 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
 
   const statCards: StatCard[] = useMemo(() => [
     {
-      title: 'Total Invoices',
-      titleAr: 'إجمالي الفواتير',
+      title: 'Total',
+      titleAr: 'الإجمالي',
       value: stats.totalCount,
       formattedValue: stats.totalAmount.toLocaleString('en-AE', {
         style: 'currency',
@@ -119,8 +119,8 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
       descriptionAr: `${stats.totalAmount.toLocaleString('ar-AE', { style: 'currency', currency: 'AED', minimumFractionDigits: 0 })} القيمة الإجمالية`
     },
     {
-      title: 'Paid Invoices',
-      titleAr: 'الفواتير المدفوعة',
+      title: 'Paid',
+      titleAr: 'مدفوع',
       value: stats.paidCount,
       formattedValue: stats.paidAmount.toLocaleString('en-AE', {
         style: 'currency',
@@ -137,8 +137,8 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
       descriptionAr: `${stats.paymentRate.toFixed(1)}% معدل الدفع`
     },
     {
-      title: 'Overdue Invoices',
-      titleAr: 'الفواتير المتأخرة',
+      title: 'Overdue',
+      titleAr: 'متأخر',
       value: stats.overdueCount,
       formattedValue: stats.overdueAmount.toLocaleString('en-AE', {
         style: 'currency',
@@ -155,8 +155,8 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
       descriptionAr: 'تتطلب اهتماماً فورياً'
     },
     {
-      title: 'Average Payment Time',
-      titleAr: 'متوسط وقت الدفع',
+      title: 'Avg Days',
+      titleAr: 'متوسط الأيام',
       value: Math.round(stats.averagePaymentTime),
       formattedValue: `${Math.round(stats.averagePaymentTime)} days`,
       change: stats.averagePaymentTime <= 30 ? 15 : stats.averagePaymentTime <= 45 ? 0 : -10,
@@ -168,8 +168,8 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
       descriptionAr: 'الوقت من الفاتورة إلى الدفع'
     },
     {
-      title: 'Draft Invoices',
-      titleAr: 'الفواتير المسودة',
+      title: 'Draft',
+      titleAr: 'مسودة',
       value: stats.draftCount,
       icon: <DollarSign className="h-5 w-5" />,
       color: 'text-gray-600',
@@ -178,8 +178,8 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
       descriptionAr: 'في انتظار الإكمال'
     },
     {
-      title: 'Payment Rate',
-      titleAr: 'معدل الدفع',
+      title: 'Rate',
+      titleAr: 'المعدل',
       value: `${stats.paymentRate.toFixed(1)}%`,
       change: stats.paymentRate >= 80 ? 5 : stats.paymentRate >= 60 ? 0 : -5,
       changeType: stats.paymentRate >= 80 ? 'positive' : stats.paymentRate >= 60 ? 'neutral' : 'negative',
@@ -212,52 +212,52 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4', className)}>
       {statCards.map((stat, index) => (
-        <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card key={index} className="hover:shadow-lg transition-shadow duration-200 h-full">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className={cn(
-              "text-sm font-medium text-muted-foreground",
+              "text-sm font-medium text-muted-foreground truncate",
               isRTL ? 'text-right' : 'text-left'
             )}>
               {locale === 'ar' ? stat.titleAr : stat.title}
             </CardTitle>
-            <div className={cn('p-2 rounded-lg', stat.bgColor)}>
+            <div className={cn('p-2 rounded-lg flex-shrink-0', stat.bgColor)}>
               <div className={stat.color}>
                 {stat.icon}
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 pb-4">
             <div className={cn('flex items-center justify-between', isRTL ? 'flex-row-reverse' : '')}>
-              <div>
-                <div className="text-2xl font-bold">
-                  {typeof stat.value === 'number' && stat.value > 999999 
-                    ? `${(stat.value / 1000000).toFixed(1)}M` 
+              <div className="min-w-0 flex-1">
+                <div className="text-2xl font-bold truncate">
+                  {typeof stat.value === 'number' && stat.value > 999999
+                    ? `${(stat.value / 1000000).toFixed(1)}M`
                     : typeof stat.value === 'number' && stat.value > 999
                     ? `${(stat.value / 1000).toFixed(1)}K`
                     : stat.value
                   }
                 </div>
                 {stat.formattedValue && (
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1 truncate">
                     {stat.formattedValue}
                   </p>
                 )}
               </div>
-              
+
               {stat.change !== undefined && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                   {stat.changeType === 'positive' ? (
                     <TrendingUp className="h-4 w-4 text-green-600" />
                   ) : stat.changeType === 'negative' ? (
                     <TrendingDown className="h-4 w-4 text-red-600" />
                   ) : null}
                   {stat.change !== 0 && (
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={cn(
                         'text-xs',
-                        stat.changeType === 'positive' 
-                          ? 'text-green-700 border-green-200 bg-green-50' 
+                        stat.changeType === 'positive'
+                          ? 'text-green-700 border-green-200 bg-green-50'
                           : stat.changeType === 'negative'
                           ? 'text-red-700 border-red-200 bg-red-50'
                           : 'text-gray-700 border-gray-200 bg-gray-50'
@@ -269,9 +269,9 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
                 </div>
               )}
             </div>
-            
+
             <p className={cn(
-              'text-xs text-muted-foreground mt-2',
+              'text-xs text-muted-foreground mt-2 line-clamp-2',
               isRTL ? 'text-right' : 'text-left'
             )}>
               {locale === 'ar' ? stat.descriptionAr : stat.description}

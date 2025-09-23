@@ -130,27 +130,27 @@ export function InvoiceStatusBadge({
     PENDING: {
       en: 'Pending',
       ar: 'معلقة',
-      className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      className: 'bg-accent/10 text-accent-foreground border-accent/20 dark:bg-accent/20'
     },
     PAID: {
       en: 'Paid',
       ar: 'مدفوعة',
-      className: 'bg-green-100 text-green-800 border-green-200'
+      className: 'bg-[oklch(0.55_0.15_155)]/10 text-[oklch(0.40_0.15_155)] border-[oklch(0.55_0.15_155)]/20 dark:bg-[oklch(0.55_0.15_155)]/20 dark:text-[oklch(0.65_0.15_155)]'
     },
     OVERDUE: {
       en: 'Overdue',
       ar: 'متأخرة',
-      className: 'bg-red-100 text-red-800 border-red-200'
+      className: 'bg-destructive/10 text-destructive border-destructive/20 dark:bg-destructive/20'
     },
     CANCELLED: {
       en: 'Cancelled',
       ar: 'ملغية',
-      className: 'bg-gray-100 text-gray-800 border-gray-200'
+      className: 'bg-muted text-muted-foreground border-border'
     },
     DRAFT: {
       en: 'Draft',
       ar: 'مسودة',
-      className: 'bg-blue-100 text-blue-800 border-blue-200'
+      className: 'bg-primary/10 text-primary border-primary/20 dark:bg-primary/20'
     }
   }
   
@@ -159,7 +159,7 @@ export function InvoiceStatusBadge({
   
   return (
     <span className={cn(
-      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+      "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm transition-all duration-200",
       config.className,
       className
     )}>

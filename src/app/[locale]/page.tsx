@@ -18,7 +18,7 @@ export default function HomePage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="text-lg px-8 py-3">
+            <Button asChild variant="premium" size="xl" className="text-lg px-8 py-3">
               <Link href="/auth/signup">
                 Start 14-day Free Trial
               </Link>
@@ -83,7 +83,7 @@ export default function HomePage() {
             Join 200+ UAE businesses already collecting payments faster with Reminder. 
             Get first-mover advantage before the e-invoicing mandate hits.
           </p>
-          <Button asChild size="lg" className="text-lg px-8 py-3">
+          <Button asChild variant="premium" size="xl" className="text-lg px-8 py-3">
             <Link href="/auth/signup">
               Get Started - No Credit Card Required
             </Link>

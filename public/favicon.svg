@@ -1,0 +1,16 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bell icon with notification dot -->
+  <g transform="translate(2, 4)">
+    <!-- Bell body -->
+    <path d="M14 8c-4.42 0-8 3.58-8 8v6c0 1.5-1.5 3-1.5 3h19s-1.5-1.5-1.5-3v-6c0-4.42-3.58-8-8-8z"
+          fill="#4F46E5" stroke="none"/>
+    <!-- Bell handle -->
+    <path d="M12 8V6c0-1.1.9-2 2-2s2 .9 2 2v2"
+          fill="none" stroke="#4F46E5" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Bell bottom -->
+    <path d="M8 25h12"
+          fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round"/>
+    <!-- Notification dot -->
+    <circle cx="20" cy="8" r="3" fill="#EF4444"/>
+  </g>
+</svg>

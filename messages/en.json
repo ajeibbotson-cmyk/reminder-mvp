@@ -24,9 +24,9 @@
   },
   "import": {
     "title": "Import Invoices",
-    "description": "Upload CSV or Excel files to import multiple invoices at once",
+    "description": "Upload CSV, Excel, or PDF files to import multiple invoices at once",
     "dragDrop": "Drag and drop your file here",
-    "supportedFormats": "Supported formats: CSV, XLS, XLSX",
+    "supportedFormats": "Supported formats: CSV, XLS, XLSX, PDF",
     "maxSize": "Maximum file size: 10MB",
     "browseFiles": "Browse Files",
     "processing": "Processing",
@@ -35,19 +35,88 @@
     "startImport": "Start Import",
     "importComplete": "Import Complete",
     "errorTitle": "Import Error",
+    "loading": "Loading...",
+    "invoiceImportTitle": "Invoice Import",
+    "invoiceImportDescription": "Upload and import your invoices from CSV, Excel, or PDF files",
+    "backToInvoices": "Back to Invoices",
+    "startNewImport": "Start New Import",
+    "importProgress": "Import Progress",
+    "totalRecords": "Total Records",
+    "processedRecords": "Processed",
+    "successfulRecords": "Successful",
+    "failedRecords": "Failed",
+    "importCompleteDescription": "Your import has been completed successfully",
+    "importSuccessful": "Import Successful",
+    "viewInvoices": "View Invoices",
+    "importMore": "Import More",
+    "downloadReport": "Download Report",
+    "steps": {
+      "fileType": {
+        "title": "Choose Method",
+        "description": "Select upload method"
+      },
+      "upload": {
+        "title": "Upload File",
+        "description": "Choose your file to upload"
+      },
+      "mapping": {
+        "title": "Map Fields",
+        "description": "Map CSV columns to invoice fields"
+      },
+      "processing": {
+        "title": "Processing",
+        "description": "Importing your data"
+      },
+      "complete": {
+        "title": "Complete",
+        "description": "Import finished successfully"
+      }
+    },
     "guidelines": {
       "title": "Import Guidelines",
+      "downloadTemplate": "Download Template",
       "requiredFields": "Required Fields",
-      "uaeFormats": "UAE Specific Formats",
+      "uaeSpecific": "UAE Specific Formats",
       "tips": "Import Tips",
       "phoneFormat": "Phone numbers should be in UAE format: +971 XX XXX XXXX",
       "dateFormat": "Dates should be in YYYY-MM-DD format",
       "amountFormat": "Amounts should be numeric values without currency symbols",
       "trnFormat": "TRN should be 15 digits",
+      "currencyFormat": "Currency should be AED or valid ISO code",
+      "vatCalculation": "VAT will be calculated automatically at 5%",
       "tip1": "Ensure all required fields are present in your CSV",
       "tip2": "Use the first row for column headers",
       "tip3": "Remove any empty rows or columns",
-      "tip4": "Verify phone numbers and email addresses are valid"
+      "tip4": "Verify phone numbers and email addresses are valid",
+      "tip5": "Check for special characters in data",
+      "tip6": "Validate amount formatting",
+      "downloadTemplate": "Download Template",
+      "useSpecific": "Use specific formatting for UAE business requirements",
+      "currencyFormat": "Currency should be in AED format",
+      "vatCalculation": "VAT calculations should follow UAE tax regulations"
+    },
+    "fileValidation": {
+      "fileValid": "File is valid",
+      "errorsFound": "Errors Found",
+      "warningsFound": "Warnings Found",
+      "invalidFileType": "Invalid file type",
+      "fileTooLarge": "File too large (max {maxSize})",
+      "largeFileWarning": "Large file may take longer to process",
+      "specialCharactersWarning": "File name contains special characters"
+    },
+    "fileUpload": {
+      "title": "File Upload",
+      "description": "Upload your files here",
+      "dragDrop": "Drag and drop your file here",
+      "dropHere": "Drop your file here",
+      "maxSize": "Maximum file size: 10MB",
+      "browseFiles": "Browse Files",
+      "uploading": "Uploading...",
+      "processing": "Processing...",
+      "startImport": "Start Import",
+      "uploadComplete": "Upload complete",
+      "uploadProgress": "Uploading...",
+      "processingFile": "Processing file..."
     },
     "fields": {
       "customerName": "Customer Name",
@@ -264,11 +333,148 @@
     "emailResponseRate": "Email Response Rate",
     "peakBusinessHours": "Peak Business Hours",
     "tuesday": "Tuesday",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "consolidation": "Consolidation Dashboard"
+  },
+  "consolidation": {
+    "dashboard": {
+      "title": "Consolidation Dashboard",
+      "subtitle": "Manage consolidated payment reminders",
+      "description": "Streamline payment collection with consolidated email campaigns"
+    },
+    "loading": "Loading consolidation data...",
+    "lastUpdated": "Last Updated",
+    "refresh": "Refresh",
+    "refreshShort": "Refresh",
+    "createConsolidation": "Create Consolidation",
+    "create": "Create",
+    "bulkActions": "Bulk Actions",
+    "filter": "Filter",
+    "pending": "pending",
+    "periods": {
+      "7days": "Last 7 Days",
+      "30days": "Last 30 Days",
+      "90days": "Last 90 Days"
+    },
+    "metrics": {
+      "totalConsolidations": "Total Consolidations",
+      "totalAmount": "Total Amount",
+      "emailSavings": "Email Savings",
+      "emailSavingsDesc": "Percentage reduction in individual emails",
+      "successRate": "Success Rate",
+      "avgInvoicesPerConsolidation": "Avg Invoices per Consolidation",
+      "emailSavingsPercentage": "Email Savings",
+      "paymentSuccessRate": "Payment Success Rate",
+      "avgResponseTime": "Avg Response Time",
+      "highPriorityCount": "High Priority",
+      "consolidatedEmails": "Consolidated Emails",
+      "responseRate": "Response Rate",
+      "timeToPayment": "Time to Payment"
+    },
+    "queue": {
+      "queued": "Queued",
+      "scheduled": "Scheduled",
+      "highPriority": "High Priority"
+    },
+    "tabs": {
+      "customers": "Customers",
+      "customersShort": "Customers",
+      "queue": "Queue",
+      "queueShort": "Queue",
+      "analytics": "Analytics",
+      "analyticsShort": "Analytics"
+    },
+    "customers": {
+      "title": "Customer Consolidations",
+      "description": "Manage consolidations by customer",
+      "consolidations": "consolidations",
+      "totalAmount": "total amount",
+      "effectiveness": "effectiveness",
+      "noData": "No customer data available"
+    },
+    "analytics": {
+      "consolidationTrends": "Consolidation Trends",
+      "emailEfficiency": "Email Efficiency",
+      "chartPlaceholder": "Chart visualization will be displayed here",
+      "averageInvoicesPerEmail": "Average Invoices per Email",
+      "emailsSavedPercentage": "Emails Saved Percentage",
+      "responseRates": "Response Rates",
+      "emailResponseRate": "Email Response Rate",
+      "paymentSuccessRate": "Payment Success Rate"
+    },
+    "actions": {
+      "createConsolidation": "Create Consolidation",
+      "viewDetails": "View Details",
+      "sendReminder": "Send Reminder",
+      "markPaid": "Mark Paid",
+      "exportData": "Export Data"
+    },
+    "status": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "processing": "Processing"
+    },
+    "filters": {
+      "all": "All",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "overdue": "Overdue",
+      "highValue": "High Value"
+    }
+  },
+  "queueManager": {
+    "title": "Consolidation Queue",
+    "description": "Managing {total} items, showing {filtered} filtered results",
+    "refresh": "Refresh",
+    "filters": {
+      "search": {
+        "placeholder": "Search customers, emails, or IDs..."
+      },
+      "status": {
+        "all": "All Status",
+        "queued": "Queued",
+        "scheduled": "Scheduled",
+        "sent": "Sent",
+        "failed": "Failed"
+      },
+      "priority": {
+        "all": "All Priority",
+        "high": "High Priority",
+        "medium": "Medium Priority",
+        "low": "Low Priority"
+      },
+      "sortBy": {
+        "priority": "Priority Score",
+        "amount": "Total Amount",
+        "scheduled": "Scheduled Time",
+        "customer": "Customer Name"
+      }
+    },
+    "selectedCount": "{count} selected",
+    "selectAll": "Select all items",
+    "bulkActions": {
+      "send": "Send Now",
+      "schedule": "Schedule"
+    },
+    "invoices": "invoices",
+    "amount": "amount",
+    "priority": "priority",
+    "estimatedSend": "Est. Send",
+    "quickActions": {
+      "sendNow": "Send Now",
+      "view": "View Details",
+      "send": "Send",
+      "schedule": "Schedule",
+      "edit": "Edit",
+      "cancel": "Cancel"
+    },
+    "noMatchingItems": "No items match your current filters",
+    "noQueueItems": "No items in the consolidation queue"
   },
   "invoices": {
     "title": "Invoices",
-    "addInvoice": "Add Invoice",
     "importInvoices": "Import Invoices",
     "invoiceNumber": "Invoice Number",
     "customer": "Customer",

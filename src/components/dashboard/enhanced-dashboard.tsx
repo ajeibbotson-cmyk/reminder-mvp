@@ -16,9 +16,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AEDAmount, UAEDateDisplay, InvoiceStatusBadge } from '@/components/ui/uae-formatters'
 import { ImportInterface } from '@/components/invoices/import-interface'
 import { useInvoiceStore } from '@/lib/stores/invoice-store'
+import { ConsolidationDashboard } from './consolidation-dashboard'
+import { ConsolidationAnalyticsCharts } from '../charts/consolidation-analytics-charts'
 // import { useImportBatchStore } from '@/lib/stores/import-batch-store' // Temporarily disabled
 // import { useEmailDeliveryStore } from '@/lib/stores/email-delivery-store' // Temporarily disabled
 import { cn } from '@/lib/utils'
+import { ProfessionalLoading } from '@/components/ui/professional-loading'
 
 interface EnhancedDashboardProps {
   companyId: string
@@ -64,12 +67,17 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
   // const { batches, fetchBatches } = useImportBatchStore() // Temporarily disabled
   // const { deliveries, analytics, fetchDeliveries, fetchAnalytics } = useEmailDeliveryStore() // Temporarily disabled
 
+  // Temporary default values for disabled stores
+  const deliveries: any[] = []
+  const batches: any[] = []
+  const analytics: any = null
+
   useEffect(() => {
     const loadDashboardData = async () => {
       setIsLoading(true)
       try {
         await Promise.all([
-          fetchInvoices(companyId),
+          fetchInvoices(),
           // fetchBatches(companyId), // Temporarily disabled
           // fetchDeliveries(companyId), // Temporarily disabled
           // fetchAnalytics(companyId, selectedPeriod) // Temporarily disabled
@@ -158,7 +166,8 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
           await bulkUpdateStatus(invoiceIds, 'PAID')
           break
         case 'send-reminder':
-          // Send reminder emails
+          // Send reminder emails - not yet implemented
+          console.log('Send reminder not yet implemented')
           break
         case 'mark-overdue':
           await bulkUpdateStatus(invoiceIds, 'OVERDUE')
@@ -166,7 +175,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
         default:
           break
       }
-      await fetchInvoices(companyId) // Refresh data
+      await fetchInvoices() // Refresh data
     } catch (error) {
       console.error('Bulk operation failed:', error)
     }
@@ -194,8 +203,12 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <RefreshCw className="h-8 w-8 animate-spin" />
-        <span className="ml-2">{t('loading')}</span>
+        <ProfessionalLoading
+          variant="branded"
+          size="lg"
+          message={t('loading')}
+          showBrand
+        />
       </div>
     )
   }
@@ -205,86 +218,141 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
 
   return (
     <div className={cn("space-y-6", locale === 'ar' && "text-right")}>
-      {/* Header with Period Selector */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">{t('enhancedDashboard')}</h1>
-          <p className="text-gray-600">{t('dashboardDescription')}</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">{t('last7Days')}</SelectItem>
-              <SelectItem value="30d">{t('last30Days')}</SelectItem>
-              <SelectItem value="90d">{t('last90Days')}</SelectItem>
-              <SelectItem value="1y">{t('lastYear')}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={() => setShowImportInterface(true)}>
-            <FileText className="h-4 w-4 mr-2" />
-            {t('importInvoices')}
-          </Button>
+      {/* Professional Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-primary/5 via-accent/5 to-primary/10 dark:from-primary/10 dark:via-accent/10 dark:to-primary/20 rounded-2xl border border-border/50 shadow-sm">
+        <div className="relative px-8 py-12">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h1 className="text-4xl lg:text-5xl font-bold text-primary">
+                  {t('enhancedDashboard') || 'Dashboard'}
+                </h1>
+                <p className="text-lg text-muted-foreground font-medium max-w-2xl">
+                  {t('dashboardDescription')}
+                </p>
+              </div>
+
+              {/* Quick Stats Row */}
+              <div className="flex items-center gap-6 pt-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+                    <FileText className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-semibold text-foreground">{metrics.totalInvoices}</span>
+                    <span className="text-muted-foreground ml-1">Invoices</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent/10">
+                    <CheckSquare className="h-4 w-4 text-accent-foreground" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-semibold text-foreground">{metrics.paidInvoices}</span>
+                    <span className="text-muted-foreground ml-1">Paid</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-destructive/10">
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-semibold text-foreground">{metrics.overdueInvoices}</span>
+                    <span className="text-muted-foreground ml-1">Overdue</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger className="w-[180px] bg-background/50 border-border/50 shadow-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7d">{t('last7Days')}</SelectItem>
+                  <SelectItem value="30d">{t('last30Days')}</SelectItem>
+                  <SelectItem value="90d">{t('last90Days')}</SelectItem>
+                  <SelectItem value="1y">{t('lastYear')}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="premium"
+                size="lg"
+                onClick={() => setShowImportInterface(true)}
+                className="shadow-md hover:shadow-lg"
+              >
+                <FileText className="h-5 w-5 mr-2" />
+                {t('importInvoices')}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Key Metrics Cards */}
+      {/* Enhanced Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('totalOutstanding')}</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <Card className="border-primary/10 bg-gradient-to-br from-primary/5 to-background hover:shadow-md transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">{t('totalOutstanding')}</CardTitle>
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
+              <DollarSign className="h-5 w-5 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold text-primary mb-1">
               <AEDAmount amount={metrics.totalOutstanding} />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground font-medium">
               {t('fromInvoices', { count: metrics.totalInvoices - metrics.paidInvoices })}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('overdueAmount')}</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-500" />
+        <Card className="border-destructive/10 bg-gradient-to-br from-destructive/5 to-background hover:shadow-md transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">{t('overdueAmount')}</CardTitle>
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-destructive/10">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-3xl font-bold text-destructive mb-1">
               <AEDAmount amount={metrics.overdueAmount} />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground font-medium">
               {t('fromInvoices', { count: metrics.overdueInvoices })}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('avgCollectionTime')}</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+        <Card className="border-accent/10 bg-gradient-to-br from-accent/5 to-background hover:shadow-md transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">{t('avgCollectionTime')}</CardTitle>
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-accent/10">
+              <Clock className="h-5 w-5 text-accent-foreground" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold text-accent-foreground mb-1">
               {Math.round(metrics.avgDaysToCollection)} {t('days')}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground font-medium">
               {t('averageTimeToPayment')}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('paymentRate')}</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
+        <Card className="border-[oklch(0.55_0.15_155)]/10 bg-gradient-to-br from-[oklch(0.55_0.15_155)]/5 to-background hover:shadow-md transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">{t('paymentRate')}</CardTitle>
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[oklch(0.55_0.15_155)]/10">
+              <TrendingUp className="h-5 w-5 text-[oklch(0.55_0.15_155)]" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{paymentRate.toFixed(1)}%</div>
-            <Progress value={paymentRate} className="mt-2" />
+            <div className="text-3xl font-bold text-[oklch(0.55_0.15_155)] mb-2">{paymentRate.toFixed(1)}%</div>
+            <Progress value={paymentRate} className="h-2" />
           </CardContent>
         </Card>
       </div>
@@ -364,12 +432,21 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
       </div>
 
       {/* Detailed Analytics Tabs */}
-      <Tabs defaultValue="imports" className="space-y-6">
-        <TabsList className="grid grid-cols-3 w-full max-w-md">
+      <Tabs defaultValue="consolidation" className="space-y-6">
+        <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+          <TabsTrigger value="consolidation">{t('consolidation')}</TabsTrigger>
           <TabsTrigger value="imports">{t('recentImports')}</TabsTrigger>
           <TabsTrigger value="emails">{t('emailActivity')}</TabsTrigger>
           <TabsTrigger value="analytics">{t('analytics')}</TabsTrigger>
         </TabsList>
+
+        {/* Sprint 3: Consolidation Dashboard Tab */}
+        <TabsContent value="consolidation" className="space-y-6">
+          <ConsolidationDashboard
+            companyId={companyId}
+            locale={locale}
+          />
+        </TabsContent>
 
         <TabsContent value="imports" className="space-y-6">
           <Card>
@@ -379,7 +456,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
                   <FileText className="h-5 w-5" />
                   {t('recentImports')}
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setShowImportInterface(true)}>
+                <Button variant="premium" size="sm" onClick={() => setShowImportInterface(true)}>
                   <FileText className="h-4 w-4 mr-2" />
                   {t('newImport')}
                 </Button>
@@ -414,7 +491,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
                 <div className="text-center py-8 text-gray-500">
                   <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>{t('noRecentImports')}</p>
-                  <Button variant="outline" className="mt-4" onClick={() => setShowImportInterface(true)}>
+                  <Button variant="premium" size="sm" className="mt-4" onClick={() => setShowImportInterface(true)}>
                     {t('startFirstImport')}
                   </Button>
                 </div>
@@ -543,7 +620,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold">{t('importInvoices')}</h2>
-                <Button variant="ghost" onClick={() => setShowImportInterface(false)}>
+                <Button variant="ghost" size="sm" onClick={() => setShowImportInterface(false)}>
                   ×
                 </Button>
               </div>
@@ -552,8 +629,8 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
                 locale={locale}
                 onImportComplete={() => {
                   setShowImportInterface(false)
-                  fetchInvoices(companyId)
-                  fetchBatches(companyId)
+                  fetchInvoices()
+                  // fetchBatches(companyId) // Temporarily disabled
                 }}
               />
             </div>

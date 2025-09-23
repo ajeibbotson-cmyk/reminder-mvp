@@ -9,6 +9,7 @@ import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { verifyWebhookSignature, filsToAed } from '@/lib/stripe'
 import { sendEmail } from '@/lib/email'
+import { handleApiError, successResponse, logError, ValidationError } from '@/lib/errors'
 
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -19,11 +20,7 @@ export async function POST(request: NextRequest) {
     const signature = headersList.get('stripe-signature')
 
     if (!signature) {
-      console.error('Missing Stripe signature')
-      return NextResponse.json(
-        { error: 'Missing signature' },
-        { status: 400 }
-      )
+      throw new ValidationError('Missing Stripe signature');
     }
 
     // Verify webhook signature
@@ -31,11 +28,7 @@ export async function POST(request: NextRequest) {
     try {
       event = verifyWebhookSignature(body, signature, WEBHOOK_SECRET)
     } catch (error) {
-      console.error('Webhook signature verification failed:', error)
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 400 }
-      )
+      throw new ValidationError('Invalid Stripe signature');
     }
 
     console.log(`Processing webhook event: ${event.type}`)
@@ -62,14 +55,14 @@ export async function POST(request: NextRequest) {
         console.log(`Unhandled webhook event type: ${event.type}`)
     }
 
-    return NextResponse.json({ received: true })
+    return successResponse({ received: true });
 
   } catch (error) {
-    console.error('Webhook processing error:', error)
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    )
+    logError('POST /api/payments/webhook', error, {
+      eventType: event?.type || 'unknown',
+      eventId: event?.id || 'unknown'
+    });
+    return handleApiError(error);
   }
 }
 

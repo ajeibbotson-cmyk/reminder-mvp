@@ -51,11 +51,13 @@ const ERROR_MESSAGES = {
 
 export class UAEErrorBoundary extends Component<Props, State> {
   private errorId: string
+  private errorTimestamp: string
 
   constructor(props: Props) {
     super(props)
     this.state = { hasError: false }
-    this.errorId = this.generateErrorId()
+    this.errorId = ''
+    this.errorTimestamp = ''
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -63,12 +65,16 @@ export class UAEErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Generate error ID and timestamp when error actually occurs
+    this.errorId = this.generateErrorId()
+    this.errorTimestamp = new Date().toISOString()
+
     // Log error with UAE-specific context
     logError('UAE Error Boundary', error, {
       componentStack: errorInfo.componentStack,
       errorBoundary: this.constructor.name,
       errorId: this.errorId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.errorTimestamp,
       locale: this.props.locale || 'en',
       userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server'
     })
@@ -82,13 +88,14 @@ export class UAEErrorBoundary extends Component<Props, State> {
   }
 
   handleRetry = () => {
-    this.errorId = this.generateErrorId()
+    this.errorId = ''
+    this.errorTimestamp = ''
     this.setState({ hasError: false, error: undefined })
   }
 
   handleContactSupport = () => {
     const subject = `Reminder Error Report - ${this.errorId}`
-    const body = `Error ID: ${this.errorId}\nTimestamp: ${new Date().toISOString()}\nUser Agent: ${typeof window !== 'undefined' ? navigator.userAgent : 'server'}\n\nPlease describe what you were doing when this error occurred:`
+    const body = `Error ID: ${this.errorId}\nTimestamp: ${this.errorTimestamp}\nUser Agent: ${typeof window !== 'undefined' ? navigator.userAgent : 'server'}\n\nPlease describe what you were doing when this error occurred:`
     window.open(`mailto:support@reminder.ae?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
   }
 
@@ -129,7 +136,7 @@ export class UAEErrorBoundary extends Component<Props, State> {
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="font-medium text-gray-600">{messages.timestamp}:</span>
-                  <span className="text-gray-800">{new Date().toLocaleString(locale === 'ar' ? 'ar-AE' : 'en-US')}</span>
+                  <span className="text-gray-800">{this.errorTimestamp ? new Date(this.errorTimestamp).toLocaleString(locale === 'ar' ? 'ar-AE' : 'en-US') : 'N/A'}</span>
                 </div>
               </div>
 

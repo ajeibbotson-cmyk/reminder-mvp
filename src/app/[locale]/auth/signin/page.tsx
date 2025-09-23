@@ -78,11 +78,16 @@ Sign in to your account
                 placeholder="Enter your password"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" variant="premium" size="lg" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-4 text-center text-sm">
+            <Link href="/auth/forgot-password" className="text-blue-600 hover:underline">
+              Forgot your password?
+            </Link>
+          </div>
+          <div className="mt-4 text-center text-sm">
             <span className="text-gray-600">Don&apos;t have an account? </span>
             <Link href="/auth/signup" className="text-blue-600 hover:underline">
               Sign up here

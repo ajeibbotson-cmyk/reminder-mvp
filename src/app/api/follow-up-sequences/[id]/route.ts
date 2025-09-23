@@ -32,7 +32,7 @@ interface UpdateFollowUpSequenceRequest {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -51,7 +51,7 @@ export async function GET(
 
     const sequence = await prisma.followUpSequence.findFirst({
       where: {
-        id: params.id,
+        id: (await params).id,
         companyId: user.company.id
       },
       include: {
@@ -209,7 +209,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -228,7 +228,7 @@ export async function PUT(
 
     const sequence = await prisma.followUpSequence.findFirst({
       where: {
-        id: params.id,
+        id: (await params).id,
         companyId: user.company.id
       }
     })
@@ -416,7 +416,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -435,7 +435,7 @@ export async function DELETE(
 
     const sequence = await prisma.followUpSequence.findFirst({
       where: {
-        id: params.id,
+        id: (await params).id,
         companyId: user.company.id
       },
       include: {

@@ -114,7 +114,7 @@ export async function GET(
       : new Date()
 
     // Get sequence and verify ownership
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
         companyId: user.company.id

@@ -8,53 +8,53 @@ import { UserRole, Prisma } from '@prisma/client'
 // GET /api/customers/[id] - Get specific customer with enhanced details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const startTime = Date.now()
-  
+  const { id } = await params
+
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.VIEWER])
-    const { id } = params
 
-    const customer = await prisma.customer.findUnique({
-      where: { 
+    const customer = await prisma.customers.findUnique({
+      where: {
         id,
-        isActive: true // Only return active customers
+        is_active: true // Only return active customers
       },
       include: {
         invoices: {
           where: {
-            isActive: true
+            is_active: true
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { created_at: 'desc' },
           include: {
             payments: {
-              orderBy: { paymentDate: 'desc' }
+              orderBy: { payment_date: 'desc' }
             },
-            invoiceItems: {
-              orderBy: { createdAt: 'asc' }
+            invoice_items: {
+              orderBy: { created_at: 'asc' }
             }
           }
         },
-        company: {
+        companies: {
           select: {
             id: true,
             name: true,
             trn: true,
-            defaultVatRate: true,
-            businessHours: true
+            default_vat_rate: true,
+            business_hours: true
           }
         },
-        emailLogs: {
+        email_logs: {
           take: 10,
-          orderBy: { sentAt: 'desc' },
+          orderBy: { sent_at: 'desc' },
           select: {
             id: true,
-            templateType: true,
+            template_id: true,
             subject: true,
-            deliveryStatus: true,
-            sentAt: true,
-            openedAt: true
+            delivery_status: true,
+            sent_at: true,
+            opened_at: true
           }
         }
       }
@@ -100,7 +100,7 @@ export async function GET(
       paidInvoices.reduce((sum, invoice) => {
         const firstPayment = invoice.payments[0]
         const daysDiff = Math.ceil(
-          (new Date(firstPayment.paymentDate).getTime() - new Date(invoice.createdAt).getTime()) 
+          (new Date(firstPayment.payment_date).getTime() - new Date(invoice.created_at).getTime()) 
           / (1000 * 60 * 60 * 24)
         )
         return sum + daysDiff
@@ -138,9 +138,9 @@ export async function GET(
 
   } catch (error) {
     const responseTime = Date.now() - startTime
-    logError('GET /api/customers/[id]', error, { 
+    logError('GET /api/customers/[id]', error, {
       userId: 'authContext.user?.id',
-      customerId: params.id,
+      customerId: id,
       responseTime
     })
     return handleApiError(error)
@@ -150,25 +150,24 @@ export async function GET(
 // PUT /api/customers/[id] - Update customer with UAE business validation
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const startTime = Date.now()
-  
+  const { id } = await params
+
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
-    
+
     if (!canManageInvoices(authContext.user.role)) {
       throw new Error('Insufficient permissions to update customers')
     }
-
-    const { id } = params
     const updateData = await validateRequestBody(request, updateCustomerSchema)
 
     // First check if customer exists and user has access
-    const existingCustomer = await prisma.customer.findUnique({
-      where: { 
+    const existingCustomer = await prisma.customers.findUnique({
+      where: {
         id,
-        isActive: true
+        is_active: true
       }
     })
 
@@ -187,12 +186,12 @@ export async function PUT(
       }
       
       // Check for duplicate TRN (excluding current customer)
-      const existingTrnCustomer = await prisma.customer.findFirst({
+      const existingTrnCustomer = await prisma.customers.findFirst({
         where: {
           companyId: authContext.user.companyId,
           // trn: updateData.trn,
           id: { not: id },
-          isActive: true
+          is_active: true
         }
       })
       
@@ -203,12 +202,12 @@ export async function PUT(
 
     // Check for duplicate email (excluding current customer)
     if (updateData.email && updateData.email !== existingCustomer.email) {
-      const existingEmailCustomer = await prisma.customer.findFirst({
+      const existingEmailCustomer = await prisma.customers.findFirst({
         where: {
           companyId: authContext.user.companyId,
           email: updateData.email,
           id: { not: id },
-          isActive: true
+          is_active: true
         }
       })
       
@@ -234,13 +233,13 @@ export async function PUT(
       // if (updateData.businessType !== undefined) updateFields.businessType = updateData.businessType
       // if (updateData.businessName !== undefined) updateFields.businessName = updateData.businessName
 
-      const customer = await tx.customer.update({
+      const customer = await tx.customers.update({
         where: { id },
         data: updateFields,
         include: {
           invoices: {
-            where: { isActive: true },
-            orderBy: { createdAt: 'desc' },
+            where: { is_active: true },
+            orderBy: { created_at: 'desc' },
             take: 5,
             include: {
               payments: true
@@ -251,11 +250,11 @@ export async function PUT(
 
       // If email changed, update all related invoices and maintain referential integrity
       if (updateData.email && updateData.email !== existingCustomer.email) {
-        await tx.invoice.updateMany({
+        await tx.invoices.updateMany({
           where: {
             customerEmail: existingCustomer.email,
             companyId: authContext.user.companyId,
-            isActive: true
+            is_active: true
           },
           data: {
             customerEmail: updateData.email,
@@ -267,11 +266,11 @@ export async function PUT(
 
       // If name changed, update all related invoices
       if (updateData.name && updateData.name !== existingCustomer.name) {
-        await tx.invoice.updateMany({
+        await tx.invoices.updateMany({
           where: {
             customerEmail: customer.email,
             companyId: authContext.user.companyId,
-            isActive: true
+            is_active: true
           },
           data: {
             customerName: updateData.name,
@@ -285,7 +284,7 @@ export async function PUT(
         updateData[key as keyof typeof updateData] !== undefined
       )
       
-      await tx.activity.create({
+      await tx.activities.create({
         data: {
           companyId: authContext.user.companyId,
           userId: authContext.user.id,
@@ -319,9 +318,9 @@ export async function PUT(
 
   } catch (error) {
     const responseTime = Date.now() - startTime
-    logError('PUT /api/customers/[id]', error, { 
+    logError('PUT /api/customers/[id]', error, {
       userId: 'authContext.user?.id',
-      customerId: params.id,
+      customerId: id,
       responseTime
     })
     return handleApiError(error)
@@ -331,29 +330,28 @@ export async function PUT(
 // DELETE /api/customers/[id] - Soft delete customer with UAE compliance
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const startTime = Date.now()
-  
+  const { id } = await params
+
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
-    
+
     if (!canManageInvoices(authContext.user.role)) {
       throw new Error('Insufficient permissions to delete customers')
     }
 
-    const { id } = params
-
     // First check if customer exists and user has access
-    const existingCustomer = await prisma.customer.findUnique({
-      where: { 
+    const existingCustomer = await prisma.customers.findUnique({
+      where: {
         id,
-        isActive: true
+        is_active: true
       },
       include: {
         invoices: {
           where: {
-            isActive: true
+            is_active: true
           },
           include: {
             payments: true
@@ -397,10 +395,10 @@ export async function DELETE(
 
     await prisma.$transaction(async (tx) => {
       // Soft delete the customer (UAE compliance - maintain audit trail)
-      await tx.customer.update({
+      await tx.customers.update({
         where: { id },
         data: {
-          isActive: false,
+          is_active: false,
           archivedAt: new Date(),
           // Append timestamp to email to allow re-creation with same email
           email: `${existingCustomer.email}_archived_${Date.now()}`
@@ -409,20 +407,20 @@ export async function DELETE(
 
       // Soft delete related invoices if any (for audit compliance)
       if (existingCustomer.invoices.length > 0) {
-        await tx.invoice.updateMany({
+        await tx.invoices.updateMany({
           where: {
             customerEmail: existingCustomer.email,
             companyId: authContext.user.companyId
           },
           data: {
-            isActive: false,
+            is_active: false,
             archivedAt: new Date()
           }
         })
       }
 
       // Log comprehensive activity for UAE audit requirements
-      await tx.activity.create({
+      await tx.activities.create({
         data: {
           companyId: authContext.user.companyId,
           userId: authContext.user.id,
@@ -452,9 +450,9 @@ export async function DELETE(
 
   } catch (error) {
     const responseTime = Date.now() - startTime
-    logError('DELETE /api/customers/[id]', error, { 
+    logError('DELETE /api/customers/[id]', error, {
       userId: 'authContext.user?.id',
-      customerId: params.id,
+      customerId: id,
       responseTime
     })
     return handleApiError(error)

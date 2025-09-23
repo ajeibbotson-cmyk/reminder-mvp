@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getDefaultEmailService } from '@/lib/email-service'
+import { handleApiError, successResponse, logError, ValidationError } from '@/lib/errors'
 
 // AWS SES Event Types
 interface SESDeliveryEvent {
@@ -106,14 +107,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Event processed successfully' })
     }
 
-    return NextResponse.json({ error: 'Invalid content type' }, { status: 400 })
+    throw new ValidationError('Invalid content type')
 
   } catch (error) {
-    console.error('Failed to process SES webhook:', error)
-    return NextResponse.json({
-      error: 'Failed to process webhook',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    logError('POST /api/webhooks/ses-delivery', error, {
+      contentType,
+      hasBody: !!body
+    });
+    return handleApiError(error);
   }
 }
 
@@ -124,8 +125,8 @@ async function handleSESEvent(event: SESDeliveryEvent): Promise<void> {
   console.log(`Processing SES event: ${event.eventType} for message ${event.messageId}`)
 
   // Find the email log by AWS message ID
-  const emailLog = await prisma.emailLog.findFirst({
-    where: { awsMessageId: event.messageId }
+  const emailLog = await prisma.email_logs.findFirst({
+    where: { aws_message_id: event.messageId }
   })
 
   if (!emailLog) {
@@ -138,10 +139,10 @@ async function handleSESEvent(event: SESDeliveryEvent): Promise<void> {
   switch (event.eventType) {
     case 'send':
       // Email was successfully sent to SES
-      await prisma.emailLog.update({
+      await prisma.email_logs.update({
         where: { id: emailLog.id },
         data: {
-          deliveryStatus: 'SENT',
+          delivery_status: 'SENT',
           sentAt: new Date(event.timestamp)
         }
       })
@@ -155,11 +156,11 @@ async function handleSESEvent(event: SESDeliveryEvent): Promise<void> {
         processingTime: event.delivery?.processingTimeMillis
       })
 
-      await prisma.emailLog.update({
+      await prisma.email_logs.update({
         where: { id: emailLog.id },
         data: {
-          deliveryStatus: 'DELIVERED',
-          deliveredAt: new Date(event.delivery?.timestamp || event.timestamp)
+          delivery_status: 'DELIVERED',
+          delivered_at: new Date(event.delivery?.timestamp || event.timestamp)
         }
       })
       break
@@ -204,11 +205,11 @@ async function handleSESEvent(event: SESDeliveryEvent): Promise<void> {
 
     case 'reject':
       // Email was rejected by SES (usually due to policy violations)
-      await prisma.emailLog.update({
+      await prisma.email_logs.update({
         where: { id: emailLog.id },
         data: {
-          deliveryStatus: 'FAILED',
-          bounceReason: event.reject?.reason || 'Email rejected by SES'
+          delivery_status: 'FAILED',
+          bounce_reason: event.reject?.reason || 'Email rejected by SES'
         }
       })
       break

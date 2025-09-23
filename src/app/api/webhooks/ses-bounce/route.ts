@@ -59,50 +59,50 @@ export async function POST(request: NextRequest) {
  */
 async function handleBounceNotification(message: any) {
   const { bounce, mail } = message
-  const { bounceType, bounceSubType, bouncedRecipients, timestamp } = bounce
+  const { bounce_type, bounceSubType, bouncedRecipients, timestamp } = bounce
   
   for (const recipient of bouncedRecipients) {
-    const { emailAddress, action, status, diagnosticCode } = recipient
+    const { emailAddress, action, status, diagnostic_code } = recipient
     
     try {
       // Find the email log entry using message ID
-      const emailLog = await prisma.emailLog.findFirst({
+      const emailLog = await prisma.email_logs.findFirst({
         where: {
-          awsMessageId: mail.messageId,
-          recipientEmail: emailAddress
+          aws_message_id: mail.messageId,
+          recipient_email: emailAddress
         }
       })
 
       if (emailLog) {
         // Update email log status
-        await prisma.emailLog.update({
+        await prisma.email_logs.update({
           where: { id: emailLog.id },
           data: {
-            deliveryStatus: 'BOUNCED',
-            bouncedAt: new Date(timestamp),
-            bounceReason: `${bounceType}: ${diagnosticCode || status}`
+            delivery_status: 'BOUNCED',
+            bounced_at: new Date(timestamp),
+            bounce_reason: `${bounce_type}: ${diagnostic_code || status}`
           }
         })
 
         // Create bounce tracking record
-        await prisma.emailBounceTracking.create({
+        await prisma.email_bounce_tracking.create({
           data: {
             id: crypto.randomUUID(),
-            emailLogId: emailLog.id,
-            bounceType: bounceType.toLowerCase(),
-            bounceSubtype: bounceSubType?.toLowerCase(),
-            diagnosticCode,
-            arrivalDate: new Date(timestamp),
-            isSuppressed: bounceType === 'Permanent'
+            email_log_id: emailLog.id,
+            bounce_type: bounce_type.toLowerCase(),
+            bounce_subtype: bounceSubType?.toLowerCase(),
+            diagnostic_code,
+            arrival_date: new Date(timestamp),
+            is_suppressed: bounce_type === 'Permanent'
           }
         })
 
         // For hard bounces, mark email address for suppression
-        if (bounceType === 'Permanent') {
-          await suppressEmailAddress(emailAddress, emailLog.companyId, 'hard_bounce')
+        if (bounce_type === 'Permanent') {
+          await suppressEmailAddress(emailAddress, emailLog.company_id, 'hard_bounce')
         }
 
-        console.log(`Processed bounce for ${emailAddress}: ${bounceType}`)
+        console.log(`Processed bounce for ${emailAddress}: ${bounce_type}`)
       } else {
         console.warn(`Could not find email log for message ID: ${mail.messageId}`)
       }
@@ -125,39 +125,39 @@ async function handleComplaintNotification(message: any) {
     
     try {
       // Find the email log entry using message ID
-      const emailLog = await prisma.emailLog.findFirst({
+      const emailLog = await prisma.email_logs.findFirst({
         where: {
-          awsMessageId: mail.messageId,
-          recipientEmail: emailAddress
+          aws_message_id: mail.messageId,
+          recipient_email: emailAddress
         }
       })
 
       if (emailLog) {
         // Update email log status
-        await prisma.emailLog.update({
+        await prisma.email_logs.update({
           where: { id: emailLog.id },
           data: {
-            deliveryStatus: 'COMPLAINED',
+            delivery_status: 'COMPLAINED',
             complainedAt: new Date(timestamp),
             complaintFeedback: complaintFeedbackType || 'Spam complaint'
           }
         })
 
         // Create bounce tracking record for complaint
-        await prisma.emailBounceTracking.create({
+        await prisma.email_bounce_tracking.create({
           data: {
             id: crypto.randomUUID(),
-            emailLogId: emailLog.id,
-            bounceType: 'complaint',
-            bounceSubtype: complaintFeedbackType?.toLowerCase(),
+            email_log_id: emailLog.id,
+            bounce_type: 'complaint',
+            bounce_subtype: complaintFeedbackType?.toLowerCase(),
             feedbackId,
-            arrivalDate: new Date(timestamp),
-            isSuppressed: true // Always suppress complaints
+            arrival_date: new Date(timestamp),
+            is_suppressed: true // Always suppress complaints
           }
         })
 
         // Suppress email address immediately for complaints
-        await suppressEmailAddress(emailAddress, emailLog.companyId, 'complaint')
+        await suppressEmailAddress(emailAddress, emailLog.company_id, 'complaint')
 
         console.log(`Processed complaint for ${emailAddress}: ${complaintFeedbackType || 'spam'}`)
       } else {
@@ -180,14 +180,14 @@ async function handleDeliveryNotification(message: any) {
   for (const emailAddress of recipients) {
     try {
       // Update email log status to delivered
-      const result = await prisma.emailLog.updateMany({
+      const result = await prisma.email_logs.updateMany({
         where: {
-          awsMessageId: mail.messageId,
-          recipientEmail: emailAddress,
-          deliveryStatus: 'SENT' // Only update if still in SENT status
+          aws_message_id: mail.messageId,
+          recipient_email: emailAddress,
+          delivery_status: 'SENT' // Only update if still in SENT status
         },
         data: {
-          deliveryStatus: 'DELIVERED',
+          delivery_status: 'DELIVERED',
           deliveredAt: new Date(timestamp)
         }
       })

@@ -37,14 +37,15 @@ export interface InvoiceState {
   loading: boolean
   error: string | null
   totalCount: number
-  
+
   // Actions
-  fetchInvoices: (companyId: string, filters?: InvoiceFilters) => Promise<void>
+  fetchInvoices: (filters?: InvoiceFilters) => Promise<void>
   addInvoice: (invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Invoice>
   updateInvoice: (id: string, updates: Partial<Invoice>) => Promise<void>
   updateInvoiceStatus: (id: string, status: InvoiceStatus) => Promise<void>
   deleteInvoice: (id: string) => Promise<void>
   getInvoiceById: (id: string) => InvoiceWithDetails | null
+  bulkUpdateStatus: (invoiceIds: string[], status: InvoiceStatus) => Promise<BulkActionResult>
   clearError: () => void
 }
 

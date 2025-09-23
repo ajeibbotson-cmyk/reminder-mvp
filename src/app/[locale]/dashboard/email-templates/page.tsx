@@ -58,6 +58,7 @@ export default function EmailTemplatesPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [consolidationFilter, setConsolidationFilter] = useState('all')
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null)
   const [showEditor, setShowEditor] = useState(false)
   const [showBuilder, setShowBuilder] = useState(false)
@@ -88,16 +89,20 @@ export default function EmailTemplatesPage() {
   const filteredTemplates = templates.filter(template => {
     const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          template.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesStatus = statusFilter === 'all' || 
+
+    const matchesStatus = statusFilter === 'all' ||
                          (statusFilter === 'active' && template.isActive) ||
                          (statusFilter === 'inactive' && !template.isActive)
-    
+
     const matchesType = typeFilter === 'all' || template.templateType === typeFilter
-    
+
     const matchesCategory = categoryFilter === 'all' || template.category === categoryFilter
 
-    return matchesSearch && matchesStatus && matchesType && matchesCategory
+    const matchesConsolidation = consolidationFilter === 'all' ||
+                                (consolidationFilter === 'supported' && template.supportsConsolidation) ||
+                                (consolidationFilter === 'individual' && !template.supportsConsolidation)
+
+    return matchesSearch && matchesStatus && matchesType && matchesCategory && matchesConsolidation
   })
 
   const templateTypes = [
@@ -105,6 +110,9 @@ export default function EmailTemplatesPage() {
     { value: 'PAYMENT_REQUEST', label: t('types.paymentRequest') },
     { value: 'OVERDUE_NOTICE', label: t('types.overdueNotice') },
     { value: 'PAYMENT_CONFIRMATION', label: t('types.paymentConfirmation') },
+    { value: 'CONSOLIDATED_REMINDER', label: t('types.consolidatedReminder') },
+    { value: 'FIRM_CONSOLIDATED_REMINDER', label: t('types.firmConsolidatedReminder') },
+    { value: 'URGENT_CONSOLIDATED_REMINDER', label: t('types.urgentConsolidatedReminder') },
     { value: 'CUSTOM', label: t('types.custom') }
   ]
 
@@ -113,6 +121,9 @@ export default function EmailTemplatesPage() {
     { value: 'PROFESSIONAL_FOLLOWUP', label: t('categories.professionalFollowup'), icon: '📋', color: 'orange' },
     { value: 'FIRM_NOTICE', label: t('categories.firmNotice'), icon: '⚠️', color: 'red' },
     { value: 'FINAL_NOTICE', label: t('categories.finalNotice'), icon: '🔔', color: 'purple' },
+    { value: 'CONSOLIDATED_BILLING', label: t('categories.consolidatedBilling'), icon: '📊', color: 'teal' },
+    { value: 'MULTI_INVOICE_REMINDER', label: t('categories.multiInvoiceReminder'), icon: '📋', color: 'indigo' },
+    { value: 'BULK_PAYMENT_REQUEST', label: t('categories.bulkPaymentRequest'), icon: '💰', color: 'amber' },
     { value: 'WELCOME_SERIES', label: t('categories.welcomeSeries'), icon: '🤝', color: 'green' },
     { value: 'PAYMENT_CONFIRMATION', label: t('categories.paymentConfirmation'), icon: '✅', color: 'emerald' },
     { value: 'CUSTOM', label: t('categories.custom'), icon: '🎨', color: 'gray' }
@@ -228,11 +239,19 @@ export default function EmailTemplatesPage() {
       return acc
     }, {} as Record<string, number>)
 
+    const consolidationSupported = templates.filter(t => t.supportsConsolidation).length
+    const maxInvoiceCountAvg = templates
+      .filter(t => t.supportsConsolidation)
+      .reduce((sum, t) => sum + (t.maxInvoiceCount || 1), 0) / Math.max(consolidationSupported, 1)
+
     return {
       total: templates.length,
       active: templates.filter(t => t.isActive).length,
       inactive: templates.filter(t => !t.isActive).length,
       default: templates.filter(t => t.isDefault).length,
+      consolidationSupported,
+      consolidationPercentage: templates.length > 0 ? (consolidationSupported / templates.length) * 100 : 0,
+      maxInvoiceCountAvg: Math.round(maxInvoiceCountAvg),
       byCategory: categoryStats,
       mostUsed: templates.sort((a, b) => (b.emailLogs?.length || 0) - (a.emailLogs?.length || 0))[0],
       recentlyUpdated: templates.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 3)
@@ -276,7 +295,7 @@ export default function EmailTemplatesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t('stats.total')}</CardTitle>
@@ -294,6 +313,19 @@ export default function EmailTemplatesPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{t('stats.consolidation')}</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{stats.consolidationSupported}</div>
+              <p className="text-xs text-muted-foreground">
+                {Math.round(stats.consolidationPercentage)}% of templates
+              </p>
             </CardContent>
           </Card>
 
@@ -361,6 +393,17 @@ export default function EmailTemplatesPage() {
                 </SelectContent>
               </Select>
 
+              <Select value={consolidationFilter} onValueChange={setConsolidationFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('filters.allConsolidation')}</SelectItem>
+                  <SelectItem value="supported">{t('filters.consolidationSupported')}</SelectItem>
+                  <SelectItem value="individual">{t('filters.individualOnly')}</SelectItem>
+                </SelectContent>
+              </Select>
+
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Filter className="h-4 w-4" />
                 {t('showingResults', { count: filteredTemplates.length, total: templates.length })}
@@ -412,6 +455,12 @@ export default function EmailTemplatesPage() {
                               <Badge variant="outline">
                                 <Languages className="h-3 w-3 mr-1" />
                                 {t('bilingual')}
+                              </Badge>
+                            )}
+                            {template.supportsConsolidation && (
+                              <Badge variant="outline" className="text-blue-600 border-blue-600">
+                                <TrendingUp className="h-3 w-3 mr-1" />
+                                {t('consolidation')} ({template.maxInvoiceCount || 1})
                               </Badge>
                             )}
                           </div>

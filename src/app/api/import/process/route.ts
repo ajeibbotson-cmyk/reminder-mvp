@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const processData = await validateRequestBody(request, bulkImportValidationSchema)
     
     // Get import batch
-    const importBatch = await prisma.importBatch.findUnique({
+    const importBatch = await prisma.import_batches.findUnique({
       where: { 
         id: processData.importBatchId 
       },
@@ -166,7 +166,7 @@ async function processFileAsync(
     processingProgress.set(importBatch.id, finalProgress)
 
     // Log completion
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: importBatch.companyId,
@@ -201,7 +201,7 @@ async function processFileAsync(
       // Insert in batches to avoid overwhelming database
       for (let i = 0; i < errorData.length; i += 100) {
         const batch = errorData.slice(i, i + 100)
-        await prisma.importError.createMany({
+        await prisma.import_errors.createMany({
           data: batch
         })
       }
@@ -264,7 +264,7 @@ export async function GET(request: NextRequest) {
 
     // Get import batches for company
     const [batches, totalCount] = await Promise.all([
-      prisma.importBatch.findMany({
+      prisma.import_batches.findMany({
         where: {
           companyId: authContext.user.companyId
         },
@@ -282,7 +282,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit
       }),
-      prisma.importBatch.count({
+      prisma.import_batches.count({
         where: { companyId: authContext.user.companyId }
       })
     ])

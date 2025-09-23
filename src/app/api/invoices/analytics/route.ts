@@ -230,7 +230,7 @@ async function getOverviewMetrics(companyId: string, startDate: Date, endDate: D
     prisma.invoices.aggregate({
       where: {
         companyId,
-        createdAt: { gte: startDate, lte: endDate }
+        created_at: { gte: startDate, lte: endDate }
       },
       _count: { id: true },
       _sum: { totalAmount: true },
@@ -240,7 +240,7 @@ async function getOverviewMetrics(companyId: string, startDate: Date, endDate: D
       where: {
         invoices: {
           companyId,
-          createdAt: { gte: startDate, lte: endDate }
+          created_at: { gte: startDate, lte: endDate }
         }
       },
       _sum: { amount: true },
@@ -253,7 +253,7 @@ async function getOverviewMetrics(companyId: string, startDate: Date, endDate: D
     where: {
       companyId,
       status: { in: [InvoiceStatus.SENT, InvoiceStatus.OVERDUE, InvoiceStatus.DISPUTED] },
-      createdAt: { gte: startDate, lte: endDate }
+      created_at: { gte: startDate, lte: endDate }
     },
     include: { payments: true }
   })
@@ -262,7 +262,7 @@ async function getOverviewMetrics(companyId: string, startDate: Date, endDate: D
     where: {
       companyId,
       status: InvoiceStatus.OVERDUE,
-      createdAt: { gte: startDate, lte: endDate }
+      created_at: { gte: startDate, lte: endDate }
     },
     include: { payments: true }
   })
@@ -272,7 +272,7 @@ async function getOverviewMetrics(companyId: string, startDate: Date, endDate: D
     where: {
       companyId,
       status: InvoiceStatus.PAID,
-      createdAt: { gte: startDate, lte: endDate }
+      created_at: { gte: startDate, lte: endDate }
     },
     include: {
       payments: {
@@ -305,7 +305,7 @@ async function getOverviewMetrics(companyId: string, startDate: Date, endDate: D
     ? paidInvoices.reduce((sum, invoice) => {
         if (invoice.payments[0]) {
           const daysDiff = Math.ceil(
-            (invoice.payments[0].paymentDate.getTime() - invoice.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+            (invoice.payments[0].paymentDate.getTime() - invoice.created_at.getTime()) / (1000 * 60 * 60 * 24)
           )
           return sum + daysDiff
         }
@@ -333,7 +333,7 @@ async function getStatusBreakdown(companyId: string, startDate: Date, endDate: D
     by: ['status'],
     where: {
       companyId,
-      createdAt: { gte: startDate, lte: endDate }
+      created_at: { gte: startDate, lte: endDate }
     },
     _count: { status: true },
     _sum: { totalAmount: true }
@@ -365,7 +365,7 @@ async function getTimeSeriesData(companyId: string, startDate: Date, endDate: Da
       prisma.invoices.aggregate({
         where: {
           companyId,
-          createdAt: { gte: periodStart, lt: periodEnd }
+          created_at: { gte: periodStart, lt: periodEnd }
         },
         _count: { id: true },
         _sum: { totalAmount: true }
@@ -404,11 +404,11 @@ async function getTopCustomers(companyId: string, startDate: Date, endDate: Date
     by: ['customerName', 'customerEmail'],
     where: {
       companyId,
-      createdAt: { gte: startDate, lte: endDate }
+      created_at: { gte: startDate, lte: endDate }
     },
     _count: { id: true },
     _sum: { totalAmount: true },
-    _max: { createdAt: true },
+    _max: { created_at: true },
     orderBy: { _sum: { totalAmount: 'desc' } },
     take: 10
   })
@@ -421,7 +421,7 @@ async function getTopCustomers(companyId: string, startDate: Date, endDate: Date
         invoices: {
           companyId,
           customerEmail: customer.customerEmail,
-          createdAt: { gte: startDate, lte: endDate }
+          created_at: { gte: startDate, lte: endDate }
         }
       },
       _sum: { amount: true }
@@ -433,7 +433,7 @@ async function getTopCustomers(companyId: string, startDate: Date, endDate: Date
         companyId,
         customerEmail: customer.customerEmail,
         status: InvoiceStatus.PAID,
-        createdAt: { gte: startDate, lte: endDate }
+        created_at: { gte: startDate, lte: endDate }
       },
       include: {
         payments: {
@@ -447,7 +447,7 @@ async function getTopCustomers(companyId: string, startDate: Date, endDate: Date
       ? customerPaidInvoices.reduce((sum, invoice) => {
           if (invoice.payments[0]) {
             const daysDiff = Math.ceil(
-              (invoice.payments[0].paymentDate.getTime() - invoice.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+              (invoice.payments[0].paymentDate.getTime() - invoice.created_at.getTime()) / (1000 * 60 * 60 * 24)
             )
             return sum + daysDiff
           }
@@ -468,7 +468,7 @@ async function getTopCustomers(companyId: string, startDate: Date, endDate: Date
       paidAmount: paidAmount.toNumber(),
       outstandingAmount: Math.max(0, outstandingAmount.toNumber()),
       averageDaysToPayment: Math.round(averageDaysToPayment),
-      lastInvoiceDate: customer._max.createdAt || new Date()
+      lastInvoiceDate: customer._max.created_at || new Date()
     })
   }
 

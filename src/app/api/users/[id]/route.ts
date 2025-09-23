@@ -5,7 +5,7 @@ import { userService } from '@/lib/services/user-service'
 import { updateUserSchema } from '@/lib/schemas/user'
 
 interface RouteParams {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 // GET /api/users/[id] - Get a specific user by ID
@@ -15,7 +15,7 @@ export async function GET(
 ) {
   try {
     const authContext = await requireAuth(request)
-    const userId = params.id
+    const userId = (await params).id
 
     const user = await userService.getUserById(
       userId,
@@ -27,7 +27,7 @@ export async function GET(
     return successResponse(user, 'User retrieved successfully')
 
   } catch (error) {
-    logError(`GET /api/users/${params.id}`, error)
+    logError(`GET /api/users/${(await params).id}`, error)
     return handleApiError(error)
   }
 }
@@ -39,7 +39,7 @@ export async function PUT(
 ) {
   try {
     const authContext = await requireAuth(request)
-    const userId = params.id
+    const userId = (await params).id
     const body = await request.json()
     
     // Validate request body
@@ -56,7 +56,7 @@ export async function PUT(
     return successResponse(user, 'User updated successfully')
 
   } catch (error) {
-    logError(`PUT /api/users/${params.id}`, error)
+    logError(`PUT /api/users/${(await params).id}`, error)
     return handleApiError(error)
   }
 }
@@ -68,7 +68,7 @@ export async function DELETE(
 ) {
   try {
     const authContext = await requireAuth(request)
-    const userId = params.id
+    const userId = (await params).id
 
     await userService.deleteUser(
       userId,
@@ -80,7 +80,7 @@ export async function DELETE(
     return successResponse(null, 'User deleted successfully')
 
   } catch (error) {
-    logError(`DELETE /api/users/${params.id}`, error)
+    logError(`DELETE /api/users/${(await params).id}`, error)
     return handleApiError(error)
   }
 }

@@ -192,7 +192,7 @@ export async function getTemplateVariables(context: VariableContext): Promise<Va
 
   // Add additional customer variables if customerId is provided
   if (context.customerId) {
-    const customer = await prisma.customer.findUnique({
+    const customer = await prisma.customers.findUnique({
       where: { id: context.customerId },
       include: {
         invoices: {

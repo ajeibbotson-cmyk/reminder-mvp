@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Execute search with performance optimization
-    const customers = await prisma.customer.findMany({
+    const customers = await prisma.customers.findMany({
       where: whereClause,
       include: {
         invoices: {

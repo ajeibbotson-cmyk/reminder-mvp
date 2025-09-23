@@ -58,15 +58,15 @@ export function handleApiError(error: unknown): NextResponse {
 
   // Handle Zod validation errors
   if (error instanceof ZodError) {
-    const fieldErrors = error.errors.map(err => ({
-      field: err.path.join('.'),
-      message: err.message
+    const fieldErrors = (error.errors || []).map(err => ({
+      field: (err.path || []).join('.'),
+      message: err.message || 'Validation error'
     }))
-    
+
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: 'Validation failed', 
+        error: 'Validation failed',
         code: 'VALIDATION_ERROR',
         details: fieldErrors
       },

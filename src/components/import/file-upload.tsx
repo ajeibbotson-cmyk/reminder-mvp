@@ -2,15 +2,16 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
-import { 
-  Upload, 
-  FileSpreadsheet, 
-  X, 
-  AlertCircle, 
-  Check, 
+import {
+  Upload,
+  FileSpreadsheet,
+  X,
+  AlertCircle,
+  Check,
   RefreshCw,
   FileText,
-  Download
+  Download,
+  File
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,13 +25,15 @@ interface FileUploadProps {
   isLoading?: boolean
   error?: string | null
   locale?: string
+  acceptedFileTypes?: 'all' | 'spreadsheet' | 'pdf'
 }
 
-export function FileUpload({ 
-  onFileUpload, 
-  isLoading = false, 
-  error, 
-  locale = 'en' 
+export function FileUpload({
+  onFileUpload,
+  isLoading = false,
+  error,
+  locale = 'en',
+  acceptedFileTypes = 'all'
 }: FileUploadProps) {
   const t = useTranslations('import')
   const [dragActive, setDragActive] = useState(false)
@@ -74,14 +77,10 @@ export function FileUpload({
   const handleFileSelection = async (file: File) => {
     const validation = validateFile(file)
     setValidationResult(validation)
-    
+
     if (validation.isValid) {
       setUploadedFile(file)
-      
-      // Simulate file analysis progress
-      if (validation.warnings.length === 0) {
-        setUploadProgress(100)
-      }
+      // Progress will be set during actual upload in handleUpload function
     }
   }
 
@@ -92,16 +91,38 @@ export function FileUpload({
   } => {
     const errors: string[] = []
     const warnings: string[] = []
-    
-    // File type validation
-    const validTypes = [
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ]
-    const validExtensions = ['.csv', '.xls', '.xlsx']
+
+    // File type validation based on accepted types
+    let validTypes: string[] = []
+    let validExtensions: string[] = []
+
+    switch (acceptedFileTypes) {
+      case 'spreadsheet':
+        validTypes = [
+          'text/csv',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ]
+        validExtensions = ['.csv', '.xls', '.xlsx']
+        break
+      case 'pdf':
+        validTypes = ['application/pdf']
+        validExtensions = ['.pdf']
+        break
+      case 'all':
+      default:
+        validTypes = [
+          'text/csv',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/pdf'
+        ]
+        validExtensions = ['.csv', '.xls', '.xlsx', '.pdf']
+        break
+    }
+
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'))
-    
+
     if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
       errors.push(t('fileValidation.invalidFileType'))
     }
@@ -233,6 +254,15 @@ export function FileUpload({
           </CardTitle>
           <CardDescription>
             {t('fileUpload.description')}
+            <br />
+            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <File className="h-4 w-4 text-blue-600" />
+                <span className="text-sm text-blue-700 font-medium">
+                  PDF Support: Upload invoice PDFs for automatic AI data extraction
+                </span>
+              </div>
+            </div>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -252,9 +282,16 @@ export function FileUpload({
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xlsx,.xls"
+              accept={
+                acceptedFileTypes === 'pdf' ? '.pdf' :
+                acceptedFileTypes === 'spreadsheet' ? '.csv,.xlsx,.xls' :
+                '.csv,.xlsx,.xls,.pdf'
+              }
               onChange={handleFileSelect}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              className={cn(
+                "absolute inset-0 w-full h-full opacity-0",
+                uploadedFile ? "pointer-events-none" : "cursor-pointer"
+              )}
               disabled={isLoading}
             />
             
@@ -274,9 +311,31 @@ export function FileUpload({
                   <p className="text-lg font-medium mb-2">
                     {dragActive ? t('fileUpload.dropHere') : t('fileUpload.dragDrop')}
                   </p>
-                  <p className="text-sm text-gray-500 mb-4">
-                    {t('fileUpload.supportedFormats')}
-                  </p>
+                  <div className="text-sm text-gray-500 mb-4">
+                    {acceptedFileTypes === 'pdf' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <File className="h-4 w-4" />
+                        PDF files only
+                      </span>
+                    ) : acceptedFileTypes === 'spreadsheet' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <FileSpreadsheet className="h-4 w-4" />
+                        CSV, Excel (.xlsx, .xls)
+                      </span>
+                    ) : (
+                      <div className="flex items-center justify-center gap-4">
+                        <span className="inline-flex items-center gap-1">
+                          <FileSpreadsheet className="h-4 w-4 text-green-600" />
+                          <span>CSV, Excel</span>
+                        </span>
+                        <span className="text-gray-300">|</span>
+                        <span className="inline-flex items-center gap-1">
+                          <File className="h-4 w-4 text-blue-600" />
+                          <span className="font-medium text-blue-600">PDF</span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-400 mb-4">
                     {t('fileUpload.maxSize')}
                   </p>
@@ -290,10 +349,17 @@ export function FileUpload({
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-center space-x-3">
-                  <FileSpreadsheet className={cn(
-                    "h-8 w-8",
-                    validationResult?.isValid ? "text-green-500" : "text-red-500"
-                  )} />
+                  {uploadedFile.name.toLowerCase().endsWith('.pdf') ? (
+                    <File className={cn(
+                      "h-8 w-8",
+                      validationResult?.isValid ? "text-green-500" : "text-red-500"
+                    )} />
+                  ) : (
+                    <FileSpreadsheet className={cn(
+                      "h-8 w-8",
+                      validationResult?.isValid ? "text-green-500" : "text-red-500"
+                    )} />
+                  )}
                   <div className="text-left">
                     <p className="font-medium">{uploadedFile.name}</p>
                     <p className="text-sm text-gray-500">

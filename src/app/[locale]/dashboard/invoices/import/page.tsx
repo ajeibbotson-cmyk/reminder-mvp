@@ -27,11 +27,14 @@ import { FileUpload } from '@/components/import/file-upload'
 import { FieldMapping } from '@/components/import/field-mapping'
 import { ImportProgress } from '@/components/import/import-progress'
 import { ImportHistory } from '@/components/import/import-history'
+import { FileTypeSelector } from '@/components/import/file-type-selector'
+import { PDFInvoiceUpload } from '@/components/invoices/pdf-invoice-upload'
 import { useImportBatchStore } from '@/lib/stores/import-batch-store'
 import { UAEErrorBoundary } from '@/components/error-boundaries/uae-error-boundary'
 import { cn } from '@/lib/utils'
 
-type ImportStep = 'upload' | 'mapping' | 'processing' | 'complete'
+type ImportStep = 'fileType' | 'upload' | 'mapping' | 'processing' | 'complete'
+type FileType = 'spreadsheet' | 'pdf' | null
 
 interface UploadResult {
   batchId: string
@@ -41,11 +44,12 @@ interface UploadResult {
 }
 
 export default function InvoiceImportPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const t = useTranslations('import')
   const router = useRouter()
-  
-  const [currentStep, setCurrentStep] = useState<ImportStep>('upload')
+
+  const [currentStep, setCurrentStep] = useState<ImportStep>('fileType')
+  const [selectedFileType, setSelectedFileType] = useState<FileType>(null)
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
   const [fieldMappings, setFieldMappings] = useState<Record<string, string>>({})
   const [importStats, setImportStats] = useState<{
@@ -69,29 +73,47 @@ export default function InvoiceImportPage() {
   } = useImportBatchStore()
 
   useEffect(() => {
-    if (session?.user?.companyId) {
+    if (status === 'authenticated' && session?.user?.companyId) {
       fetchBatches(session.user.companyId)
     }
-  }, [session?.user?.companyId, fetchBatches])
+  }, [status, session?.user?.companyId, fetchBatches])
+
+  const handleFileTypeSelect = (fileType: FileType) => {
+    setSelectedFileType(fileType)
+    if (fileType === 'pdf') {
+      setCurrentStep('upload') // Will show PDF upload interface
+    } else if (fileType === 'spreadsheet') {
+      setCurrentStep('upload') // Will show CSV/Excel upload interface
+    }
+  }
 
   const handleFileUpload = async (file: File) => {
     if (!session?.user?.companyId) return
 
     try {
       clearError()
+
+      // Handle CSV/Excel files through existing import flow
       const result = await uploadFile(file, session.user.companyId)
-      
+
       setUploadResult({
         batchId: result.batchId,
         headers: result.headers,
         sampleData: result.sampleData,
         recordCount: result.sampleData.length
       })
-      
+
       setCurrentStep('mapping')
     } catch (error) {
       console.error('File upload failed:', error)
     }
+  }
+
+  const handlePDFInvoiceCreate = async (invoiceData: any) => {
+    // This would typically save the invoice to the database
+    // For now, just show success and redirect
+    console.log('Creating invoice from PDF data:', invoiceData)
+    router.push('/dashboard/invoices?pdf_imported=true')
   }
 
   const handleMappingComplete = async (mappings: Record<string, string>) => {
@@ -152,7 +174,8 @@ export default function InvoiceImportPage() {
   }
 
   const resetImport = () => {
-    setCurrentStep('upload')
+    setCurrentStep('fileType')
+    setSelectedFileType(null)
     setUploadResult(null)
     setFieldMappings({})
     setImportStats(null)
@@ -161,6 +184,8 @@ export default function InvoiceImportPage() {
 
   const getStepIcon = (step: ImportStep) => {
     switch (step) {
+      case 'fileType':
+        return <FileSpreadsheet className="h-5 w-5" />
       case 'upload':
         return <Upload className="h-5 w-5" />
       case 'mapping':
@@ -175,22 +200,29 @@ export default function InvoiceImportPage() {
   }
 
   const getStepStatus = (step: ImportStep) => {
-    const steps: ImportStep[] = ['upload', 'mapping', 'processing', 'complete']
+    const steps: ImportStep[] = selectedFileType === 'pdf'
+      ? ['fileType', 'upload', 'complete']
+      : ['fileType', 'upload', 'mapping', 'processing', 'complete']
     const currentIndex = steps.indexOf(currentStep)
     const stepIndex = steps.indexOf(step)
-    
+
     if (stepIndex < currentIndex) return 'completed'
     if (stepIndex === currentIndex) return 'current'
     return 'pending'
   }
 
-  if (!session) {
+  if (status === 'loading') {
     return (
       <div className="flex items-center justify-center h-96">
         <RefreshCw className="h-8 w-8 animate-spin" />
         <span className="ml-2">{t('loading')}</span>
       </div>
     )
+  }
+
+  if (status === 'unauthenticated' || !session) {
+    router.push('/auth/signin')
+    return null
   }
 
   return (
@@ -212,7 +244,7 @@ export default function InvoiceImportPage() {
               {t('backToInvoices')}
             </Button>
             
-            {currentStep !== 'upload' && (
+            {currentStep !== 'fileType' && (
               <Button variant="outline" onClick={resetImport}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 {t('startNewImport')}
@@ -231,7 +263,10 @@ export default function InvoiceImportPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between mb-6">
-              {(['upload', 'mapping', 'processing', 'complete'] as ImportStep[]).map((step, index) => {
+              {(selectedFileType === 'pdf'
+                ? (['fileType', 'upload', 'complete'] as ImportStep[])
+                : (['fileType', 'upload', 'mapping', 'processing', 'complete'] as ImportStep[])
+              ).map((step, index, steps) => {
                 const status = getStepStatus(step)
                 
                 return (
@@ -264,7 +299,7 @@ export default function InvoiceImportPage() {
                       </div>
                     </div>
                     
-                    {index < 3 && (
+                    {index < steps.length - 1 && (
                       <div className={cn(
                         "flex-1 h-px mx-4 transition-colors duration-300",
                         status === 'completed' && "bg-green-500",
@@ -313,13 +348,28 @@ export default function InvoiceImportPage() {
 
         {/* Import Content */}
         <Tabs value={currentStep} className="space-y-6">
-          <TabsContent value="upload" className="space-y-6">
-            <FileUpload
-              onFileUpload={handleFileUpload}
-              isLoading={isLoading}
-              error={error}
-              locale="en"
+          <TabsContent value="fileType" className="space-y-6">
+            <FileTypeSelector
+              onFileTypeSelect={handleFileTypeSelect}
+              selectedType={selectedFileType}
             />
+          </TabsContent>
+
+          <TabsContent value="upload" className="space-y-6">
+            {selectedFileType === 'pdf' ? (
+              <PDFInvoiceUpload
+                onInvoiceCreate={handlePDFInvoiceCreate}
+                isLoading={isLoading}
+              />
+            ) : (
+              <FileUpload
+                onFileUpload={handleFileUpload}
+                isLoading={isLoading}
+                error={error}
+                locale="en"
+                acceptedFileTypes="spreadsheet"
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="mapping" className="space-y-6">

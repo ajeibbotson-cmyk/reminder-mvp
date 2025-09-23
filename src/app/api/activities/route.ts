@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const limit = limitParam ? parseInt(limitParam, 10) : 50
     const validLimit = Math.min(Math.max(limit, 1), 100) // Between 1 and 100
 
-    const activities = await prisma.activity.findMany({
+    const activities = await prisma.activities.findMany({
       where: {
         companyId: authContext.user.companyId
       },
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       activityData.userId = authContext.user.id
     }
 
-    const activity = await prisma.activity.create({
+    const activity = await prisma.activities.create({
       data: {
         companyId: activityData.companyId,
         userId: activityData.userId,

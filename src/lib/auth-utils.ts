@@ -27,15 +27,19 @@ export async function getAuthContext(_request: NextRequest): Promise<AuthContext
     throw new UnauthorizedError('Authentication required')
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.users.findUnique({
     where: { email: session.user.email },
     include: {
-      company: true
+      companies: true
     }
   })
 
   if (!user) {
     throw new NotFoundError('User')
+  }
+
+  if (!user.companies) {
+    throw new NotFoundError('User company association')
   }
 
   return {
@@ -44,12 +48,12 @@ export async function getAuthContext(_request: NextRequest): Promise<AuthContext
       email: user.email,
       name: user.name,
       role: user.role,
-      companyId: user.companyId
+      companyId: user.company_id
     },
     company: {
-      id: user.company.id,
-      name: user.company.name,
-      trn: user.company.trn
+      id: user.companies.id,
+      name: user.companies.name,
+      trn: user.companies.trn
     }
   }
 }

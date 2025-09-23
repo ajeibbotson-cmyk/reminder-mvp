@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { Invoice, InvoiceStatus } from '@prisma/client'
-import { InvoiceState, InvoiceFilters, InvoiceWithDetails, ApiResponse } from '../types/store'
+import { InvoiceState, InvoiceFilters, InvoiceWithDetails, ApiResponse, BulkActionResult } from '../types/store'
 
 export const useInvoiceStore = create<InvoiceState>()(
   devtools(
@@ -11,13 +11,12 @@ export const useInvoiceStore = create<InvoiceState>()(
       error: null,
       totalCount: 0,
 
-      fetchInvoices: async (companyId: string, filters?: InvoiceFilters) => {
+      fetchInvoices: async (filters?: InvoiceFilters) => {
         set({ loading: true, error: null })
-        
+
         try {
           const searchParams = new URLSearchParams()
-          searchParams.append('companyId', companyId)
-          
+
           if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
               if (value !== undefined && value !== null) {
@@ -79,7 +78,7 @@ export const useInvoiceStore = create<InvoiceState>()(
           const newInvoice = result.data!
           
           // Re-fetch invoices to get complete data with relations
-          await get().fetchInvoices(invoiceData.companyId)
+          await get().fetchInvoices()
           
           set({ loading: false })
           return newInvoice
@@ -196,6 +195,55 @@ export const useInvoiceStore = create<InvoiceState>()(
       getInvoiceById: (id: string) => {
         const { invoices } = get()
         return invoices.find(invoice => invoice.id === id) || null
+      },
+
+      bulkUpdateStatus: async (invoiceIds: string[], status: InvoiceStatus) => {
+        set({ loading: true, error: null })
+
+        try {
+          const response = await fetch('/api/invoices/bulk-update-status', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              invoiceIds,
+              status
+            }),
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to bulk update invoice status: ${response.statusText}`)
+          }
+
+          const result = await response.json()
+
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to bulk update invoice status')
+          }
+
+          // Update the invoice statuses in local state
+          set(state => ({
+            invoices: state.invoices.map(invoice =>
+              invoiceIds.includes(invoice.id) ? { ...invoice, status } : invoice
+            ),
+            loading: false
+          }))
+
+          return {
+            action: 'bulk-update-status',
+            requestedCount: invoiceIds.length,
+            processedCount: result.data?.processedCount || invoiceIds.length,
+            successCount: result.data?.successCount || invoiceIds.length,
+            failureCount: result.data?.failureCount || 0,
+            results: result.data?.results || [],
+            errors: result.data?.errors || []
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          set({ error: errorMessage, loading: false })
+          throw error
+        }
       },
 
       clearError: () => set({ error: null }),

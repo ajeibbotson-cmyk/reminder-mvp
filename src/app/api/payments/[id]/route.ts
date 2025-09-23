@@ -35,11 +35,11 @@ const updatePaymentSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.USER])
-    const { id } = params
+    const { id } = await params
 
     // Fetch payment with invoice details and company isolation
     const payment = await prisma.payments.findUnique({
@@ -143,7 +143,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
@@ -152,7 +152,7 @@ export async function PATCH(
       throw new Error('Insufficient permissions to update payments')
     }
 
-    const { id } = params
+    const { id } = await params
     const updateData = await validateRequestBody(request, updatePaymentSchema)
 
     // Process update in transaction
@@ -329,7 +329,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
@@ -338,7 +338,7 @@ export async function DELETE(
       throw new Error('Insufficient permissions to delete payments')
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Process deletion in transaction
     const result = await prisma.$transaction(async (tx) => {

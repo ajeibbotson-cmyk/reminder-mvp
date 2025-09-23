@@ -19,18 +19,18 @@ export async function GET(request: NextRequest) {
 
     // Base where clause
     const baseWhere = {
-      companyId: authContext.user.companyId,
-      createdAt: { gte: startDate }
+      company_id: authContext.user.companyId,
+      created_at: { gte: startDate }
     }
 
     // Add filters
     if (templateId) {
-      Object.assign(baseWhere, { templateId })
+      Object.assign(baseWhere, { template_id: templateId })
     }
 
     if (templateType) {
-      Object.assign(baseWhere, { 
-        emailTemplates: { templateType: templateType }
+      Object.assign(baseWhere, {
+        email_templates: { template_id: templateType }
       })
     }
 
@@ -178,14 +178,14 @@ async function getOverallStats(whereClause: any) {
     totalUnsubscribed,
     arabicEmails
   ] = await Promise.all([
-    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: { not: 'QUEUED' } } }),
-    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: 'DELIVERED' } }),
-    prisma.emailLog.count({ where: { ...whereClause, openedAt: { not: null } } }),
-    prisma.emailLog.count({ where: { ...whereClause, clickedAt: { not: null } } }),
-    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: 'BOUNCED' } }),
-    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: 'COMPLAINED' } }),
-    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: 'UNSUBSCRIBED' } }),
-    prisma.emailLog.count({ where: { ...whereClause, language: 'ARABIC' } })
+    prisma.email_logs.count({ where: { ...whereClause, delivery_status: { not: 'QUEUED' } } }),
+    prisma.email_logs.count({ where: { ...whereClause, delivery_status: 'DELIVERED' } }),
+    prisma.email_logs.count({ where: { ...whereClause, opened_at: { not: null } } }),
+    prisma.email_logs.count({ where: { ...whereClause, clicked_at: { not: null } } }),
+    prisma.email_logs.count({ where: { ...whereClause, delivery_status: 'BOUNCED' } }),
+    prisma.email_logs.count({ where: { ...whereClause, delivery_status: 'COMPLAINED' } }),
+    prisma.email_logs.count({ where: { ...whereClause, delivery_status: 'UNSUBSCRIBED' } }),
+    prisma.email_logs.count({ where: { ...whereClause, language: 'ARABIC' } })
   ])
 
   return {
@@ -201,15 +201,15 @@ async function getOverallStats(whereClause: any) {
 }
 
 async function getDeliveryStatusStats(whereClause: any) {
-  const statusCounts = await prisma.emailLog.groupBy({
-    by: ['deliveryStatus'],
+  const statusCounts = await prisma.email_logs.groupBy({
+    by: ['delivery_status'],
     where: whereClause,
     _count: { id: true },
     orderBy: { _count: { id: 'desc' } }
   })
 
   return statusCounts.map(status => ({
-    status: status.deliveryStatus,
+    status: status.delivery_status,
     count: status._count.id
   }))
 }
@@ -217,20 +217,20 @@ async function getDeliveryStatusStats(whereClause: any) {
 async function getDailyStats(whereClause: any, daysBack: number) {
   // This would typically use raw SQL for better performance
   // For simplicity, we'll group by day using JavaScript
-  const emailLogs = await prisma.emailLog.findMany({
+  const emailLogs = await prisma.email_logs.findMany({
     where: whereClause,
     select: {
-      createdAt: true,
-      deliveryStatus: true,
-      openedAt: true,
-      clickedAt: true
+      created_at: true,
+      delivery_status: true,
+      opened_at: true,
+      clicked_at: true
     }
   })
 
   const dailyStats: Record<string, any> = {}
   
   emailLogs.forEach(log => {
-    const day = log.createdAt.toISOString().split('T')[0]
+    const day = log.created_at.toISOString().split('T')[0]
     
     if (!dailyStats[day]) {
       dailyStats[day] = {
@@ -245,48 +245,48 @@ async function getDailyStats(whereClause: any, daysBack: number) {
     
     dailyStats[day].sent++
     
-    if (log.deliveryStatus === 'DELIVERED') dailyStats[day].delivered++
-    if (log.openedAt) dailyStats[day].opened++
-    if (log.clickedAt) dailyStats[day].clicked++
-    if (log.deliveryStatus === 'BOUNCED') dailyStats[day].bounced++
+    if (log.delivery_status === 'DELIVERED') dailyStats[day].delivered++
+    if (log.opened_at) dailyStats[day].opened++
+    if (log.clicked_at) dailyStats[day].clicked++
+    if (log.delivery_status === 'BOUNCED') dailyStats[day].bounced++
   })
 
   return Object.values(dailyStats).sort((a: any, b: any) => a.date.localeCompare(b.date))
 }
 
 async function getTemplatePerformance(companyId: string, startDate: Date) {
-  const templates = await prisma.emailTemplate.findMany({
+  const templates = await prisma.email_templates.findMany({
     where: {
-      companyId,
-      emailLogs: {
+      company_id: companyId,
+      email_logs: {
         some: {
-          createdAt: { gte: startDate }
+          created_at: { gte: startDate }
         }
       }
     },
     include: {
-      emailLogs: {
-        where: { createdAt: { gte: startDate } },
+      email_logs: {
+        where: { created_at: { gte: startDate } },
         select: {
-          deliveryStatus: true,
-          openedAt: true,
-          clickedAt: true
+          delivery_status: true,
+          opened_at: true,
+          clicked_at: true
         }
       }
     }
   })
 
   return templates.map(template => {
-    const logs = template.emailLogs
+    const logs = template.email_logs
     const sent = logs.length
-    const delivered = logs.filter(log => log.deliveryStatus === 'DELIVERED').length
-    const opened = logs.filter(log => log.openedAt).length
-    const clicked = logs.filter(log => log.clickedAt).length
+    const delivered = logs.filter(log => log.delivery_status === 'DELIVERED').length
+    const opened = logs.filter(log => log.opened_at).length
+    const clicked = logs.filter(log => log.clicked_at).length
 
     return {
       templateId: template.id,
       templateName: template.name,
-      templateType: template.templateType,
+      templateType: template.template_id,
       sent,
       delivered,
       opened,
@@ -299,8 +299,8 @@ async function getTemplatePerformance(companyId: string, startDate: Date) {
 }
 
 async function getRecipientEngagement(whereClause: any) {
-  const recipientStats = await prisma.emailLog.groupBy({
-    by: ['recipientEmail'],
+  const recipientStats = await prisma.email_logs.groupBy({
+    by: ['recipient_email'],
     where: whereClause,
     _count: { id: true },
     _sum: {
@@ -312,33 +312,33 @@ async function getRecipientEngagement(whereClause: any) {
   })
 
   return recipientStats.map(stat => ({
-    recipientEmail: stat.recipientEmail,
+    recipientEmail: stat.recipient_email,
     emailsReceived: stat._count.id
   }))
 }
 
 async function getBounceAnalysis(whereClause: any) {
-  const bounces = await prisma.emailBounceTracking.findMany({
+  const bounces = await prisma.email_bounce_tracking.findMany({
     where: {
-      emailLogs: whereClause
+      email_logs: whereClause
     },
     include: {
-      emailLogs: {
+      email_logs: {
         select: {
-          recipientEmail: true,
-          bounceReason: true
+          recipient_email: true,
+          bounce_reason: true
         }
       }
     }
   })
 
   const bounceTypes = bounces.reduce((acc: any, bounce) => {
-    acc[bounce.bounceType] = (acc[bounce.bounceType] || 0) + 1
+    acc[bounce.bounce_type] = (acc[bounce.bounce_type] || 0) + 1
     return acc
   }, {})
 
   const topBounceReasons = bounces.reduce((acc: any, bounce) => {
-    const reason = bounce.emailLogs.bounceReason || 'Unknown'
+    const reason = bounce.email_logs.bounce_reason || 'Unknown'
     acc[reason] = (acc[reason] || 0) + 1
     return acc
   }, {})
@@ -354,11 +354,11 @@ async function getBounceAnalysis(whereClause: any) {
 }
 
 async function getUAEBusinessHoursStats(whereClause: any) {
-  const allEmails = await prisma.emailLog.findMany({
+  const allEmails = await prisma.email_logs.findMany({
     where: whereClause,
     select: {
-      uaeSendTime: true,
-      sentAt: true
+      uae_send_time: true,
+      sent_at: true
     }
   })
 
@@ -366,7 +366,7 @@ async function getUAEBusinessHoursStats(whereClause: any) {
   let afterHoursSent = 0
 
   allEmails.forEach(email => {
-    const sendTime = email.uaeSendTime || email.sentAt
+    const sendTime = email.uae_send_time || email.sent_at
     if (sendTime) {
       const hour = sendTime.getHours()
       const dayOfWeek = sendTime.getDay()

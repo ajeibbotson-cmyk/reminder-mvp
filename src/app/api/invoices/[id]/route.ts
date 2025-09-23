@@ -10,11 +10,11 @@ import { Decimal } from 'decimal.js'
 // GET /api/invoices/[id] - Get specific invoice
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.VIEWER])
-    const { id } = params
+    const { id } = await params
 
     // Fetch invoice with comprehensive UAE business data
     const invoice = await prisma.invoices.findUnique({
@@ -54,7 +54,7 @@ export async function GET(
           },
           orderBy: { paymentDate: 'desc' }
         },
-        invoiceItems: {
+        invoice_items: {
           select: {
             id: true,
             description: true,
@@ -92,7 +92,7 @@ export async function GET(
             errorSummary: true
           }
         },
-        emailLogs: {
+        email_logs: {
           select: {
             id: true,
             subject: true,
@@ -147,18 +147,18 @@ export async function GET(
         remainingAmount: formatUAECurrency(remainingAmount, invoice.currency)
       },
       // VAT summary for UAE compliance
-      vatSummary: invoice.invoiceItems.length > 0 ? {
-        standardRate: invoice.invoiceItems.filter(item => item.taxCategory === 'STANDARD'),
-        zeroRated: invoice.invoiceItems.filter(item => item.taxCategory === 'ZERO_RATED'),
-        exempt: invoice.invoiceItems.filter(item => item.taxCategory === 'EXEMPT')
+      vatSummary: invoice.invoice_items.length > 0 ? {
+        standardRate: invoice.invoice_items.filter(item => item.taxCategory === 'STANDARD'),
+        zeroRated: invoice.invoice_items.filter(item => item.taxCategory === 'ZERO_RATED'),
+        exempt: invoice.invoice_items.filter(item => item.taxCategory === 'EXEMPT')
       } : null
     })
 
   } catch (error) {
-    logError('GET /api/invoices/[id]', error, { 
+    logError('GET /api/invoices/[id]', error, {
       userId: 'authContext.user?.id',
       companyId: 'authContext.user?.companyId',
-      invoiceId: params.id
+      invoiceId: (await params).id
     })
     return handleApiError(error)
   }
@@ -167,23 +167,23 @@ export async function GET(
 // PUT /api/invoices/[id] - Update invoice
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
-    
+
     if (!canManageInvoices(authContext.user.role)) {
       throw new Error('Insufficient permissions to update invoices')
     }
 
-    const { id } = params
+    const { id } = await params
     const updateData = await validateRequestBody(request, updateInvoiceSchema)
 
     // First check if invoice exists and user has access
     const existingInvoice = await prisma.invoices.findUnique({
       where: { id },
-      include: { 
-        invoiceItems: true,
+      include: {
+        invoice_items: true,
         payments: true,
         customers: true,
         companies: true
@@ -332,7 +332,7 @@ export async function PUT(
             },
             orderBy: { paymentDate: 'desc' }
           },
-          invoiceItems: {
+          invoice_items: {
             select: {
               id: true,
               description: true,
@@ -353,7 +353,7 @@ export async function PUT(
       // Update invoice items if provided (UAE VAT compliant)
       if (updateData.items) {
         // Delete existing items
-        await tx.invoiceItems.deleteMany({
+        await tx.invoice_items.deleteMany({
           where: { invoiceId: id }
         })
 
@@ -361,7 +361,7 @@ export async function PUT(
         if (updateData.items.length > 0) {
           const itemsWithVat = vatCalculation ? vatCalculation.lineItems : updateData.items
           
-          await tx.invoiceItems.createMany({
+          await tx.invoice_items.createMany({
             data: itemsWithVat.map((item: any, index: number) => {
               const originalItem = updateData.items![index]
               return {
@@ -442,10 +442,10 @@ export async function PUT(
     }, 'Invoice updated successfully with UAE VAT compliance')
 
   } catch (error) {
-    logError('PUT /api/invoices/[id]', error, { 
+    logError('PUT /api/invoices/[id]', error, {
       userId: 'authContext.user?.id',
       companyId: 'authContext.user?.companyId',
-      invoiceId: params.id
+      invoiceId: (await params).id
     })
     return handleApiError(error)
   }
@@ -454,16 +454,16 @@ export async function PUT(
 // DELETE /api/invoices/[id] - Delete invoice
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
-    
+
     if (!canManageInvoices(authContext.user.role)) {
       throw new Error('Insufficient permissions to delete invoices')
     }
 
-    const { id } = params
+    const { id } = await params
 
     // First check if invoice exists and user has access
     const existingInvoice = await prisma.invoices.findUnique({
@@ -471,7 +471,7 @@ export async function DELETE(
       include: {
         payments: true,
         followUpLogs: true,
-        emailLogs: true,
+        email_logs: true,
         importBatches: {
           select: { id: true, status: true }
         }
@@ -507,7 +507,7 @@ export async function DELETE(
     // Soft delete invoice with comprehensive audit trail (UAE compliance)
     await prisma.$transaction(async (tx) => {
       // First, delete related records that should be cleaned up
-      await tx.invoiceItems.deleteMany({
+      await tx.invoice_items.deleteMany({
         where: { invoiceId: id }
       })
 
@@ -538,7 +538,7 @@ export async function DELETE(
             dueDate: existingInvoice.dueDate.toISOString(),
             createdAt: existingInvoice.createdAt.toISOString(),
             trnNumber: existingInvoice.trnNumber,
-            itemCount: existingInvoice.invoiceItems?.length || 0,
+            itemCount: existingInvoice.invoice_items?.length || 0,
             deletionReason: 'User requested deletion',
             userAgent: request.headers.get('user-agent'),
             ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
@@ -559,10 +559,10 @@ export async function DELETE(
     }, 'Invoice deleted successfully in compliance with UAE regulations')
 
   } catch (error) {
-    logError('DELETE /api/invoices/[id]', error, { 
+    logError('DELETE /api/invoices/[id]', error, {
       userId: 'authContext.user?.id',
       companyId: 'authContext.user?.companyId',
-      invoiceId: params.id
+      invoiceId: (await params).id
     })
     return handleApiError(error)
   }
@@ -651,8 +651,8 @@ async function validateInvoiceDeletionRules(invoice: any) {
   }
   
   // Check if invoice is part of regulatory reporting
-  if (invoice.emailLogs && invoice.emailLogs.length > 0) {
-    const hasSentEmails = invoice.emailLogs.some((log: any) => 
+  if (invoice.email_logs && invoice.email_logs.length > 0) {
+    const hasSentEmails = invoice.email_logs.some((log: any) =>
       ['SENT', 'DELIVERED', 'OPENED'].includes(log.deliveryStatus)
     )
     

@@ -224,7 +224,7 @@ export class EmailSchedulingService {
     if (!customerId) return 'REGULAR'
 
     try {
-      const customer = await prisma.customer.findUnique({
+      const customer = await prisma.customers.findUnique({
         where: { id: customerId },
         include: {
           invoices: {

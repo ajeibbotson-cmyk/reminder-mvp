@@ -145,8 +145,8 @@ AWS_SES_FROM_EMAIL=""
 ### ✅ CORE MVP FEATURES (ALL COMPLETE)
 
 **1. Invoice Management**
-- ✅ CSV/Excel invoice upload and import
-- ✅ Manual invoice entry with UAE business fields
+- ✅ CSV/Excel invoice bulk import with comprehensive validation
+- ✅ Automated invoice processing with UAE business field validation
 - ✅ Invoice status tracking (sent, overdue, paid, disputed)
 - ✅ AED currency support with local formatting
 

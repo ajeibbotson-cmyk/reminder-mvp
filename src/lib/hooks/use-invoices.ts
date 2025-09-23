@@ -16,9 +16,9 @@ export function useInvoices(companyId: string, filters?: InvoiceFilters) {
 
   const loadInvoices = useCallback(async () => {
     if (!companyId) return
-    
+
     try {
-      await fetchInvoices(companyId, filters)
+      await fetchInvoices(filters)
     } catch (error) {
       console.error('Failed to load invoices:', error)
     }

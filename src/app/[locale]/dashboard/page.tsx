@@ -6,6 +6,7 @@ import { redirect, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { EnhancedDashboard } from '@/components/dashboard/enhanced-dashboard';
 import { UAEErrorBoundary } from '@/components/error-boundaries/uae-error-boundary';
+import { ProfessionalLoading } from '@/components/ui/professional-loading';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -19,7 +20,18 @@ export default function DashboardPage() {
   }, [status]);
 
   if (status === "loading") {
-    return <DashboardLayout><div>Loading...</div></DashboardLayout>;
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <ProfessionalLoading
+            variant="branded"
+            size="lg"
+            message="Loading your dashboard..."
+            showBrand
+          />
+        </div>
+      </DashboardLayout>
+    );
   }
 
   if (!session) {

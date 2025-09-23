@@ -85,35 +85,10 @@ curl -X GET "/api/invoices?status=overdue&limit=20&sortBy=due_date" \
   -H "Authorization: Bearer <token>"
 ```
 
-### POST /api/invoices
-Create a new invoice.
+### POST /api/invoices (DEPRECATED - Use bulk import only)
+⚠️ **NOTICE**: Manual invoice creation has been removed from scope. Use `POST /api/invoices/import` for bulk invoice processing.
 
-#### Request Body
-```typescript
-{
-  contactId: string
-  invoiceNumber: string
-  amount: number
-  currency?: string        // Default: 'AED'
-  issueDate: string       // ISO date
-  dueDate: string         // ISO date
-  paymentTerms?: number   // Days (default: 30)
-  description?: string
-  taxAmount?: number
-  notes?: string
-}
-```
-
-#### Response
-```typescript
-{
-  success: boolean
-  data: {
-    invoice: Invoice        // Full invoice object
-  }
-  error?: string
-}
-```
+*This endpoint has been deprecated in favor of bulk import workflows that better serve UAE SME use cases.*
 
 ### PUT /api/invoices/:id
 Update an existing invoice.

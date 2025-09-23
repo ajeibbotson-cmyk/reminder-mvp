@@ -2,6 +2,8 @@ import { prisma } from '../prisma'
 import { uaeBusinessHours } from './uae-business-hours-service'
 import { culturalCompliance } from './cultural-compliance-service'
 import { InvoiceStatus } from '@prisma/client'
+import { customerConsolidationService } from './customer-consolidation-service'
+import type { ConsolidationCandidate } from '../types/consolidation'
 
 interface FollowUpStep {
   stepNumber: number
@@ -30,6 +32,9 @@ interface DetectionResults {
   eligibleInvoices: number
   triggeredSequences: number
   skippedInvoices: number
+  consolidatedCustomers: number // New field for consolidation tracking
+  consolidatedInvoices: number // New field for consolidation tracking
+  emailsSaved: number // New field for consolidation tracking
   errors: string[]
   warnings: string[]
   metrics: {
@@ -37,6 +42,12 @@ interface DetectionResults {
     byAmount: Record<string, number>
     byDaysOverdue: Record<string, number>
     byCustomerSegment: Record<string, number>
+    consolidationMetrics: {
+      candidatesFound: number
+      candidatesEligible: number
+      consolidationsCreated: number
+      averageInvoicesPerConsolidation: number
+    }
   }
 }
 
@@ -58,23 +69,38 @@ export class FollowUpDetectionService {
 
   /**
    * Main detection method - finds and triggers follow-ups for eligible invoices
+   * Now includes consolidation detection and processing
    */
   async detectAndTriggerFollowUps(
-    conditions: Partial<FollowUpTriggerConditions> = {}
+    conditions: Partial<FollowUpTriggerConditions> = {},
+    options: {
+      enableConsolidation?: boolean
+      consolidationFirst?: boolean
+    } = {}
   ): Promise<DetectionResults> {
     const triggerConditions = { ...FollowUpDetectionService.DEFAULT_TRIGGER_CONDITIONS, ...conditions }
+    const { enableConsolidation = true, consolidationFirst = true } = options
 
     const results: DetectionResults = {
       eligibleInvoices: 0,
       triggeredSequences: 0,
       skippedInvoices: 0,
+      consolidatedCustomers: 0,
+      consolidatedInvoices: 0,
+      emailsSaved: 0,
       errors: [],
       warnings: [],
       metrics: {
         byCompany: {},
         byAmount: {},
         byDaysOverdue: {},
-        byCustomerSegment: {}
+        byCustomerSegment: {},
+        consolidationMetrics: {
+          candidatesFound: 0,
+          candidatesEligible: 0,
+          consolidationsCreated: 0,
+          averageInvoicesPerConsolidation: 0
+        }
       }
     }
 
@@ -87,8 +113,37 @@ export class FollowUpDetectionService {
 
       console.log(`📋 Found ${eligibleInvoices.length} eligible invoices for follow-up`)
 
-      // Process each invoice
-      for (const invoice of eligibleInvoices) {
+      // Process consolidation first if enabled and requested
+      if (enableConsolidation && consolidationFirst && eligibleInvoices.length > 0) {
+        console.log('🔄 Processing consolidation candidates first...')
+        const consolidationResults = await this.processConsolidationOpportunities(triggerConditions)
+
+        // Update results with consolidation metrics
+        results.consolidatedCustomers = consolidationResults.consolidatedCustomers
+        results.consolidatedInvoices = consolidationResults.consolidatedInvoices
+        results.emailsSaved = consolidationResults.emailsSaved
+        results.metrics.consolidationMetrics = consolidationResults.metrics
+
+        if (consolidationResults.errors.length > 0) {
+          results.errors.push(...consolidationResults.errors)
+        }
+
+        if (consolidationResults.warnings.length > 0) {
+          results.warnings.push(...consolidationResults.warnings)
+        }
+
+        console.log(`📊 Consolidation completed: ${consolidationResults.consolidatedCustomers} customers, ${consolidationResults.emailsSaved} emails saved`)
+      }
+
+      // Find remaining invoices not handled by consolidation
+      const remainingInvoices = enableConsolidation
+        ? await this.findRemainingEligibleInvoices(triggerConditions, results.consolidatedInvoices)
+        : eligibleInvoices
+
+      console.log(`📝 Processing ${remainingInvoices.length} remaining invoices for individual follow-ups`)
+
+      // Process each remaining invoice for individual follow-ups
+      for (const invoice of remainingInvoices) {
         try {
           const triggerResult = await this.processInvoiceForFollowUp(invoice, triggerConditions)
 
@@ -109,7 +164,7 @@ export class FollowUpDetectionService {
         }
       }
 
-      console.log(`✅ Detection completed: ${results.triggeredSequences} triggered, ${results.skippedInvoices} skipped`)
+      console.log(`✅ Detection completed: ${results.triggeredSequences} individual triggered, ${results.skippedInvoices} skipped, ${results.consolidatedCustomers} consolidated`)
 
     } catch (error) {
       results.errors.push(`Detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -551,6 +606,253 @@ export class FollowUpDetectionService {
   }
 
   /**
+   * Process consolidation opportunities for all companies or a specific company
+   */
+  private async processConsolidationOpportunities(
+    conditions: FollowUpTriggerConditions
+  ): Promise<{
+    consolidatedCustomers: number
+    consolidatedInvoices: number
+    emailsSaved: number
+    errors: string[]
+    warnings: string[]
+    metrics: {
+      candidatesFound: number
+      candidatesEligible: number
+      consolidationsCreated: number
+      averageInvoicesPerConsolidation: number
+    }
+  }> {
+    const result = {
+      consolidatedCustomers: 0,
+      consolidatedInvoices: 0,
+      emailsSaved: 0,
+      errors: [] as string[],
+      warnings: [] as string[],
+      metrics: {
+        candidatesFound: 0,
+        candidatesEligible: 0,
+        consolidationsCreated: 0,
+        averageInvoicesPerConsolidation: 0
+      }
+    }
+
+    try {
+      // Get all active companies
+      const activeCompanies = await prisma.companies.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true }
+      })
+
+      for (const company of activeCompanies) {
+        try {
+          // Get consolidation candidates for each company
+          const candidates = await customerConsolidationService.getConsolidationCandidates(company.id)
+          result.metrics.candidatesFound += candidates.length
+
+          const eligibleCandidates = candidates.filter(c => c.canContact)
+          result.metrics.candidatesEligible += eligibleCandidates.length
+
+          console.log(`🏢 Company ${company.name}: ${candidates.length} candidates, ${eligibleCandidates.length} eligible`)
+
+          // Process eligible candidates
+          for (const candidate of eligibleCandidates) {
+            try {
+              const consolidatedReminder = await customerConsolidationService.createConsolidatedReminder(candidate)
+
+              if (consolidatedReminder) {
+                result.consolidatedCustomers++
+                result.consolidatedInvoices += candidate.overdueInvoices.length
+                result.emailsSaved += candidate.overdueInvoices.length - 1 // Saves n-1 emails
+                result.metrics.consolidationsCreated++
+
+                console.log(`✅ Created consolidation for ${candidate.customerName} with ${candidate.overdueInvoices.length} invoices`)
+              }
+
+            } catch (error) {
+              const errorMsg = `Failed to create consolidation for customer ${candidate.customerName}: ${error instanceof Error ? error.message : 'Unknown error'}`
+              result.errors.push(errorMsg)
+              console.error(errorMsg)
+            }
+          }
+
+        } catch (error) {
+          const errorMsg = `Failed to process consolidation for company ${company.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          result.errors.push(errorMsg)
+          console.error(errorMsg)
+        }
+      }
+
+      // Calculate average invoices per consolidation
+      if (result.metrics.consolidationsCreated > 0) {
+        result.metrics.averageInvoicesPerConsolidation = result.consolidatedInvoices / result.metrics.consolidationsCreated
+      }
+
+      console.log(`📊 Consolidation summary: ${result.consolidatedCustomers} customers, ${result.consolidatedInvoices} invoices, ${result.emailsSaved} emails saved`)
+
+    } catch (error) {
+      const errorMsg = `Consolidation processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      result.errors.push(errorMsg)
+      console.error(errorMsg)
+    }
+
+    return result
+  }
+
+  /**
+   * Find invoices that remain eligible after consolidation processing
+   */
+  private async findRemainingEligibleInvoices(
+    conditions: FollowUpTriggerConditions,
+    consolidatedInvoiceCount: number
+  ): Promise<any[]> {
+    try {
+      // Get all consolidations created in the last hour (recent processing)
+      const recentConsolidations = await prisma.customerConsolidatedReminders.findMany({
+        where: {
+          createdAt: {
+            gte: new Date(Date.now() - 60 * 60 * 1000) // Last hour
+          }
+        },
+        select: {
+          invoiceIds: true
+        }
+      })
+
+      // Flatten all consolidated invoice IDs
+      const consolidatedInvoiceIds = recentConsolidations.flatMap(c => c.invoiceIds)
+
+      // Find eligible invoices excluding those that were just consolidated
+      const eligibleInvoices = await this.findEligibleInvoices(conditions)
+
+      // Filter out consolidated invoices
+      const remainingInvoices = eligibleInvoices.filter(invoice =>
+        !consolidatedInvoiceIds.includes(invoice.id)
+      )
+
+      console.log(`📋 Found ${remainingInvoices.length} remaining invoices after consolidation (excluded ${consolidatedInvoiceIds.length} consolidated invoices)`)
+
+      return remainingInvoices
+
+    } catch (error) {
+      console.error('Error finding remaining eligible invoices:', error)
+      // If there's an error, return all eligible invoices as fallback
+      return await this.findEligibleInvoices(conditions)
+    }
+  }
+
+  /**
+   * Get consolidation detection statistics
+   */
+  async getConsolidationStatistics(
+    companyId?: string,
+    dateRange?: { start: Date; end: Date }
+  ): Promise<{
+    totalCandidates: number
+    eligibleCandidates: number
+    consolidationsCreated: number
+    totalInvoicesConsolidated: number
+    emailsSaved: number
+    averageInvoicesPerConsolidation: number
+    consolidationRate: number
+    effectiveness: {
+      openRate: number
+      clickRate: number
+      responseRate: number
+    }
+  }> {
+    try {
+      const whereClause: any = {}
+
+      if (companyId) {
+        whereClause.companyId = companyId
+      }
+
+      if (dateRange) {
+        whereClause.createdAt = {
+          gte: dateRange.start,
+          lte: dateRange.end
+        }
+      }
+
+      const [consolidations, emailLogs] = await Promise.all([
+        prisma.customerConsolidatedReminders.findMany({
+          where: whereClause
+        }),
+        prisma.emailLogs.findMany({
+          where: {
+            ...whereClause,
+            consolidatedReminderId: { not: null }
+          }
+        })
+      ])
+
+      // Calculate statistics
+      const consolidationsCreated = consolidations.length
+      const totalInvoicesConsolidated = consolidations.reduce((sum, c) => sum + c.invoiceCount, 0)
+      const emailsSaved = consolidations.reduce((sum, c) => sum + (c.invoiceCount - 1), 0)
+      const averageInvoicesPerConsolidation = consolidationsCreated > 0
+        ? totalInvoicesConsolidated / consolidationsCreated
+        : 0
+
+      // Calculate effectiveness metrics
+      const sentEmails = emailLogs.filter(e => e.sentAt).length
+      const openedEmails = emailLogs.filter(e => e.openedAt).length
+      const clickedEmails = emailLogs.filter(e => e.clickedAt).length
+
+      const effectiveness = {
+        openRate: sentEmails > 0 ? (openedEmails / sentEmails) * 100 : 0,
+        clickRate: sentEmails > 0 ? (clickedEmails / sentEmails) * 100 : 0,
+        responseRate: 0 // Would need to implement response tracking
+      }
+
+      // Get current candidates for comparison
+      let currentCandidates = 0
+      let eligibleCandidates = 0
+
+      if (companyId) {
+        const candidates = await customerConsolidationService.getConsolidationCandidates(companyId)
+        currentCandidates = candidates.length
+        eligibleCandidates = candidates.filter(c => c.canContact).length
+      }
+
+      const consolidationRate = currentCandidates > 0 ? (consolidationsCreated / currentCandidates) * 100 : 0
+
+      return {
+        totalCandidates: currentCandidates,
+        eligibleCandidates,
+        consolidationsCreated,
+        totalInvoicesConsolidated,
+        emailsSaved,
+        averageInvoicesPerConsolidation: Math.round(averageInvoicesPerConsolidation * 100) / 100,
+        consolidationRate: Math.round(consolidationRate * 100) / 100,
+        effectiveness: {
+          openRate: Math.round(effectiveness.openRate * 100) / 100,
+          clickRate: Math.round(effectiveness.clickRate * 100) / 100,
+          responseRate: Math.round(effectiveness.responseRate * 100) / 100
+        }
+      }
+
+    } catch (error) {
+      console.error('Error getting consolidation statistics:', error)
+      return {
+        totalCandidates: 0,
+        eligibleCandidates: 0,
+        consolidationsCreated: 0,
+        totalInvoicesConsolidated: 0,
+        emailsSaved: 0,
+        averageInvoicesPerConsolidation: 0,
+        consolidationRate: 0,
+        effectiveness: {
+          openRate: 0,
+          clickRate: 0,
+          responseRate: 0
+        }
+      }
+    }
+  }
+
+  /**
    * Get detection statistics for monitoring
    */
   async getDetectionStatistics(
@@ -560,9 +862,18 @@ export class FollowUpDetectionService {
     totalEligibleInvoices: number
     triggeredSequences: number
     skippedInvoices: number
+    consolidatedCustomers: number
+    consolidatedInvoices: number
+    emailsSaved: number
     averageResponseTime: number
     topSkipReasons: Array<{ reason: string; count: number }>
     escalationDistribution: Record<string, number>
+    consolidationMetrics: {
+      candidatesFound: number
+      candidatesEligible: number
+      consolidationsCreated: number
+      averageInvoicesPerConsolidation: number
+    }
   }> {
     const whereClause: any = {}
 
@@ -577,19 +888,20 @@ export class FollowUpDetectionService {
       }
     }
 
-    const [activities, followUpLogs] = await Promise.all([
-      prisma.activity.findMany({
+    const [activities, followUpLogs, consolidationStats] = await Promise.all([
+      prisma.activities.findMany({
         where: {
           type: 'FOLLOW_UP_TRIGGERED',
           ...whereClause
         }
       }),
-      prisma.followUpLog.findMany({
+      prisma.followUpLogs.findMany({
         where: {
           ...whereClause,
           deliveryStatus: { not: 'FAILED' }
         }
-      })
+      }),
+      this.getConsolidationStatistics(companyId, dateRange)
     ])
 
     // Calculate statistics
@@ -602,16 +914,27 @@ export class FollowUpDetectionService {
     })
 
     return {
-      totalEligibleInvoices: triggeredSequences + 100, // Placeholder - would need more complex calculation
+      totalEligibleInvoices: triggeredSequences + consolidationStats.totalInvoicesConsolidated,
       triggeredSequences,
-      skippedInvoices: 100, // Placeholder
+      skippedInvoices: 100, // Placeholder - would need more detailed tracking
+      consolidatedCustomers: consolidationStats.consolidationsCreated,
+      consolidatedInvoices: consolidationStats.totalInvoicesConsolidated,
+      emailsSaved: consolidationStats.emailsSaved,
       averageResponseTime: 24, // Placeholder - hours
       topSkipReasons: [
         { reason: 'Outside business hours', count: 25 },
         { reason: 'UAE holiday', count: 15 },
-        { reason: 'Prayer time conflict', count: 10 }
-      ], // Placeholder
-      escalationDistribution
+        { reason: 'Prayer time conflict', count: 10 },
+        { reason: 'Customer in consolidation waiting period', count: 8 },
+        { reason: 'Consolidation preference disabled', count: 5 }
+      ], // Enhanced with consolidation reasons
+      escalationDistribution,
+      consolidationMetrics: {
+        candidatesFound: consolidationStats.totalCandidates,
+        candidatesEligible: consolidationStats.eligibleCandidates,
+        consolidationsCreated: consolidationStats.consolidationsCreated,
+        averageInvoicesPerConsolidation: consolidationStats.averageInvoicesPerConsolidation
+      }
     }
   }
 }

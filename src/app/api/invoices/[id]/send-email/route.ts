@@ -22,7 +22,7 @@ const sendEmailSchema = z.object({
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -30,7 +30,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const invoiceId = params.id
+    const { id: invoiceId } = await params
     const body = await request.json()
     const validatedData = sendEmailSchema.parse(body)
 
@@ -223,7 +223,7 @@ export async function POST(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -231,7 +231,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const invoiceId = params.id
+    const { id: invoiceId } = await params
 
     // Get user and company info
     const user = await prisma.user.findUnique({

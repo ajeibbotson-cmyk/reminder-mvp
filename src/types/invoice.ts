@@ -27,43 +27,6 @@ export interface InvoiceWithDetails extends Invoice {
   }
 }
 
-// Invoice creation form data
-export interface CreateInvoiceFormData {
-  number: string
-  customer_name: string
-  customer_email: string
-  amount: number
-  subtotal?: number
-  vat_amount?: number
-  total_amount?: number
-  currency: string
-  due_date: Date | string
-  description?: string
-  description_ar?: string
-  notes?: string
-  notes_ar?: string
-  trn_number?: string
-  invoice_items: CreateInvoiceItemFormData[]
-}
-
-// Invoice item creation form data
-export interface CreateInvoiceItemFormData {
-  description: string
-  description_ar?: string
-  quantity: number
-  unit_price: number
-  total: number
-  vat_rate?: number
-  vat_amount?: number
-  total_with_vat?: number
-  tax_category?: 'STANDARD' | 'EXEMPT' | 'ZERO_RATED'
-}
-
-// Invoice update form data
-export interface UpdateInvoiceFormData extends Partial<CreateInvoiceFormData> {
-  id: string
-  status?: InvoiceStatus
-}
 
 // Invoice filters for dashboard
 export interface InvoiceFilters {
@@ -204,14 +167,6 @@ export interface InvoiceListResponse {
   has_previous: boolean
 }
 
-export interface InvoiceCreateResponse {
-  success: boolean
-  invoice?: InvoiceWithDetails
-  error?: string
-  validation_errors?: Record<string, string[]>
-}
-
-export interface InvoiceUpdateResponse extends InvoiceCreateResponse {}
 
 export interface BulkActionResponse {
   success: boolean
@@ -245,17 +200,6 @@ export interface ImportValidationResponse {
   }>
 }
 
-// Form field types for UI components
-export type InvoiceFormField = 
-  | 'number'
-  | 'customer_name'
-  | 'customer_email'
-  | 'amount'
-  | 'due_date'
-  | 'description'
-  | 'currency'
-  | 'vat_rate'
-  | 'trn_number'
 
 // Currency formatting options
 export interface CurrencyFormatOptions {
@@ -474,46 +418,6 @@ export interface APIResponse<T = any> {
   code?: string
 }
 
-// Invoice creation with full UAE support
-export interface CreateInvoiceRequest {
-  companyId: string
-  number: string
-  customerName: string
-  customerNameAr?: string
-  customerEmail: string
-  customerPhone?: string
-  customerNotes?: string
-  customerNotesAr?: string
-  paymentTerms?: number
-  amount: number
-  subtotal?: number
-  vatAmount?: number
-  totalAmount: number
-  currency: string
-  dueDate: Date | string
-  status?: InvoiceStatus
-  description?: string
-  descriptionAr?: string
-  notes?: string
-  notesAr?: string
-  trnNumber?: string
-  items?: Array<{
-    description: string
-    descriptionAr?: string
-    quantity: number
-    unitPrice: number
-    total: number
-    vatRate?: number
-    vatAmount?: number
-    totalWithVat?: number
-    taxCategory?: 'STANDARD' | 'EXEMPT' | 'ZERO_RATED'
-  }>
-}
-
-// Invoice update request type
-export interface UpdateInvoiceRequest extends Partial<CreateInvoiceRequest> {
-  // All fields optional for updates
-}
 
 // Activity logging for audit trail
 export interface ActivityLogEntry {

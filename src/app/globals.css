@@ -45,71 +45,116 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+
+  /* === ENTERPRISE-GRADE COLOR SYSTEM === */
+  /* Inspired by Xero & Pagero for acquisition-ready aesthetics */
+
+  /* Primary Brand Colors */
+  --emirates-blue: oklch(0.45 0.15 225); /* #1E40AF - Professional, trustworthy */
+  --desert-gold: oklch(0.65 0.18 50); /* #D97706 - Premium accent, success */
+  --pearl-white: oklch(0.98 0.002 180); /* #FAFAFA - Clean backgrounds */
+  --charcoal: oklch(0.25 0.01 225); /* #1F2937 - Strong text */
+  --silver-mist: oklch(0.55 0.01 225); /* #6B7280 - Subtle text */
+
+  /* Semantic Colors for Enterprise */
+  --success-emerald: oklch(0.55 0.15 155); /* #059669 - Success states */
+  --warning-amber: oklch(0.65 0.18 50); /* #D97706 - Warnings */
+  --error-crimson: oklch(0.58 0.22 25); /* #DC2626 - Errors */
+  --info-sapphire: oklch(0.50 0.18 235); /* #2563EB - Information */
+
+  /* Core System Colors */
+  --background: var(--pearl-white);
+  --foreground: var(--charcoal);
+  --card: oklch(1 0 0); /* Pure white for cards */
+  --card-foreground: var(--charcoal);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: var(--charcoal);
+
+  /* Interactive Elements */
+  --primary: var(--emirates-blue);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.95 0.005 225); /* Light blue-gray */
+  --secondary-foreground: var(--charcoal);
+  --muted: oklch(0.96 0.002 225); /* Very light gray */
+  --muted-foreground: var(--silver-mist);
+  --accent: var(--desert-gold);
+  --accent-foreground: oklch(0.98 0 0);
+
+  /* System States */
+  --destructive: var(--error-crimson);
+  --border: oklch(0.90 0.005 225); /* Subtle borders */
+  --input: oklch(0.96 0.002 225); /* Input backgrounds */
+  --ring: var(--emirates-blue); /* Focus rings */
+
+  /* Enhanced Chart Colors for Analytics */
+  --chart-1: var(--emirates-blue); /* Primary data */
+  --chart-2: var(--desert-gold); /* Secondary data */
+  --chart-3: var(--success-emerald); /* Positive metrics */
+  --chart-4: var(--warning-amber); /* Caution metrics */
+  --chart-5: var(--info-sapphire); /* Neutral metrics */
+
+  /* Sidebar System */
+  --sidebar: oklch(0.97 0.002 225); /* Light sidebar */
+  --sidebar-foreground: var(--charcoal);
+  --sidebar-primary: var(--emirates-blue);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.94 0.005 225);
+  --sidebar-accent-foreground: var(--charcoal);
+  --sidebar-border: oklch(0.88 0.005 225);
+  --sidebar-ring: var(--emirates-blue);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* === PROFESSIONAL DARK THEME === */
+  /* Sophisticated dark mode for enterprise applications */
+
+  /* Dark Brand Adaptations */
+  --emirates-blue-dark: oklch(0.55 0.15 225); /* Lighter for dark backgrounds */
+  --desert-gold-dark: oklch(0.75 0.18 50); /* Brighter for contrast */
+  --deep-charcoal: oklch(0.12 0.005 225); /* Rich dark background */
+  --slate-gray: oklch(0.20 0.008 225); /* Card backgrounds */
+  --light-silver: oklch(0.85 0.005 225); /* Light text */
+
+  /* Core Dark System */
+  --background: var(--deep-charcoal);
+  --foreground: var(--light-silver);
+  --card: var(--slate-gray);
+  --card-foreground: var(--light-silver);
+  --popover: var(--slate-gray);
+  --popover-foreground: var(--light-silver);
+
+  /* Interactive Dark Elements */
+  --primary: var(--emirates-blue-dark);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.25 0.008 225); /* Subtle dark secondary */
+  --secondary-foreground: var(--light-silver);
+  --muted: oklch(0.22 0.005 225); /* Muted dark areas */
+  --muted-foreground: oklch(0.65 0.005 225); /* Readable muted text */
+  --accent: var(--desert-gold-dark);
+  --accent-foreground: oklch(0.15 0.005 225); /* Dark text on gold */
+
+  /* Dark System States */
+  --destructive: oklch(0.65 0.22 25); /* Softer red for dark */
+  --border: oklch(0.30 0.008 225); /* Visible but subtle borders */
+  --input: oklch(0.18 0.005 225); /* Input field backgrounds */
+  --ring: var(--emirates-blue-dark); /* Focus indicators */
+
+  /* Professional Dark Charts */
+  --chart-1: var(--emirates-blue-dark);
+  --chart-2: var(--desert-gold-dark);
+  --chart-3: oklch(0.65 0.15 155); /* Bright emerald for dark */
+  --chart-4: oklch(0.75 0.18 50); /* Bright amber */
+  --chart-5: oklch(0.60 0.18 235); /* Bright sapphire */
+
+  /* Dark Sidebar System */
+  --sidebar: oklch(0.15 0.005 225); /* Slightly lighter than background */
+  --sidebar-foreground: var(--light-silver);
+  --sidebar-primary: var(--emirates-blue-dark);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.28 0.008 225);
+  --sidebar-accent-foreground: var(--light-silver);
+  --sidebar-border: oklch(0.32 0.008 225);
+  --sidebar-ring: var(--emirates-blue-dark);
 }
 
 @layer base {
