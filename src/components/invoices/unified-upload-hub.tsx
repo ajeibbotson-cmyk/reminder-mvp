@@ -371,12 +371,25 @@ export function UnifiedUploadHub({
     }
   }
 
-  // Helper function to extract text from PDF files
+  // Helper function to extract text from PDF files via API
   const extractTextFromPDF = async (file: File): Promise<string | null> => {
     try {
-      // This would use a PDF parsing library like pdf-parse
-      // For now, return null to indicate no text extraction
-      return null
+      // Send PDF to server for text extraction
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/pdf/extract-text', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        console.error('PDF text extraction API failed:', response.statusText)
+        return null
+      }
+
+      const result = await response.json()
+      return result.success ? result.text : null
     } catch (error) {
       console.error('PDF text extraction failed:', error)
       return null
