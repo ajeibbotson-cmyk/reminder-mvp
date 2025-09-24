@@ -225,10 +225,10 @@ export class FollowUpMonitoringService {
   private async checkQueueHealth(): Promise<HealthCheckResult> {
     try {
       const [queuedEmails, failedEmails, oldQueuedEmails] = await Promise.all([
-        prisma.followUpLog.count({
+        prisma.follow_up_logs.count({
           where: { deliveryStatus: 'QUEUED' }
         }),
-        prisma.followUpLog.count({
+        prisma.follow_up_logs.count({
           where: {
             deliveryStatus: 'FAILED',
             sentAt: {
@@ -236,7 +236,7 @@ export class FollowUpMonitoringService {
             }
           }
         }),
-        prisma.followUpLog.count({
+        prisma.follow_up_logs.count({
           where: {
             deliveryStatus: 'QUEUED',
             sentAt: {
@@ -468,7 +468,7 @@ export class FollowUpMonitoringService {
         }
       })
 
-      const stuckFollowUps = await prisma.followUpLog.count({
+      const stuckFollowUps = await prisma.follow_up_logs.count({
         where: {
           deliveryStatus: 'SENT',
           sentAt: {
@@ -521,9 +521,9 @@ export class FollowUpMonitoringService {
       processingBacklog,
       lastProcessingRun
     ] = await Promise.all([
-      prisma.followUpLog.count(),
-      prisma.followUpSequence.count({ where: { active: true } }),
-      prisma.followUpLog.count({ where: { deliveryStatus: 'QUEUED' } }),
+      prisma.follow_up_logs.count(),
+      prisma.follow_up_sequences.count({ where: { active: true } }),
+      prisma.follow_up_logs.count({ where: { deliveryStatus: 'QUEUED' } }),
       prisma.activity.findFirst({
         where: { type: 'FOLLOW_UP_PROCESSING' },
         orderBy: { createdAt: 'desc' }
@@ -842,19 +842,19 @@ export class FollowUpMonitoringService {
           createdAt: { gte: start, lte: end }
         }
       }),
-      prisma.followUpLog.count({
+      prisma.follow_up_logs.count({
         where: {
           deliveryStatus: { in: ['SENT', 'DELIVERED'] },
           sentAt: { gte: start, lte: end }
         }
       }),
-      prisma.followUpLog.count({
+      prisma.follow_up_logs.count({
         where: {
           deliveryStatus: 'DELIVERED',
           sentAt: { gte: start, lte: end }
         }
       }),
-      prisma.followUpLog.count({
+      prisma.follow_up_logs.count({
         where: {
           deliveryStatus: 'FAILED',
           sentAt: { gte: start, lte: end }

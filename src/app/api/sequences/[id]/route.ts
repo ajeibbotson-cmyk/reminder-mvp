@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 import { prisma } from '@/lib/prisma'
 import { culturalCompliance, CulturalTone } from '@/lib/services/cultural-compliance-service'
 import { sequenceExecutionService } from '@/lib/services/sequence-execution-service'
@@ -45,7 +45,7 @@ export async function GET(
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
         companyId: user.company.id
@@ -70,7 +70,7 @@ export async function GET(
     const analytics = await sequenceExecutionService.getSequenceAnalytics(sequence.id)
 
     // Get recent executions
-    const recentExecutions = await prisma.followUpLog.findMany({
+    const recentExecutions = await prisma.follow_up_logs.findMany({
       where: { sequenceId: sequence.id },
       include: {
         invoice: {
@@ -143,7 +143,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
-    const existingSequence = await prisma.followUpSequence.findFirst({
+    const existingSequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
         companyId: user.company.id
@@ -158,7 +158,7 @@ export async function PUT(
 
     // Validate name uniqueness if changing name
     if (body.name && body.name !== existingSequence.name) {
-      const nameExists = await prisma.followUpSequence.findFirst({
+      const nameExists = await prisma.follow_up_sequences.findFirst({
         where: {
           companyId: user.company.id,
           name: body.name,
@@ -261,7 +261,7 @@ export async function PUT(
     }
 
     // Update the sequence
-    const updatedSequence = await prisma.followUpSequence.update({
+    const updatedSequence = await prisma.follow_up_sequences.update({
       where: { id: params.id },
       data: updateData
     })
@@ -322,7 +322,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
         companyId: user.company.id
@@ -334,7 +334,7 @@ export async function DELETE(
     }
 
     // Check if sequence has active executions
-    const activeExecutions = await prisma.followUpLog.count({
+    const activeExecutions = await prisma.follow_up_logs.count({
       where: {
         sequenceId: params.id,
         sentAt: {
@@ -355,7 +355,7 @@ export async function DELETE(
     }
 
     // Soft delete - deactivate sequence
-    const deletedSequence = await prisma.followUpSequence.update({
+    const deletedSequence = await prisma.follow_up_sequences.update({
       where: { id: params.id },
       data: {
         active: false,
@@ -365,7 +365,7 @@ export async function DELETE(
     })
 
     // Stop any running executions for this sequence
-    const runningExecutions = await prisma.followUpLog.findMany({
+    const runningExecutions = await prisma.follow_up_logs.findMany({
       where: { sequenceId: params.id },
       distinct: ['invoiceId']
     })

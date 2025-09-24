@@ -189,7 +189,7 @@ export class FollowUpEscalationService {
    * Get all active follow-ups that might need escalation
    */
   private async getActiveFollowUps() {
-    return await prisma.followUpLog.findMany({
+    return await prisma.follow_up_logs.findMany({
       where: {
         deliveryStatus: { in: ['QUEUED', 'SENT', 'DELIVERED'] },
         sentAt: {
@@ -510,7 +510,7 @@ export class FollowUpEscalationService {
     const reduceDaysBy = parameters?.reduceDaysBy || 1
 
     // Find next pending step
-    const nextStep = await prisma.followUpLog.findFirst({
+    const nextStep = await prisma.follow_up_logs.findFirst({
       where: {
         invoiceId: followUp.invoiceId,
         sequenceId: followUp.sequenceId,
@@ -534,7 +534,7 @@ export class FollowUpEscalationService {
         culturalTone: 'BUSINESS'
       })
 
-      await prisma.followUpLog.update({
+      await prisma.follow_up_logs.update({
         where: { id: nextStep.id },
         data: { sentAt: validSendTime }
       })
@@ -584,7 +584,7 @@ export class FollowUpEscalationService {
       })
 
       // Cancel pending steps and insert urgent step
-      await prisma.followUpLog.updateMany({
+      await prisma.follow_up_logs.updateMany({
         where: {
           invoiceId: followUp.invoiceId,
           sequenceId: followUp.sequenceId,
@@ -595,7 +595,7 @@ export class FollowUpEscalationService {
       })
 
       // Create new urgent step
-      await prisma.followUpLog.create({
+      await prisma.follow_up_logs.create({
         data: {
           id: crypto.randomUUID(),
           invoiceId: followUp.invoiceId,
@@ -636,7 +636,7 @@ export class FollowUpEscalationService {
     const resumeTime = permanent ? null : new Date(Date.now() + duration * 60 * 60 * 1000)
 
     // Update all pending steps
-    await prisma.followUpLog.updateMany({
+    await prisma.follow_up_logs.updateMany({
       where: {
         invoiceId: followUp.invoiceId,
         sequenceId: followUp.sequenceId,
@@ -759,7 +759,7 @@ export class FollowUpEscalationService {
    */
   private async skipStep(followUp: any, parameters?: any): Promise<{ success: boolean; details?: any }> {
     // Mark current step as skipped
-    await prisma.followUpLog.update({
+    await prisma.follow_up_logs.update({
       where: { id: followUp.id },
       data: { deliveryStatus: 'SKIPPED' }
     })
@@ -910,7 +910,7 @@ export class FollowUpEscalationService {
           const { invoiceId, sequenceId } = activity.metadata as any
 
           // Resume the sequence
-          await prisma.followUpLog.updateMany({
+          await prisma.follow_up_logs.updateMany({
             where: {
               invoiceId,
               sequenceId,

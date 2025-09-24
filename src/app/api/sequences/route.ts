@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 import { prisma } from '@/lib/prisma'
 import { culturalCompliance, CulturalTone } from '@/lib/services/cultural-compliance-service'
 import { sequenceExecutionService } from '@/lib/services/sequence-execution-service'
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 
     // Get sequences with pagination
     const [sequences, totalCount] = await Promise.all([
-      prisma.followUpSequence.findMany({
+      prisma.follow_up_sequences.findMany({
         where,
         include: {
           _count: {
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit
       }),
-      prisma.followUpSequence.count({ where })
+      prisma.follow_up_sequences.count({ where })
     ])
 
     // Get analytics for each sequence
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate sequence name uniqueness
-    const existingSequence = await prisma.followUpSequence.findFirst({
+    const existingSequence = await prisma.follow_up_sequences.findFirst({
       where: {
         companyId: user.company.id,
         name: body.name
@@ -223,7 +223,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the sequence
-    const sequence = await prisma.followUpSequence.create({
+    const sequence = await prisma.follow_up_sequences.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.company.id,
@@ -308,7 +308,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update sequences
-    const updateResult = await prisma.followUpSequence.updateMany({
+    const updateResult = await prisma.follow_up_sequences.updateMany({
       where: {
         id: { in: sequenceIds },
         companyId: user.company.id

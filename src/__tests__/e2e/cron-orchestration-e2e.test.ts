@@ -487,7 +487,7 @@ describe('Cron Job Orchestration E2E Tests', () => {
       }
     })
 
-    await prisma.followUpSequence.create({
+    await prisma.follow_up_sequences.create({
       data: {
         id: sequenceId,
         companyId: testCompanyId,

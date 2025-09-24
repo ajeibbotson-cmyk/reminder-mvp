@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../../auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 import { prisma } from '@/lib/prisma'
 import { culturalCompliance } from '@/lib/services/cultural-compliance-service'
 import { uaeBusinessHours } from '@/lib/services/uae-business-hours-service'
@@ -79,7 +79,7 @@ export async function POST(
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
         companyId: user.company.id

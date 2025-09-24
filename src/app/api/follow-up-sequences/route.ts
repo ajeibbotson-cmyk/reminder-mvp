@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     // Get sequences with pagination
     const [sequences, totalCount] = await Promise.all([
-      prisma.followUpSequence.findMany({
+      prisma.follow_up_sequences.findMany({
         where,
         include: {
           _count: {
@@ -95,29 +95,29 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit
       }),
-      prisma.followUpSequence.count({ where })
+      prisma.follow_up_sequences.count({ where })
     ])
 
     // Get analytics for each sequence
     const sequencesWithAnalytics = await Promise.all(
       sequences.map(async (sequence) => {
         const [totalLogs, successful, pending, failed] = await Promise.all([
-          prisma.followUpLog.count({
+          prisma.follow_up_logs.count({
             where: { sequenceId: sequence.id }
           }),
-          prisma.followUpLog.count({
+          prisma.follow_up_logs.count({
             where: {
               sequenceId: sequence.id,
               deliveryStatus: { in: ['DELIVERED', 'OPENED', 'CLICKED'] }
             }
           }),
-          prisma.followUpLog.count({
+          prisma.follow_up_logs.count({
             where: {
               sequenceId: sequence.id,
               deliveryStatus: { in: ['QUEUED', 'SENT'] }
             }
           }),
-          prisma.followUpLog.count({
+          prisma.follow_up_logs.count({
             where: {
               sequenceId: sequence.id,
               deliveryStatus: { in: ['FAILED', 'BOUNCED'] }
@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate sequence name uniqueness
-    const existingSequence = await prisma.followUpSequence.findFirst({
+    const existingSequence = await prisma.follow_up_sequences.findFirst({
       where: {
         companyId: user.company.id,
         name: body.name
@@ -301,7 +301,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the sequence
-    const sequence = await prisma.followUpSequence.create({
+    const sequence = await prisma.follow_up_sequences.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.company.id,
@@ -402,7 +402,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verify all sequences belong to the company
-    const existingSequences = await prisma.followUpSequence.findMany({
+    const existingSequences = await prisma.follow_up_sequences.findMany({
       where: {
         id: { in: sequenceIds },
         companyId: user.company.id
@@ -421,7 +421,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update sequences
-    const updateResult = await prisma.followUpSequence.updateMany({
+    const updateResult = await prisma.follow_up_sequences.updateMany({
       where: {
         id: { in: sequenceIds },
         companyId: user.company.id

@@ -89,7 +89,7 @@ export class SequenceExecutionService {
     try {
       // Get sequence and invoice data
       const [sequence, invoice] = await Promise.all([
-        prisma.followUpSequence.findUnique({
+        prisma.follow_up_sequences.findUnique({
           where: { id: sequenceId },
           include: { company: true }
         }),
@@ -120,7 +120,7 @@ export class SequenceExecutionService {
       }
 
       // Check if sequence already running for this invoice
-      const existingExecution = await prisma.followUpLog.findFirst({
+      const existingExecution = await prisma.follow_up_logs.findFirst({
         where: {
           invoiceId,
           sequenceId,
@@ -204,7 +204,7 @@ export class SequenceExecutionService {
 
     try {
       // Get the last follow-up log for this execution
-      const lastLog = await prisma.followUpLog.findFirst({
+      const lastLog = await prisma.follow_up_logs.findFirst({
         where: {
           id: sequenceExecutionId // Using execution ID as reference
         },
@@ -598,7 +598,7 @@ export class SequenceExecutionService {
     step: SequenceStep,
     emailLogId: string
   ): Promise<void> {
-    await prisma.followUpLog.create({
+    await prisma.follow_up_logs.create({
       data: {
         id: executionId,
         invoiceId,
@@ -635,7 +635,7 @@ export class SequenceExecutionService {
       }
 
       // Update follow-up logs to mark sequence as stopped
-      await prisma.followUpLog.updateMany({
+      await prisma.follow_up_logs.updateMany({
         where: {
           sequenceId,
           invoiceId
@@ -661,7 +661,7 @@ export class SequenceExecutionService {
     invoiceId: string
   ): Promise<SequenceExecution | null> {
     try {
-      const logs = await prisma.followUpLog.findMany({
+      const logs = await prisma.follow_up_logs.findMany({
         where: {
           sequenceId,
           invoiceId
@@ -708,7 +708,7 @@ export class SequenceExecutionService {
   async getSequenceAnalytics(sequenceId: string): Promise<SequenceAnalytics> {
     try {
       const [logs, sequence] = await Promise.all([
-        prisma.followUpLog.findMany({
+        prisma.follow_up_logs.findMany({
           where: { sequenceId },
           include: {
             emailLogs: true,
@@ -717,7 +717,7 @@ export class SequenceExecutionService {
             }
           }
         }),
-        prisma.followUpSequence.findUnique({
+        prisma.follow_up_sequences.findUnique({
           where: { id: sequenceId }
         })
       ])
@@ -816,7 +816,7 @@ export class SequenceExecutionService {
       console.log(`🔄 Starting consolidated sequence execution for customer ${consolidatedReminder.customerId}`)
 
       // Get sequence data
-      const sequence = await prisma.followUpSequences.findUnique({
+      const sequence = await prisma.follow_up_sequencess.findUnique({
         where: { id: sequenceId },
         include: { companies: true }
       })
@@ -1238,7 +1238,7 @@ export class SequenceExecutionService {
     emailLogId: string
   ): Promise<void> {
     // Create a follow-up log entry that references the consolidation
-    await prisma.followUpLogs.create({
+    await prisma.follow_up_logss.create({
       data: {
         id: executionId,
         invoiceId: consolidatedReminder.invoiceIds[0], // Reference primary invoice

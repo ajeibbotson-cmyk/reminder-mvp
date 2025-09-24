@@ -49,7 +49,7 @@ export async function GET(
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: (await params).id,
         companyId: user.company.id
@@ -93,36 +93,36 @@ export async function GET(
       stepAnalytics,
       recentLogs
     ] = await Promise.all([
-      prisma.followUpLog.count({
+      prisma.follow_up_logs.count({
         where: { sequenceId: sequence.id }
       }),
-      prisma.followUpLog.count({
+      prisma.follow_up_logs.count({
         where: {
           sequenceId: sequence.id,
           deliveryStatus: { in: ['DELIVERED', 'OPENED', 'CLICKED'] }
         }
       }),
-      prisma.followUpLog.count({
+      prisma.follow_up_logs.count({
         where: {
           sequenceId: sequence.id,
           deliveryStatus: { in: ['QUEUED', 'SENT'] }
         }
       }),
-      prisma.followUpLog.count({
+      prisma.follow_up_logs.count({
         where: {
           sequenceId: sequence.id,
           deliveryStatus: { in: ['FAILED', 'BOUNCED'] }
         }
       }),
       // Step-by-step analytics
-      prisma.followUpLog.groupBy({
+      prisma.follow_up_logs.groupBy({
         by: ['stepNumber'],
         where: { sequenceId: sequence.id },
         _count: { id: true },
         orderBy: { stepNumber: 'asc' }
       }),
       // Recent execution logs
-      prisma.followUpLog.findMany({
+      prisma.follow_up_logs.findMany({
         where: { sequenceId: sequence.id },
         include: {
           invoice: {
@@ -226,7 +226,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: (await params).id,
         companyId: user.company.id
@@ -247,7 +247,7 @@ export async function PUT(
 
     // Validate name uniqueness if name is being updated
     if (body.name && body.name !== sequence.name) {
-      const existingSequence = await prisma.followUpSequence.findFirst({
+      const existingSequence = await prisma.follow_up_sequences.findFirst({
         where: {
           companyId: user.company.id,
           name: body.name,
@@ -362,7 +362,7 @@ export async function PUT(
     if (sanitizedSteps) updateData.steps = JSON.stringify(sanitizedSteps)
 
     // Update the sequence
-    const updatedSequence = await prisma.followUpSequence.update({
+    const updatedSequence = await prisma.follow_up_sequences.update({
       where: { id: sequence.id },
       data: updateData
     })
@@ -433,7 +433,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: (await params).id,
         companyId: user.company.id
@@ -458,7 +458,7 @@ export async function DELETE(
     }
 
     // Check if sequence has active follow-ups
-    const activeFollowUps = await prisma.followUpLog.count({
+    const activeFollowUps = await prisma.follow_up_logs.count({
       where: {
         sequenceId: sequence.id,
         deliveryStatus: { in: ['QUEUED', 'SENT'] }
@@ -476,7 +476,7 @@ export async function DELETE(
     }
 
     // Delete the sequence (cascade will handle follow-up logs)
-    await prisma.followUpSequence.delete({
+    await prisma.follow_up_sequences.delete({
       where: { id: sequence.id }
     })
 

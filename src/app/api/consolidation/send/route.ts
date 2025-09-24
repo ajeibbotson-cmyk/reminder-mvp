@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
         })
 
         // Find an active sequence for execution
-        const activeSequence = await prisma.followUpSequences.findFirst({
+        const activeSequence = await prisma.follow_up_sequencess.findFirst({
           where: {
             companyId: session.user.companyId,
             active: true

@@ -308,7 +308,7 @@ export class FollowUpDetectionService {
     const sendTime = await this.calculateOptimalSendTime(invoice, firstStep, conditions)
 
     // Create follow-up log entry
-    const followUpLog = await prisma.followUpLog.create({
+    const followUpLog = await prisma.follow_up_logs.create({
       data: {
         id: crypto.randomUUID(),
         invoiceId: invoice.id,
@@ -895,7 +895,7 @@ export class FollowUpDetectionService {
           ...whereClause
         }
       }),
-      prisma.followUpLogs.findMany({
+      prisma.follow_up_logss.findMany({
         where: {
           ...whereClause,
           deliveryStatus: { not: 'FAILED' }

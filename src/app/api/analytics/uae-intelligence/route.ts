@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../../auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 import { uaeBusinessIntelligenceService } from '@/lib/services/uae-business-intelligence-service'
 import { AnalyticsFilters } from '@/lib/types/analytics'
 import { z } from 'zod'

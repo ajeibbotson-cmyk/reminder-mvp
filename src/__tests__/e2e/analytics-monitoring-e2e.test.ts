@@ -550,7 +550,7 @@ describe('Analytics and Monitoring End-to-End Tests', () => {
     for (const companyData of companies) {
       for (let i = 0; i < 2; i++) {
         const sequenceId = UAETestUtils.generateId()
-        const sequence = await prisma.followUpSequence.create({
+        const sequence = await prisma.follow_up_sequences.create({
           data: {
             id: sequenceId,
             companyId: companyData.id,

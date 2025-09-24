@@ -52,12 +52,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       current: pathname.startsWith('/dashboard/invoices') && !pathname.startsWith('/dashboard/invoices/import')
     },
     {
-      name: 'Import Invoices',
-      href: '/dashboard/invoices/import',
-      icon: Upload,
-      current: pathname.startsWith('/dashboard/invoices/import')
-    },
-    {
       name: 'Email Templates',
       href: '/dashboard/email-templates',
       icon: Mail,

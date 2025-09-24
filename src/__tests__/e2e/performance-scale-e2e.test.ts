@@ -552,7 +552,7 @@ Finance Team`,
       }
     })
 
-    await prisma.followUpSequence.create({
+    await prisma.follow_up_sequences.create({
       data: {
         id: sequenceId,
         companyId: testCompanyId,
@@ -590,7 +590,7 @@ Finance Team`,
     // Create test sequence for analytics
     const sequenceId = 'test-sequence-1'
     
-    await prisma.followUpSequence.upsert({
+    await prisma.follow_up_sequences.upsert({
       where: { id: sequenceId },
       create: {
         id: sequenceId,
@@ -636,7 +636,7 @@ Finance Team`,
         }
       })
 
-      await prisma.followUpLog.create({
+      await prisma.follow_up_logs.create({
         data: {
           id: logId,
           invoiceId,
@@ -682,7 +682,7 @@ Finance Team`,
   async function createTestSequenceForCompany(companyId: string) {
     const sequenceId = UAETestUtils.generateId()
     
-    return await prisma.followUpSequence.create({
+    return await prisma.follow_up_sequences.create({
       data: {
         id: sequenceId,
         companyId,

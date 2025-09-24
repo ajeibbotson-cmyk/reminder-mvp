@@ -71,7 +71,7 @@ export async function generateMetadata({ params }: PaymentPageProps): Promise<Me
       style: 'currency',
       currency: 'AED'
     }).format(parseFloat(invoice.totalAmount.toString()))}`,
-    robots: 'noindex, nofollow', // Don't index payment pages
+    robots: 'noindex, nofollow', // Don&apos;t index payment pages
   }
 }
 

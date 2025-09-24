@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 import { prisma } from '@/lib/prisma'
 import { sequenceExecutionService } from '@/lib/services/sequence-execution-service'
 import { sequenceTriggersService } from '@/lib/services/sequence-triggers-service'
@@ -153,17 +153,17 @@ async function buildOverallAnalytics(
     triggerMetrics
   ] = await Promise.all([
     // Total sequences
-    prisma.followUpSequence.count({
+    prisma.follow_up_sequences.count({
       where: { companyId }
     }),
 
     // Active sequences
-    prisma.followUpSequence.count({
+    prisma.follow_up_sequences.count({
       where: { companyId, active: true }
     }),
 
     // Total executions (follow-up logs)
-    prisma.followUpLog.count({
+    prisma.follow_up_logs.count({
       where: {
         followUpSequence: { companyId },
         sentAt: {
@@ -191,7 +191,7 @@ async function buildOverallAnalytics(
   ])
 
   // Get sequence performance data
-  const sequences = await prisma.followUpSequence.findMany({
+  const sequences = await prisma.follow_up_sequences.findMany({
     where: {
       companyId,
       ...(query.sequenceIds && { id: { in: query.sequenceIds } })
@@ -308,7 +308,7 @@ async function buildTrendData(
     const nextDate = new Date(date.getTime() + 24 * 60 * 60 * 1000)
 
     const [executions, emails] = await Promise.all([
-      prisma.followUpLog.count({
+      prisma.follow_up_logs.count({
         where: {
           followUpSequence: { companyId },
           sentAt: {

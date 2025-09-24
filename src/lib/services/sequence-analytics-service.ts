@@ -122,7 +122,7 @@ export class SequenceAnalyticsService {
     dateTo: Date
   ): Promise<SequencePerformanceMetrics[]> {
     
-    const sequences = await prisma.followUpSequence.findMany({
+    const sequences = await prisma.follow_up_sequences.findMany({
       where: { companyId },
       include: {
         followUpLogs: {
@@ -312,7 +312,7 @@ export class SequenceAnalyticsService {
     dateTo: Date
   ): Promise<PaymentCorrelation> {
     
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: { id: sequenceId, companyId },
       include: {
         followUpLogs: {

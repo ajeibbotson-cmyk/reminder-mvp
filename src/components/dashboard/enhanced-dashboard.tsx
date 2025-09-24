@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AEDAmount, UAEDateDisplay, InvoiceStatusBadge } from '@/components/ui/uae-formatters'
-import { ImportInterface } from '@/components/invoices/import-interface'
+import { UnifiedUploadHub } from '@/components/invoices/unified-upload-hub'
 import { useInvoiceStore } from '@/lib/stores/invoice-store'
 import { ConsolidationDashboard } from './consolidation-dashboard'
 import { ConsolidationAnalyticsCharts } from '../charts/consolidation-analytics-charts'
@@ -58,7 +58,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
     paymentRate: 0,
   })
   const [selectedPeriod, setSelectedPeriod] = useState('7d')
-  const [showImportInterface, setShowImportInterface] = useState(false)
+  const [showUploadHub, setShowUploadHub] = useState(false)
   const [recentImports, setRecentImports] = useState<any[]>([])
   const [emailAnalytics, setEmailAnalytics] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -279,7 +279,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
               <Button
                 variant="premium"
                 size="lg"
-                onClick={() => setShowImportInterface(true)}
+                onClick={() => setShowUploadHub(true)}
                 className="shadow-md hover:shadow-lg"
               >
                 <FileText className="h-5 w-5 mr-2" />
@@ -456,7 +456,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
                   <FileText className="h-5 w-5" />
                   {t('recentImports')}
                 </div>
-                <Button variant="premium" size="sm" onClick={() => setShowImportInterface(true)}>
+                <Button variant="premium" size="sm" onClick={() => setShowUploadHub(true)}>
                   <FileText className="h-4 w-4 mr-2" />
                   {t('newImport')}
                 </Button>
@@ -491,7 +491,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
                 <div className="text-center py-8 text-gray-500">
                   <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>{t('noRecentImports')}</p>
-                  <Button variant="premium" size="sm" className="mt-4" onClick={() => setShowImportInterface(true)}>
+                  <Button variant="premium" size="sm" className="mt-4" onClick={() => setShowUploadHub(true)}>
                     {t('startFirstImport')}
                   </Button>
                 </div>
@@ -613,28 +613,19 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
         </TabsContent>
       </Tabs>
 
-      {/* Import Interface Dialog */}
-      {showImportInterface && (
+      {/* Unified Upload Hub Dialog */}
+      {showUploadHub && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold">{t('importInvoices')}</h2>
-                <Button variant="ghost" size="sm" onClick={() => setShowImportInterface(false)}>
-                  ×
-                </Button>
-              </div>
-              <ImportInterface
-                companyId={companyId}
-                locale={locale}
-                onImportComplete={() => {
-                  setShowImportInterface(false)
-                  fetchInvoices()
-                  // fetchBatches(companyId) // Temporarily disabled
-                }}
-              />
-            </div>
-          </div>
+          <UnifiedUploadHub
+            companyId={companyId}
+            locale={locale}
+            onComplete={() => {
+              setShowUploadHub(false)
+              fetchInvoices()
+              // Refresh other data when needed
+            }}
+            onClose={() => setShowUploadHub(false)}
+          />
         </div>
       )}
     </div>

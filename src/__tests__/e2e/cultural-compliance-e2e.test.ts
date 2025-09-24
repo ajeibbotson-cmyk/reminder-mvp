@@ -534,7 +534,7 @@ TRN: 100474123400003`,
       })
 
       // Create culturally compliant sequence
-      const sequence = await prisma.followUpSequence.create({
+      const sequence = await prisma.follow_up_sequences.create({
         data: {
           id: UAETestUtils.generateId(),
           companyId: testCompanyId,
@@ -629,7 +629,7 @@ JazakAllahu khair`,
         }
       })
 
-      const bilingualSequence = await prisma.followUpSequence.create({
+      const bilingualSequence = await prisma.follow_up_sequences.create({
         data: {
           id: UAETestUtils.generateId(),
           companyId: testCompanyId,

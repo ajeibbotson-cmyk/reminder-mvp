@@ -487,7 +487,7 @@ TRN: {{trnNumber}}`,
     ]
 
     for (const sequence of sequences) {
-      await prisma.followUpSequence.create({
+      await prisma.follow_up_sequences.create({
         data: {
           id: sequence.id,
           companyId: sequence.companyId,
@@ -866,7 +866,7 @@ describe('UAE Payment Collection Automation - End-to-End Tests', () => {
       }
 
       // Create sequence via API-like operation
-      const sequence = await prisma.followUpSequence.create({
+      const sequence = await prisma.follow_up_sequences.create({
         data: {
           id: UAETestUtils.generateId(),
           ...frontendSequenceData,
@@ -934,7 +934,7 @@ TRN: {{trnNumber}}`,
       })
 
       // Create sequence using the template
-      const sequence = await prisma.followUpSequence.create({
+      const sequence = await prisma.follow_up_sequences.create({
         data: {
           id: UAETestUtils.generateId(),
           companyId: company.id,
@@ -1028,7 +1028,7 @@ TRN: {{trnNumber}}`,
       const invoice = invoices[0]
 
       // Create bilingual sequence
-      const bilingualSequence = await prisma.followUpSequence.create({
+      const bilingualSequence = await prisma.follow_up_sequences.create({
         data: {
           id: UAETestUtils.generateId(),
           companyId: companies[0].id,
@@ -1128,7 +1128,7 @@ TRN / الرقم الضريبي: {{trnNumber}}`,
       const { companies, invoices } = testEnv.getTestData()
 
       // Create urgent sequence
-      const urgentSequence = await prisma.followUpSequence.create({
+      const urgentSequence = await prisma.follow_up_sequences.create({
         data: {
           id: UAETestUtils.generateId(),
           companyId: companies[0].id,

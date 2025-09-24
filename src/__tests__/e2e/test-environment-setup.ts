@@ -255,7 +255,7 @@ export class UAEBusinessTestEnvironment {
     const templates = this.getSequenceTemplatesForCustomerType(customerType)
     const sequenceId = UAETestUtils.generateId()
 
-    const sequence = await prisma.followUpSequence.create({
+    const sequence = await prisma.follow_up_sequences.create({
       data: {
         id: sequenceId,
         companyId,

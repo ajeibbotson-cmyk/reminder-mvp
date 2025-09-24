@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../../auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 import { prisma } from '@/lib/prisma'
 import { sequenceExecutionService, TriggerCondition } from '@/lib/services/sequence-execution-service'
 import { sequenceTriggersService } from '@/lib/services/sequence-triggers-service'
@@ -46,7 +46,7 @@ export async function POST(
     }
 
     // Verify sequence exists and belongs to company
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
         companyId: user.company.id
@@ -228,7 +228,7 @@ export async function GET(
     }
 
     // Verify sequence belongs to company
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
         companyId: user.company.id
@@ -253,7 +253,7 @@ export async function GET(
     }
 
     // Get detailed execution logs
-    const executionLogs = await prisma.followUpLog.findMany({
+    const executionLogs = await prisma.follow_up_logs.findMany({
       where: {
         sequenceId: params.id,
         invoiceId: invoiceId
@@ -336,7 +336,7 @@ export async function DELETE(
     }
 
     // Verify sequence belongs to company
-    const sequence = await prisma.followUpSequence.findFirst({
+    const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
         companyId: user.company.id

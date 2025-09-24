@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../../auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 import { prisma } from '@/lib/prisma'
 import { sequenceExecutionService } from '@/lib/services/sequence-execution-service'
 
@@ -170,7 +170,7 @@ async function buildDetailedAnalytics(
   const baseAnalytics = await sequenceExecutionService.getSequenceAnalytics(sequence.id)
 
   // Get detailed execution data
-  const executionLogs = await prisma.followUpLog.findMany({
+  const executionLogs = await prisma.follow_up_logs.findMany({
     where: {
       sequenceId: sequence.id,
       sentAt: {

@@ -565,7 +565,7 @@ export class CustomerConsolidationService {
     })
 
     // Check individual follow-up logs
-    const lastIndividual = await prisma.followUpLogs.findFirst({
+    const lastIndividual = await prisma.follow_up_logss.findFirst({
       where: {
         invoices: {
           customers: {
