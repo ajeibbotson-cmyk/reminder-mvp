@@ -2,11 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# Reminder - Payment Collection Platform
+# Reminder - Unified Invoice Reminder Platform
 
 **E-invoicing gets your invoices delivered. Reminder gets them paid.**
 
-A Next.js 15 SaaS platform targeting UAE SMEs for automated invoice payment collection and reminder management, designed to capture first-mover advantage before the July 2026 UAE e-invoicing mandate.
+A Next.js 15 SaaS platform that combines intelligent PDF invoice extraction with automated email campaigns to transform payment collection workflows. Strategic evolution merging Reminder (invoice management) + SendAChaser (email automation) into the definitive invoice chasing platform.
+
+## 🎯 PLATFORM UNIFICATION STRATEGY
+
+**Vision**: Transform 2.5-hour manual invoice reminder process → 10-minute automated workflow
+**Target Launch**: Q4 2025 with POP Trading as first customer
+**Architecture**: Reminder as primary platform + integrated SendAChaser email automation components
 
 ## Development Commands
 
@@ -140,7 +146,11 @@ AWS_SES_FROM_EMAIL=""
 - Respectful, culturally-sensitive approach to payment collection
 
 ### Current Status
-**MVP Complete** ✅ - Production-Ready Platform (90-95% Complete)
+**Foundation Complete** ✅ - Platform Unification In Progress
+- **Invoice Extraction**: 93% accuracy with POP Trading invoices ✅
+- **Database Architecture**: Production-ready multi-tenant system ✅
+- **Email Automation**: Complete SendAChaser integration ready 🚧
+- **Unified UI**: Component integration and design system in progress 🚧
 
 ### ✅ CORE MVP FEATURES (ALL COMPLETE)
 
@@ -174,8 +184,9 @@ AWS_SES_FROM_EMAIL=""
 - ✅ Professional UI with 32 shadcn/ui components
 - ✅ Comprehensive testing framework (62% pass rate)
 
-**Current Phase**: Production deployment and user testing
-**Next Priority**: Provider account setup (optional) and first user onboarding
+**Current Phase**: Platform unification - integrating SendAChaser email automation
+**Next Priority**: 16-week implementation plan for Q4 2025 launch
+**First Customer**: POP Trading Company (400+ invoices/season validation)
 
 ### Key Business Rules
 - Multi-tenant data isolation (companies cannot access each other's data)

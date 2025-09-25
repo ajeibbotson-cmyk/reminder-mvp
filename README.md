@@ -1,35 +1,56 @@
-# Reminder - Payment Reminder Platform
+# Reminder - Unified Invoice Reminder Platform
 
 **E-invoicing gets your invoices delivered. Reminder gets them paid.**
 
-A Next.js 15 SaaS platform designed to capture first-mover advantage in the UAE e-invoice payment collection market, launching before the July 2026 mandate.
+A Next.js 15 SaaS platform that combines intelligent PDF invoice extraction with automated email campaigns to transform payment collection workflows. Built specifically for operations teams dealing with invoice chasing at scale.
 
-## 🚀 Current Status: MVP Complete + Production-Ready (90-95% Complete)
+## 🚀 Current Status: Platform Unification In Progress - Q4 2025 Launch Target
 
-### ✅ CORE MVP FEATURES (ALL COMPLETE)
+**Strategic Evolution**: Merging Reminder (invoice management) + SendAChaser (email automation) into the definitive invoice chasing platform.
 
-**1. Invoice Management**
-- ✅ CSV/Excel invoice bulk import with comprehensive validation
-- ✅ Automated invoice processing with UAE business field validation
-- ✅ Invoice status tracking (sent, overdue, paid, disputed)
-- ✅ AED currency support with local formatting
+### 🎯 Unified Platform Vision
+Transform the 2.5-hour manual invoice reminder process into a 10-minute automated workflow:
+1. **Upload PDFs** → Extract invoice data with 93%+ accuracy
+2. **Review & Validate** → Side-by-side validation interface
+3. **Send Reminders** → Bulk personalized emails via Gmail/Outlook OAuth
+4. **Track Results** → Delivery status, payment confirmations, follow-ups
 
-**2. Automated Follow-Up System**
-- ✅ Email-based payment reminders (3-sequence automation)
-- ✅ UAE business-appropriate email templates (English/Arabic)
-- ✅ Customizable follow-up timing (7, 14, 30 days)
-- ✅ Manual trigger capability for immediate follow-ups
+### ✅ COMPLETED FOUNDATION SYSTEMS
 
-**3. Payment Tracking**
-- ✅ Manual payment marking and status updates
-- ✅ Basic payment reconciliation dashboard
-- ✅ Simple reporting (DSO, overdue amounts, collection rates)
-- ✅ Customer payment history and notes
+**1. Invoice Processing & Extraction ✅**
+- ✅ **PDF Invoice Extraction**: 93% accuracy with POP Trading invoices (V-numbers, amounts, dates)
+- ✅ **Side-by-Side Validation**: Real-time extraction review and manual correction
+- ✅ **Multi-Format Support**: Handles standardized business invoice formats
+- ✅ **Customer Data Management**: Auto-populates contact information for email campaigns
 
-**4. User Management**
-- ✅ Multi-user access with role-based permissions
-- ✅ Basic company settings and branding
-- ✅ User activity logging and audit trail
+**2. Database & Backend Infrastructure ✅**
+- ✅ **Production Database**: PostgreSQL with Prisma ORM
+- ✅ **Multi-Tenant Architecture**: Company-scoped data isolation
+- ✅ **NextAuth Integration**: Role-based access control
+- ✅ **API Foundation**: RESTful endpoints for invoice and customer management
+
+**3. UI/UX Foundation ✅**
+- ✅ **Professional SaaS Design**: 32+ shadcn/ui components
+- ✅ **Responsive Layout**: Mobile-first, tablet and desktop optimized
+- ✅ **Modern Navigation**: Clean dashboard interface
+- ✅ **Form Systems**: React Hook Form + Zod validation throughout
+
+### 🚧 INTEGRATION COMPONENTS (From SendAChaser)
+
+**4. Email Automation System 🚧**
+- ✅ **Bulk Email Service**: Rate-limited sending (50+ emails/day configurable)
+- ✅ **OAuth Integration**: Gmail/Outlook provider authentication
+- ✅ **Campaign Management**: Create, track, and manage email campaigns
+- ✅ **Progress Tracking**: Real-time sending progress with ETA calculation
+- ✅ **Template Engine**: Merge tag personalization ({{name}}, {{amount}}, {{invoice_number}})
+- 🚧 **Integration**: Connecting with Reminder's invoice extraction data
+
+**5. Advanced Email Features 🚧**
+- ✅ **Professional Templates**: Business-appropriate email formatting
+- ✅ **Delivery Tracking**: Monitor email delivery status and engagement
+- ✅ **Retry Logic**: Automatic retry for failed sends with exponential backoff
+- ✅ **Token Management**: Automatic OAuth token refresh during campaigns
+- 🚧 **UI Integration**: Importing SendAChaser components into Reminder interface
 
 ### ✅ Additional Production Systems (Beyond MVP)
 - ✅ **Production Build**: Compiles successfully for deployment
@@ -93,11 +114,52 @@ Full Arabic/English support with:
 - **AED currency formatting** with UAE locale
 - **Islamic calendar integration** ready for implementation
 
-## 🚀 Post-MVP Development Roadmap
+## 🗓️ UNIFIED PLATFORM ROADMAP (Q4 2025 Launch)
 
-### 🚀 MVP+1 FEATURES (Next 3-6 Months)
-**Medium Complexity Enhancements**
-- **WhatsApp/SMS Integration** (3-4 weeks)
+### 📋 16-Week Implementation Plan
+
+**Phase 1: Architecture & Planning (Weeks 1-2)**
+- Database schema integration (Reminder + SendAChaser tables)
+- API consolidation and service architecture design
+- Component migration strategy and design system unification
+- Team structure and responsibility assignment
+
+**Phase 2: Backend Consolidation (Weeks 3-6)**
+- Database migrations and data model integration
+- OAuth provider setup and authentication unification
+- Email service integration (bulkEmailService → Reminder)
+- API endpoint consolidation and testing
+
+**Phase 3: Frontend Integration (Weeks 7-10)**
+- SendAChaser component migration to Reminder
+- Unified navigation and layout design
+- Campaign composer integration with invoice data
+- Professional SaaS design implementation (Magic MCP)
+
+**Phase 4: Testing & Validation (Weeks 11-12)**
+- Comprehensive unit and integration testing (90% coverage)
+- POP Trading beta testing with real invoice data
+- Performance optimization and security audit
+- Bug resolution and user experience refinement
+
+**Phase 5: Pre-Launch Optimization (Weeks 13-14)**
+- Production environment setup and deployment
+- Documentation and user guide creation
+- Monitoring and support system implementation
+- Final performance and security validation
+
+**Phase 6: Market Launch (Weeks 15-16)**
+- POP Trading production deployment
+- Additional beta customer onboarding
+- Public launch preparation and marketing
+- Go-live support and monitoring
+
+### 🎯 SUCCESS METRICS
+- **Extraction Accuracy**: >90% (currently 93% with POP invoices)
+- **Time Reduction**: 2.5 hours → <10 minutes (>95% improvement)
+- **Email Delivery Rate**: >95%
+- **User Retention**: >80% monthly active usage
+- **Payment Acceleration**: 15-25% faster collections
   - WhatsApp Business API integration
   - SMS reminder capabilities via Twilio
   - Multi-channel follow-up sequences
