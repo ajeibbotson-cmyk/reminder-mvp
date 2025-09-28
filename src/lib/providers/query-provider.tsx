@@ -14,26 +14,55 @@ export function QueryProvider({ children }: QueryProviderProps) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Stale time for server state (5 minutes)
-            staleTime: 5 * 60 * 1000,
-            // Cache time before garbage collection (10 minutes)
-            gcTime: 10 * 60 * 1000,
-            // Retry failed requests
+            // Conservative default stale time (can be overridden per query)
+            staleTime: 5 * 60 * 1000, // 5 minutes
+            // Longer garbage collection time for better UX
+            gcTime: 15 * 60 * 1000, // 15 minutes
+            // Smart retry strategy
             retry: (failureCount, error: any) => {
-              // Don't retry on 4xx errors (client errors)
-              if (error?.status >= 400 && error?.status < 500) {
-                return false
-              }
-              // Retry up to 3 times for 5xx errors
-              return failureCount < 3
+              // Never retry auth errors
+              if (error?.status === 401 || error?.status === 403) return false
+              // Never retry client errors (400-499)
+              if (error?.status >= 400 && error?.status < 500) return false
+              // Retry server errors up to 2 times with exponential backoff
+              return failureCount < 2
             },
-            // Refetch on window focus for real-time data
-            refetchOnWindowFocus: true,
-            // Background refetch interval (2 minutes)
-            refetchInterval: 2 * 60 * 1000,
+            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+            // Performance optimizations
+            refetchOnWindowFocus: false, // Prevent excessive refetches
+            refetchOnMount: true, // Always fetch fresh data on component mount
+            refetchOnReconnect: 'always', // Refetch when network reconnects
+            // No automatic background refetching (use query-specific intervals)
+            refetchInterval: false,
+            // Network mode for better offline experience
+            networkMode: 'online',
           },
           mutations: {
-            retry: false, // Don't retry mutations automatically
+            // No automatic retry for mutations (user should explicitly retry)
+            retry: false,
+            // Network mode for mutations
+            networkMode: 'online',
+          },
+        },
+        // Global error handling
+        mutationCache: {
+          onError: (error: any, variables, context, mutation) => {
+            console.error('Mutation error:', {
+              error: error?.message || error,
+              mutationKey: mutation.options.mutationKey,
+              variables,
+            })
+          },
+        },
+        queryCache: {
+          onError: (error: any, query) => {
+            // Only log non-auth errors to avoid spam
+            if (error?.status !== 401 && error?.status !== 403) {
+              console.error('Query error:', {
+                error: error?.message || error,
+                queryKey: query.queryKey,
+              })
+            }
           },
         },
       })

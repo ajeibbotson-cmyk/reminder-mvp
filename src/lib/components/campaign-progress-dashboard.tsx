@@ -1,7 +1,7 @@
 'use client'
 
 import { useCampaignProgress } from '@/lib/hooks/use-campaign-progress'
-import { useState } from 'react'
+import { useState, useMemo, useCallback, memo } from 'react'
 
 interface CampaignProgressDashboardProps {
   campaignId: string
@@ -9,7 +9,7 @@ interface CampaignProgressDashboardProps {
   className?: string
 }
 
-export function CampaignProgressDashboard({
+const CampaignProgressDashboard = memo(function CampaignProgressDashboard({
   campaignId,
   onComplete,
   className = ''
@@ -30,17 +30,25 @@ export function CampaignProgressDashboard({
     maxRetries: 5
   })
 
-  // Handle completion callback
+  // Memoized completion callback to prevent unnecessary re-renders
+  const handleComplete = useCallback(() => {
+    if (progress?.status === 'completed' && onComplete) {
+      onComplete()
+    }
+  }, [progress?.status, onComplete])
+
+  // Call completion handler when status changes to completed
   if (progress?.status === 'completed' && onComplete) {
-    onComplete()
+    handleComplete()
   }
 
-  const formatDuration = (timeString?: string) => {
+  // Memoized formatting functions to prevent recreation on every render
+  const formatDuration = useCallback((timeString?: string) => {
     if (!timeString) return 'Calculating...'
     return timeString
-  }
+  }, [])
 
-  const formatTime = (date: Date | null) => {
+  const formatTime = useCallback((date: Date | null) => {
     if (!date) return 'Never'
     return new Intl.DateTimeFormat('en-AE', {
       hour: '2-digit',
@@ -48,9 +56,9 @@ export function CampaignProgressDashboard({
       second: '2-digit',
       timeZoneName: 'short'
     }).format(date)
-  }
+  }, [])
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'completed':
         return 'text-green-600 bg-green-100'
@@ -63,9 +71,10 @@ export function CampaignProgressDashboard({
       default:
         return 'text-gray-600 bg-gray-100'
     }
-  }
+  }, [])
 
-  const getConnectionStatus = () => {
+  // Memoized connection status to prevent recalculation on every render
+  const connectionStatus = useMemo(() => {
     if (error) {
       return { text: 'Connection Error', color: 'text-red-600', icon: '❌' }
     }
@@ -76,9 +85,33 @@ export function CampaignProgressDashboard({
       return { text: 'Backup Updates', color: 'text-yellow-600', icon: '🟡' }
     }
     return { text: 'Connecting...', color: 'text-gray-600', icon: '⚫' }
-  }
+  }, [error, isConnected, isPolling])
 
-  const connectionStatus = getConnectionStatus()
+  // Memoized toggle handler to prevent recreation
+  const toggleExpanded = useCallback(() => {
+    setIsExpanded(prev => !prev)
+  }, [])
+
+  // Memoized progress calculations
+  const progressCalculations = useMemo(() => {
+    if (!progress) return null
+
+    const safePercentComplete = Math.min(progress.percentComplete || 0, 100)
+    const successRate = progress.totalRecipients > 0
+      ? ((progress.sentCount / progress.totalRecipients) * 100).toFixed(1)
+      : '0.0'
+
+    return {
+      safePercentComplete,
+      successRate,
+      statusColor: getStatusColor(progress.status),
+      progressBarColor: progress.status === 'completed'
+        ? 'bg-green-600'
+        : progress.status === 'failed'
+        ? 'bg-red-600'
+        : 'bg-blue-600'
+    }
+  }, [progress, getStatusColor])
 
   if (!progress) {
     return (
@@ -111,7 +144,7 @@ export function CampaignProgressDashboard({
 
           <div className="flex items-center space-x-4">
             {/* Status Badge */}
-            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(progress.status)}`}>
+            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${progressCalculations?.statusColor}`}>
               {progress.status.toUpperCase()}
             </span>
 
@@ -140,20 +173,14 @@ export function CampaignProgressDashboard({
             {progress.sentCount} of {progress.totalRecipients} emails sent
           </span>
           <span className="text-sm text-gray-600">
-            {progress.percentComplete}%
+            {progressCalculations?.safePercentComplete}%
           </span>
         </div>
 
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
-            className={`h-2 rounded-full transition-all duration-300 ${
-              progress.status === 'completed'
-                ? 'bg-green-600'
-                : progress.status === 'failed'
-                ? 'bg-red-600'
-                : 'bg-blue-600'
-            }`}
-            style={{ width: `${Math.min(progress.percentComplete, 100)}%` }}
+            className={`h-2 rounded-full transition-all duration-300 ${progressCalculations?.progressBarColor}`}
+            style={{ width: `${progressCalculations?.safePercentComplete}%` }}
           />
         </div>
 
@@ -192,7 +219,7 @@ export function CampaignProgressDashboard({
 
           <div className="text-center">
             <div className="text-2xl font-bold text-purple-600">
-              {((progress.sentCount / progress.totalRecipients) * 100).toFixed(1)}%
+              {progressCalculations?.successRate}%
             </div>
             <div className="text-xs text-gray-600">Success Rate</div>
           </div>
@@ -202,7 +229,7 @@ export function CampaignProgressDashboard({
       {/* Expandable Details */}
       <div className="px-6 py-4 border-t border-gray-200">
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={toggleExpanded}
           className="flex items-center justify-between w-full text-sm text-gray-600 hover:text-gray-900"
         >
           <span>Technical Details</span>
@@ -284,4 +311,6 @@ export function CampaignProgressDashboard({
       )}
     </div>
   )
-}
+})
+
+export { CampaignProgressDashboard }

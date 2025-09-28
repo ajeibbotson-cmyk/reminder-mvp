@@ -3,23 +3,18 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useCampaign } from '@/lib/api/hooks'
-import { apiClient } from '@/lib/api/client'
+import { useCampaign, useStartCampaign, usePauseCampaign, useResumeCampaign } from '@/lib/api/hooks'
 import { ProtectedRoute } from '@/lib/components/protected-route'
 import { useAuthGuard } from '@/lib/hooks/use-auth-guard'
 import { AuthNav } from '@/lib/components/auth-nav'
 import { CampaignProgressDashboard } from '@/lib/components/campaign-progress-dashboard'
+import { CampaignErrorBoundary, ProgressErrorBoundary } from '@/lib/components/error-boundary'
 
 export default function CampaignDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuthGuard()
   const campaignId = params?.id as string
-
-  const [isStarting, setIsStarting] = useState(false)
-  const [isPausing, setIsPausing] = useState(false)
-  const [isResuming, setIsResuming] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const {
     data: campaignData,
@@ -32,59 +27,36 @@ export default function CampaignDetailsPage() {
 
   const campaign = campaignData?.campaign
 
-  const handleStartCampaign = async () => {
+  // Use optimized mutation hooks with optimistic updates
+  const startCampaignMutation = useStartCampaign()
+  const pauseCampaignMutation = usePauseCampaign()
+  const resumeCampaignMutation = useResumeCampaign()
+
+  const handleStartCampaign = () => {
     if (!campaign || campaign.status !== 'draft') return
-
-    setIsStarting(true)
-    setError(null)
-
-    try {
-      await apiClient.startCampaign(campaignId)
-      // Refetch to get updated status
-      await refetch()
-    } catch (err: any) {
-      setError(err.message || 'Failed to start campaign')
-    } finally {
-      setIsStarting(false)
-    }
+    startCampaignMutation.mutate(campaignId)
   }
 
-  const handlePauseCampaign = async () => {
+  const handlePauseCampaign = () => {
     if (!campaign || campaign.status !== 'sending') return
-
-    setIsPausing(true)
-    setError(null)
-
-    try {
-      await apiClient.pauseCampaign(campaignId)
-      await refetch()
-    } catch (err: any) {
-      setError(err.message || 'Failed to pause campaign')
-    } finally {
-      setIsPausing(false)
-    }
+    pauseCampaignMutation.mutate(campaignId)
   }
 
-  const handleResumeCampaign = async () => {
+  const handleResumeCampaign = () => {
     if (!campaign || campaign.status !== 'paused') return
-
-    setIsResuming(true)
-    setError(null)
-
-    try {
-      await apiClient.resumeCampaign(campaignId)
-      await refetch()
-    } catch (err: any) {
-      setError(err.message || 'Failed to resume campaign')
-    } finally {
-      setIsResuming(false)
-    }
+    resumeCampaignMutation.mutate(campaignId)
   }
 
   const handleCampaignComplete = () => {
     // Refetch campaign data when completion is detected
     refetch()
   }
+
+  // Aggregate loading and error states from mutations
+  const isStarting = startCampaignMutation.isPending
+  const isPausing = pauseCampaignMutation.isPending
+  const isResuming = resumeCampaignMutation.isPending
+  const mutationError = startCampaignMutation.error || pauseCampaignMutation.error || resumeCampaignMutation.error
 
   if (fetchError) {
     return (
@@ -151,7 +123,8 @@ export default function CampaignDetailsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <CampaignErrorBoundary>
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Navigation */}
         <div className="flex justify-end mb-6">
           <AuthNav />
@@ -237,14 +210,14 @@ export default function CampaignDetailsPage() {
         </div>
 
         {/* Error Display */}
-        {error && (
+        {mutationError && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
             <div className="flex">
               <svg className="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
               <div className="text-red-700">
-                <strong>Error:</strong> {error}
+                <strong>Error:</strong> {mutationError?.message || 'An error occurred'}
               </div>
             </div>
           </div>
@@ -253,11 +226,13 @@ export default function CampaignDetailsPage() {
         {/* Real-time Progress Dashboard */}
         {isActive && (
           <div className="mb-8">
-            <CampaignProgressDashboard
-              campaignId={campaignId}
-              onComplete={handleCampaignComplete}
-              className="w-full"
-            />
+            <ProgressErrorBoundary>
+              <CampaignProgressDashboard
+                campaignId={campaignId}
+                onComplete={handleCampaignComplete}
+                className="w-full"
+              />
+            </ProgressErrorBoundary>
           </div>
         )}
 
@@ -373,7 +348,8 @@ export default function CampaignDetailsPage() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </CampaignErrorBoundary>
     </ProtectedRoute>
   )
 }
