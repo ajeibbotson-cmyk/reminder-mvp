@@ -27,18 +27,23 @@ export const queryKeys = {
 
 // Campaign Hooks
 export function useCampaigns(params?: CampaignsQueryParams) {
+  const { data: session } = useSession()
+
   return useQuery({
     queryKey: queryKeys.campaigns.list(params),
     queryFn: () => apiClient.getCampaigns(params),
     staleTime: 30 * 1000, // 30 seconds for campaign lists
+    enabled: !!session, // Only run if authenticated
   })
 }
 
 export function useCampaign(id: string) {
+  const { data: session } = useSession()
+
   return useQuery({
     queryKey: queryKeys.campaigns.detail(id),
     queryFn: () => apiClient.getCampaign(id),
-    enabled: !!id, // Only run query if id exists
+    enabled: !!id && !!session, // Only run query if id exists and authenticated
     staleTime: 10 * 1000, // 10 seconds for campaign details
   })
 }
@@ -87,10 +92,13 @@ export function useInvoices(params?: {
   page?: number
   limit?: number
 }) {
+  const { data: session } = useSession()
+
   return useQuery({
     queryKey: queryKeys.invoices.list(params),
     queryFn: () => apiClient.getInvoices(params),
     staleTime: 2 * 60 * 1000, // 2 minutes for invoice lists
+    enabled: !!session, // Only run if authenticated
   })
 }
 
@@ -203,3 +211,4 @@ export function useRefreshCampaign(id: string) {
 
 // Import useState for the progress hook
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'

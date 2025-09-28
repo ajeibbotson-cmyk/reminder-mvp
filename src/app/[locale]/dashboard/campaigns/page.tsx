@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useCampaigns } from '@/lib/api/hooks'
+import { ProtectedRoute } from '@/lib/components/protected-route'
+import { AuthNav } from '@/lib/components/auth-nav'
 
 export default function CampaignsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -37,7 +39,13 @@ export default function CampaignsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <ProtectedRoute>
+      <div className="container mx-auto px-4 py-8">
+      {/* Navigation */}
+      <div className="flex justify-end mb-6">
+        <AuthNav />
+      </div>
+
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -246,6 +254,7 @@ export default function CampaignsPage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

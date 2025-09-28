@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useCampaignStore } from '@/lib/stores/campaign-store'
 import { useCreateCampaign } from '@/lib/api/hooks'
 import { handleApiError } from '@/lib/api/client'
+import { ProtectedRoute } from '@/lib/components/protected-route'
+import { useAuthGuard } from '@/lib/hooks/use-auth-guard'
+import { AuthNav } from '@/lib/components/auth-nav'
 
 // Components (to be created)
 import { CampaignWizardSteps } from './components/campaign-wizard-steps'
@@ -15,6 +18,7 @@ import { ReviewStep } from './components/review-step'
 
 export default function CreateCampaignPage() {
   const router = useRouter()
+  const { user, companyId } = useAuthGuard()
   const {
     currentStep,
     formData,
@@ -135,7 +139,13 @@ export default function CreateCampaignPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <ProtectedRoute>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* Navigation */}
+      <div className="flex justify-end mb-6">
+        <AuthNav />
+      </div>
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -210,6 +220,7 @@ export default function CreateCampaignPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }
