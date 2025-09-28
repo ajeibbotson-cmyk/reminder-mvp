@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useCampaigns } from '@/lib/api/hooks'
 import { ProtectedRoute } from '@/lib/components/protected-route'
 import { AuthNav } from '@/lib/components/auth-nav'
+import { CampaignListSkeleton } from '@/lib/components/skeleton'
 
 export default function CampaignsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -152,10 +153,7 @@ export default function CampaignsPage() {
         {/* Campaigns List */}
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="text-center py-8">
-              <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-2 text-gray-600">Loading campaigns...</p>
-            </div>
+            <CampaignListSkeleton />
           ) : campaigns.length > 0 ? (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
