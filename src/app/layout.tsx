@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { QueryProvider } from "@/lib/providers/query-provider";
 
 export const metadata: Metadata = {
   title: "Reminder - UAE E-Invoice Payment Collection Platform",
@@ -19,7 +20,9 @@ export default function RootLayout({
   return (
     <html>
       <body>
-        {children}
+        <QueryProvider>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );
