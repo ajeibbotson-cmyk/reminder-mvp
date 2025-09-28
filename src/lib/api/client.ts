@@ -106,6 +106,24 @@ class ApiClient {
     })
   }
 
+  async startCampaign(id: string): Promise<{ success: boolean, message: string }> {
+    return this.request<{ success: boolean, message: string }>(`/campaigns/${id}/start`, {
+      method: 'POST',
+    })
+  }
+
+  async pauseCampaign(id: string): Promise<{ success: boolean, message: string }> {
+    return this.request<{ success: boolean, message: string }>(`/campaigns/${id}/pause`, {
+      method: 'POST',
+    })
+  }
+
+  async resumeCampaign(id: string): Promise<{ success: boolean, message: string }> {
+    return this.request<{ success: boolean, message: string }>(`/campaigns/${id}/resume`, {
+      method: 'POST',
+    })
+  }
+
   // Invoice API methods (for campaign creation)
   async getInvoices(params?: {
     search?: string
