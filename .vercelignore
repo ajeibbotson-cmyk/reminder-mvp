@@ -1,0 +1,19 @@
+# Vercel ignore file
+.env.production
+.env.production.template
+claudedocs/
+docs/
+coverage/
+test-pdfs/
+tests/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+__tests__/
+.git/
+.next/
+node_modules/
+*.log
+*.tsbuildinfo
+.DS_Store

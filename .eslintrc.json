@@ -1,0 +1,38 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    // Allow unused variables (common in development)
+    "@typescript-eslint/no-unused-vars": "warn",
+
+    // Allow any type (for rapid prototyping)
+    "@typescript-eslint/no-explicit-any": "warn",
+
+    // Allow unescaped entities in JSX (Next.js handles this)
+    "react/no-unescaped-entities": "off",
+
+    // Allow require imports (needed for some modules)
+    "@typescript-eslint/no-require-imports": "warn",
+
+    // Relax React hooks rules
+    "react-hooks/exhaustive-deps": "warn",
+
+    // Allow anonymous default exports
+    "import/no-anonymous-default-export": "warn",
+
+    // Critical errors only
+    "no-console": "off",
+    "no-debugger": "error",
+    "no-undef": "error",
+    "no-unreachable": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/__tests__/**/*", "**/*.test.*"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-require-imports": "off"
+      }
+    }
+  ]
+}

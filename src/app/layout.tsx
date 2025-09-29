@@ -23,10 +23,6 @@ export default function RootLayout({
     <html>
       <body>
         <ErrorBoundary
-          onError={(error, errorInfo) => {
-            console.error('Global error boundary caught:', error, errorInfo)
-            // In production, send to error reporting service
-          }}
           fallback={
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
               <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
@@ -39,12 +35,6 @@ export default function RootLayout({
                 <p className="text-gray-600 mb-6">
                   We're sorry, but something went wrong. Please refresh the page or contact support if the problem persists.
                 </p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  Refresh Page
-                </button>
               </div>
             </div>
           }

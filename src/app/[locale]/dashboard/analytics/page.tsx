@@ -26,9 +26,9 @@ import {
 } from 'lucide-react'
 
 interface AnalyticsPageProps {
-  params: {
+  params: Promise<{
     locale: string
-  }
+  }>
 }
 
 export default function AnalyticsPage({ params }: AnalyticsPageProps) {

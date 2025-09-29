@@ -134,6 +134,8 @@ export async function POST(request: NextRequest) {
 }
 
 // Server-Sent Events endpoint for real-time updates (future implementation)
+// CONNECT method not supported in Next.js 15, using GET for SSE instead
+/*
 export async function CONNECT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -158,3 +160,4 @@ export async function CONNECT(request: NextRequest) {
     )
   }
 }
+*/
