@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     // Execute queries in parallel
     const [templates, totalCount] = await Promise.all([
-      prisma.emailTemplate.findMany({
+      prisma.emailTemplates.findMany({
         where,
         include: {
           user: {
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: pagination.limit
       }),
-      prisma.emailTemplate.count({ where })
+      prisma.emailTemplates.count({ where })
     ])
 
     // Enhance templates with usage statistics
@@ -66,21 +66,21 @@ export async function GET(request: NextRequest) {
       templates.map(async (template) => {
         // Get recent usage stats
         const [sentCount, deliveredCount, openedCount] = await Promise.all([
-          prisma.emailLog.count({
+          prisma.emailLogs.count({
             where: { 
               templateId: template.id,
               createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } // Last 30 days
             }
           }),
-          prisma.emailLog.count({
-            where: { 
+          prisma.emailLogs.count({
+            where: {
               templateId: template.id,
               deliveryStatus: 'DELIVERED',
               createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
             }
           }),
-          prisma.emailLog.count({
-            where: { 
+          prisma.emailLogs.count({
+            where: {
               templateId: template.id,
               openedAt: { not: null },
               createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if name already exists for this company
-    const existingTemplate = await prisma.emailTemplate.findFirst({
+    const existingTemplate = await prisma.emailTemplates.findFirst({
       where: {
         companyId: templateData.companyId,
         name: templateData.name,
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
 
     // If this is set as default, unset other defaults of the same type
     if (templateData.isDefault) {
-      await prisma.emailTemplate.updateMany({
+      await prisma.emailTemplates.updateMany({
         where: {
           companyId: templateData.companyId,
           templateType: templateData.templateType,
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create template
-    const template = await prisma.emailTemplate.create({
+    const template = await prisma.emailTemplates.create({
       data: {
         id: crypto.randomUUID(),
         companyId: templateData.companyId,
