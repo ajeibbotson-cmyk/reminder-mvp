@@ -223,11 +223,11 @@ describe('Security and Data Isolation Tests', () => {
         // Simulate database queries with proper filtering
         const { prisma } = await import('@/lib/database/prisma')
 
-        await prisma.invoice.findMany({
+        await prisma.invoices.findMany({
           where: { companyId: companyId }
         })
 
-        await prisma.payment.findMany({
+        await prisma.payments.findMany({
           where: { companyId: companyId }
         })
 
@@ -282,7 +282,7 @@ describe('Security and Data Isolation Tests', () => {
         const { prisma } = await import('@/lib/database/prisma')
 
         // Simulate aggregation query
-        await prisma.payment.aggregate({
+        await prisma.payments.aggregate({
           where: { companyId: companyId },
           _sum: { amount: true },
           _count: { _all: true }

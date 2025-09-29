@@ -20,7 +20,7 @@ export async function GET(
     const { id: invoiceId } = await params
 
     // Get user and company info
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { companies: true }
     })

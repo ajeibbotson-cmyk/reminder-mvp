@@ -60,7 +60,7 @@ async function setupTestData() {
 
   try {
     // Create test company
-    await prisma.company.upsert({
+    await prisma.companies.upsert({
       where: { id: testCompany.id },
       update: testCompany,
       create: testCompany
@@ -77,7 +77,7 @@ async function setupTestData() {
     })
 
     // Create test customer
-    await prisma.customer.upsert({
+    await prisma.customers.upsert({
       where: { id: testCustomer.id },
       update: testCustomer,
       create: testCustomer
@@ -85,7 +85,7 @@ async function setupTestData() {
 
     // Create test invoices
     for (const invoice of testInvoices) {
-      await prisma.invoice.upsert({
+      await prisma.invoices.upsert({
         where: { id: invoice.id },
         update: invoice,
         create: invoice

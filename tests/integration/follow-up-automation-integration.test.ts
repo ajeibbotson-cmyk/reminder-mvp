@@ -74,7 +74,7 @@ describe('Follow-up Automation Integration Tests', () => {
 
   async function setupTestData() {
     // Create test company
-    testCompany = await prisma.company.create({
+    testCompany = await prisma.companies.create({
       data: {
         id: 'test-company-' + Date.now(),
         name: 'UAE Test Company LLC',
@@ -91,7 +91,7 @@ describe('Follow-up Automation Integration Tests', () => {
     })
 
     // Create test customer
-    testCustomer = await prisma.customer.create({
+    testCustomer = await prisma.customers.create({
       data: {
         id: 'test-customer-' + Date.now(),
         companyId: testCompany.id,
@@ -106,7 +106,7 @@ describe('Follow-up Automation Integration Tests', () => {
     })
 
     // Create test invoice
-    testInvoice = await prisma.invoice.create({
+    testInvoice = await prisma.invoices.create({
       data: {
         id: 'test-invoice-' + Date.now(),
         number: 'INV-2024-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
@@ -196,19 +196,19 @@ describe('Follow-up Automation Integration Tests', () => {
         }
       })
 
-      await prisma.invoice.deleteMany({
+      await prisma.invoices.deleteMany({
         where: {
           id: { contains: 'test-invoice-' }
         }
       })
 
-      await prisma.customer.deleteMany({
+      await prisma.customers.deleteMany({
         where: {
           id: { contains: 'test-customer-' }
         }
       })
 
-      await prisma.company.deleteMany({
+      await prisma.companies.deleteMany({
         where: {
           id: { contains: 'test-company-' }
         }
@@ -304,7 +304,7 @@ describe('Follow-up Automation Integration Tests', () => {
       expect(startResult.success).toBe(true)
 
       // Simulate payment received
-      await prisma.payment.create({
+      await prisma.payments.create({
         data: {
           id: 'test-payment-' + Date.now(),
           invoiceId: testInvoice.id,
@@ -431,7 +431,7 @@ describe('Follow-up Automation Integration Tests', () => {
 
       // Create multiple test invoices and sequences
       for (let i = 0; i < batchSize; i++) {
-        const invoice = await prisma.invoice.create({
+        const invoice = await prisma.invoices.create({
           data: {
             id: `test-batch-invoice-${i}-${Date.now()}`,
             number: `INV-BATCH-${i}-${Math.random().toString(36).substr(2, 4)}`,
@@ -481,7 +481,7 @@ describe('Follow-up Automation Integration Tests', () => {
       expect(processingTime).toBeLessThan(5000)
 
       // Clean up batch data
-      await prisma.invoice.deleteMany({
+      await prisma.invoices.deleteMany({
         where: {
           id: { contains: 'test-batch-invoice-' }
         }
@@ -778,7 +778,7 @@ describe('Follow-up Automation Integration Tests', () => {
       // Process 100 sequences
       const promises: Promise<any>[] = []
       for (let i = 0; i < 100; i++) {
-        const invoice = await prisma.invoice.create({
+        const invoice = await prisma.invoices.create({
           data: {
             id: `perf-test-invoice-${i}-${Date.now()}`,
             number: `PERF-${i}`,
@@ -823,7 +823,7 @@ describe('Follow-up Automation Integration Tests', () => {
       expect(mockEmailService.scheduleEmail).toHaveBeenCalledTimes(100)
 
       // Clean up performance test data
-      await prisma.invoice.deleteMany({
+      await prisma.invoices.deleteMany({
         where: {
           id: { contains: 'perf-test-invoice-' }
         }

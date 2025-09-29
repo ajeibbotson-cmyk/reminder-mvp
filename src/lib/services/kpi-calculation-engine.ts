@@ -366,7 +366,7 @@ export class KPICalculationEngine {
    */
   private async getActiveUsersCount(companyId: string): Promise<number> {
     // This would integrate with session management in a real application
-    return prisma.user.count({
+    return prisma.users.count({
       where: { companyId }
     })
   }

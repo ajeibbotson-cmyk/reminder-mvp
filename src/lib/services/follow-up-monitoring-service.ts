@@ -739,7 +739,7 @@ export class FollowUpMonitoringService {
       const emailService = getDefaultEmailService()
 
       // Find system administrators
-      const admins = await prisma.user.findMany({
+      const admins = await prisma.users.findMany({
         where: {
           role: 'ADMIN',
           email: { not: null }

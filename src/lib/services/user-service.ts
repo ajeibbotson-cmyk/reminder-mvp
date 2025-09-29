@@ -45,7 +45,7 @@ export class UserService {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.users.findUnique({
       where: { email: data.email }
     })
 
@@ -74,7 +74,7 @@ export class UserService {
     }
 
     // Create the user
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
       data: {
         id: crypto.randomUUID(),
         email: data.email,
@@ -131,10 +131,10 @@ export class UserService {
     }
 
     // Get total count for pagination
-    const total = await prisma.user.count({ where: whereClause })
+    const total = await prisma.users.count({ where: whereClause })
 
     // Get users with pagination
-    const users = await prisma.user.findMany({
+    const users = await prisma.users.findMany({
       where: whereClause,
       include: {
         companies: true
@@ -170,7 +170,7 @@ export class UserService {
     requesterRole: UserRole,
     requesterId: string
   ): Promise<UserResponse> {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: userId },
       include: {
         companies: true
@@ -202,7 +202,7 @@ export class UserService {
     requesterRole: UserRole,
     requesterId: string
   ): Promise<UserResponse> {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: userId },
       include: { companies: true }
     })
@@ -228,7 +228,7 @@ export class UserService {
 
     // Check for email uniqueness if email is being updated
     if (data.email && data.email !== user.email) {
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await prisma.users.findUnique({
         where: { email: data.email }
       })
 
@@ -238,7 +238,7 @@ export class UserService {
     }
 
     // Update the user
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await prisma.users.update({
       where: { id: userId },
       data: {
         ...(data.name && { name: data.name }),
@@ -280,7 +280,7 @@ export class UserService {
       throw new ValidationError('You cannot delete your own account', 'userId')
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: userId }
     })
 
@@ -295,7 +295,7 @@ export class UserService {
 
     // Soft delete by updating the user record (you might want to implement this differently)
     // For now, we'll do a hard delete but in production you might want to soft delete
-    await prisma.user.delete({
+    await prisma.users.delete({
       where: { id: userId }
     })
 
@@ -321,7 +321,7 @@ export class UserService {
       throw new ForbiddenError('You can only change your own password')
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: userId }
     })
 
@@ -339,7 +339,7 @@ export class UserService {
     const hashedPassword = await hash(data.newPassword, 12)
 
     // Update password
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: userId },
       data: { password: hashedPassword }
     })
@@ -373,7 +373,7 @@ export class UserService {
     }
 
     // Get users to validate they exist and belong to the same company
-    const users = await prisma.user.findMany({
+    const users = await prisma.users.findMany({
       where: {
         id: { in: data.userIds },
         company_id: requesterCompanyId
@@ -385,7 +385,7 @@ export class UserService {
     }
 
     // Delete users
-    const result = await prisma.user.deleteMany({
+    const result = await prisma.users.deleteMany({
       where: {
         id: { in: data.userIds },
         company_id: requesterCompanyId
@@ -418,7 +418,7 @@ export class UserService {
     }
 
     // Get users to validate they exist and belong to the same company
-    const users = await prisma.user.findMany({
+    const users = await prisma.users.findMany({
       where: {
         id: { in: data.userIds },
         company_id: requesterCompanyId
@@ -430,7 +430,7 @@ export class UserService {
     }
 
     // Update users
-    const result = await prisma.user.updateMany({
+    const result = await prisma.users.updateMany({
       where: {
         id: { in: data.userIds },
         company_id: requesterCompanyId
@@ -458,10 +458,10 @@ export class UserService {
     }
 
     const [totalUsers, roleStats] = await Promise.all([
-      prisma.user.count({
+      prisma.users.count({
         where: { company_id: requesterCompanyId }
       }),
-      prisma.user.groupBy({
+      prisma.users.groupBy({
         by: ['role'],
         where: { company_id: requesterCompanyId },
         _count: { role: true }

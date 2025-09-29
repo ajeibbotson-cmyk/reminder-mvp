@@ -123,19 +123,19 @@ describe('Follow-up Automation Performance & Load Tests', () => {
         }
       })
 
-      await prisma.invoice.deleteMany({
+      await prisma.invoices.deleteMany({
         where: {
           id: { contains: 'perf-test-' }
         }
       })
 
-      await prisma.customer.deleteMany({
+      await prisma.customers.deleteMany({
         where: {
           id: { contains: 'perf-test-' }
         }
       })
 
-      await prisma.company.deleteMany({
+      await prisma.companies.deleteMany({
         where: {
           id: { contains: 'perf-test-' }
         }
@@ -168,15 +168,15 @@ describe('Follow-up Automation Performance & Load Tests', () => {
           where: { id: { in: testSequences.map(s => s.id) } }
         })
 
-        await prisma.invoice.deleteMany({
+        await prisma.invoices.deleteMany({
           where: { id: { in: testInvoices.map(i => i.id) } }
         })
 
-        await prisma.customer.deleteMany({
+        await prisma.customers.deleteMany({
           where: { id: { in: testCustomers.map(c => c.id) } }
         })
 
-        await prisma.company.deleteMany({
+        await prisma.companies.deleteMany({
           where: { id: { in: testCompanies.map(c => c.id) } }
         })
       } catch (error) {
@@ -199,7 +199,7 @@ describe('Follow-up Automation Performance & Load Tests', () => {
 
     // Create companies
     for (let i = 0; i < Math.min(count / 100, 10); i++) { // Max 10 companies
-      const company = await prisma.company.create({
+      const company = await prisma.companies.create({
         data: {
           id: `perf-test-company-${i}-${Date.now()}`,
           name: `${faker.company.name()} LLC`,
@@ -219,7 +219,7 @@ describe('Follow-up Automation Performance & Load Tests', () => {
 
     // Create customers
     for (let i = 0; i < Math.min(count / 10, 100); i++) { // Max 100 customers
-      const customer = await prisma.customer.create({
+      const customer = await prisma.customers.create({
         data: {
           id: `perf-test-customer-${i}-${Date.now()}`,
           companyId: companies[i % companies.length].id,
@@ -270,7 +270,7 @@ describe('Follow-up Automation Performance & Load Tests', () => {
       const customer = customers[i % customers.length]
       const company = companies.find(c => c.id === customer.companyId)
 
-      const invoice = await prisma.invoice.create({
+      const invoice = await prisma.invoices.create({
         data: {
           id: `perf-test-invoice-${i}-${Date.now()}`,
           number: `PERF-${i.toString().padStart(6, '0')}`,
@@ -406,10 +406,10 @@ describe('Follow-up Automation Performance & Load Tests', () => {
 
         // Test various database operations
         await Promise.all([
-          prisma.invoice.findUnique({ where: { id: invoice.id } }),
+          prisma.invoices.findUnique({ where: { id: invoice.id } }),
           prisma.followUpSequence.findUnique({ where: { id: sequence.id } }),
-          prisma.customer.findUnique({ where: { id: invoice.customerId } }),
-          prisma.company.findUnique({ where: { id: invoice.companyId } })
+          prisma.customers.findUnique({ where: { id: invoice.customerId } }),
+          prisma.companies.findUnique({ where: { id: invoice.companyId } })
         ])
 
         const queryEnd = Date.now()
@@ -706,7 +706,7 @@ describe('Follow-up Automation Performance & Load Tests', () => {
 
       // Simulate database issues for some operations
       let queryCount = 0
-      const originalFindUnique = prisma.invoice.findUnique
+      const originalFindUnique = prisma.invoices.findUnique
       jest.spyOn(prisma.invoice, 'findUnique').mockImplementation((args) => {
         queryCount++
         if (queryCount % 5 === 0) { // Fail every 5th query
