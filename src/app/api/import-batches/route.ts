@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch import batches for the company
-    const batches = await prisma.import_batches.findMany({
+    const batches = await prisma.importBatches.findMany({
       where: {
         company_id: companyId
       },
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const { fileName, fileSize, totalRecords, fileType } = body
 
     // Create new import batch
-    const batch = await prisma.import_batches.create({
+    const batch = await prisma.importBatches.create({
       data: {
         company_id: authContext.user.companyId,
         file_name: fileName,
