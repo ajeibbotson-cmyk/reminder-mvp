@@ -250,7 +250,7 @@ export function ImportHistory({
                                 {t('retryImport')}
                               </DropdownMenuItem>
                             )}
-                            {batch.importErrors.length > 0 && onDownloadErrors && (
+                            {(batch.importErrors?.length ?? 0) > 0 && onDownloadErrors && (
                               <DropdownMenuItem onClick={() => onDownloadErrors(batch.id)}>
                                 <Download className="h-4 w-4 mr-2" />
                                 {t('downloadErrors')}
@@ -368,9 +368,9 @@ export function ImportHistory({
                             <div className="font-medium">
                               {batch.processedCount || 0} / {batch.totalRecords || 0}
                             </div>
-                            {batch.importErrors.length > 0 && (
+                            {(batch.importErrors?.length ?? 0) > 0 && (
                               <div className="text-red-600">
-                                {batch.importErrors.length} errors
+                                {batch.importErrors?.length ?? 0} errors
                               </div>
                             )}
                           </div>
@@ -415,7 +415,7 @@ export function ImportHistory({
                                   {t('retryImport')}
                                 </DropdownMenuItem>
                               )}
-                              {batch.importErrors.length > 0 && onDownloadErrors && (
+                              {(batch.importErrors?.length ?? 0) > 0 && onDownloadErrors && (
                                 <DropdownMenuItem onClick={() => onDownloadErrors(batch.id)}>
                                   <Download className="h-4 w-4 mr-2" />
                                   {t('downloadErrors')}

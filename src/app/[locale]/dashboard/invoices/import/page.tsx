@@ -265,7 +265,9 @@ export default function InvoiceImportPage() {
             <div className="flex items-center justify-between mb-6">
               {(selectedFileType === 'pdf'
                 ? (['fileType', 'upload', 'complete'] as ImportStep[])
-                : (['fileType', 'upload', 'mapping', 'processing', 'complete'] as ImportStep[])
+                : selectedFileType === 'spreadsheet'
+                  ? (['fileType', 'upload', 'mapping', 'processing', 'complete'] as ImportStep[])
+                  : (['fileType'] as ImportStep[])
               ).map((step, index, steps) => {
                 const status = getStepStatus(step)
                 
