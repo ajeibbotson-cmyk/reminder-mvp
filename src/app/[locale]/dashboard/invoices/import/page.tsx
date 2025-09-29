@@ -98,9 +98,9 @@ export default function InvoiceImportPage() {
 
       setUploadResult({
         batchId: result.batchId,
-        headers: result.headers,
-        sampleData: result.sampleData,
-        recordCount: result.sampleData.length
+        headers: result.headers || [],
+        sampleData: result.sampleData || [],
+        recordCount: result.sampleData?.length || 0
       })
 
       setCurrentStep('mapping')

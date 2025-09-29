@@ -234,7 +234,7 @@ export class ConsolidatedEmailService {
    */
   async getConsolidationTemplates(companyId: string, language?: 'en' | 'ar'): Promise<ConsolidatedEmailTemplate[]> {
     try {
-      const templates = await prisma.emailTemplates.findMany({
+      const templates = await prisma.emailTemplate.findMany({
         where: {
           companyId,
           isActive: true,
@@ -477,7 +477,7 @@ export class ConsolidatedEmailService {
     let template
 
     if (templateId) {
-      template = await prisma.emailTemplates.findFirst({
+      template = await prisma.emailTemplate.findFirst({
         where: {
           id: templateId,
           companyId,
@@ -489,7 +489,7 @@ export class ConsolidatedEmailService {
       // Auto-select based on escalation level and invoice count
       const templateType = this.getTemplateTypeForEscalation(escalationLevel || 'POLITE')
 
-      template = await prisma.emailTemplates.findFirst({
+      template = await prisma.emailTemplate.findFirst({
         where: {
           companyId,
           templateType,
@@ -527,7 +527,7 @@ export class ConsolidatedEmailService {
   }
 
   private async getTemplateById(templateId: string): Promise<ConsolidatedEmailTemplate> {
-    const template = await prisma.emailTemplates.findUnique({
+    const template = await prisma.emailTemplate.findUnique({
       where: { id: templateId }
     })
 

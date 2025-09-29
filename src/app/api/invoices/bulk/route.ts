@@ -210,7 +210,7 @@ async function handleBulkSendReminder(
   results: any
 ) {
   // Verify email template exists and belongs to company
-  const emailTemplate = await prisma.emailTemplates.findFirst({
+  const emailTemplate = await prisma.emailTemplate.findFirst({
     where: {
       id: emailTemplateId,
       companyId: user.companyId,

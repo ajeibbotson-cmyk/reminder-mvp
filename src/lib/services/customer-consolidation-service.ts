@@ -601,7 +601,7 @@ export class CustomerConsolidationService {
   private async selectConsolidationTemplate(candidate: ConsolidationCandidate): Promise<string> {
     const templateType = this.getTemplateTypeForEscalation(candidate.escalationLevel)
 
-    const template = await prisma.emailTemplates.findFirst({
+    const template = await prisma.emailTemplate.findFirst({
       where: {
         templateType,
         isActive: true,

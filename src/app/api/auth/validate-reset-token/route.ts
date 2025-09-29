@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     }
 
     // Find user with valid token
-    const user = await prisma.users.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         reset_token: token,
         reset_token_expiry: {

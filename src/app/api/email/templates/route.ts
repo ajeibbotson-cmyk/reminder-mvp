@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     // Execute queries in parallel
     const [templates, totalCount] = await Promise.all([
-      prisma.emailTemplates.findMany({
+      prisma.emailTemplate.findMany({
         where,
         include: {
           user: {
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: pagination.limit
       }),
-      prisma.emailTemplates.count({ where })
+      prisma.emailTemplate.count({ where })
     ])
 
     // Enhance templates with usage statistics
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if name already exists for this company
-    const existingTemplate = await prisma.emailTemplates.findFirst({
+    const existingTemplate = await prisma.emailTemplate.findFirst({
       where: {
         companyId: templateData.companyId,
         name: templateData.name,
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
 
     // If this is set as default, unset other defaults of the same type
     if (templateData.isDefault) {
-      await prisma.emailTemplates.updateMany({
+      await prisma.emailTemplate.updateMany({
         where: {
           companyId: templateData.companyId,
           templateType: templateData.templateType,
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create template
-    const template = await prisma.emailTemplates.create({
+    const template = await prisma.emailTemplate.create({
       data: {
         id: crypto.randomUUID(),
         companyId: templateData.companyId,

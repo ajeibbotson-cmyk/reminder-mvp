@@ -1037,7 +1037,7 @@ export class SequenceExecutionService {
 
     // If template ID is provided, load template
     if (step.templateId) {
-      const template = await prisma.emailTemplates.findUnique({
+      const template = await prisma.emailTemplate.findUnique({
         where: { id: step.templateId }
       })
 

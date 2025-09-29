@@ -35,7 +35,7 @@ export async function POST(
     const validatedData = sendEmailSchema.parse(body)
 
     // Get user and company info
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -234,7 +234,7 @@ export async function GET(
     const { id: invoiceId } = await params
 
     // Get user and company info
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })

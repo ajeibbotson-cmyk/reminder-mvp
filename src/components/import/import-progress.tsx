@@ -432,7 +432,7 @@ export function ImportProgress({
         </TabsContent>
 
         <TabsContent value="errors" className="space-y-4">
-          {progress.errors.length === 0 ? (
+          {(progress.errors?.length || 0) === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-gray-500">
                 <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
@@ -461,7 +461,7 @@ export function ImportProgress({
                       <AlertCircle className="h-4 w-4" />
                       <AlertTitle>{t('errorsDetected')}</AlertTitle>
                       <AlertDescription>
-                        {t('errorsDetectedDescription', { count: progress.errors.length })}
+                        {t('errorsDetectedDescription', { count: progress.errors?.length || 0 })}
                       </AlertDescription>
                     </Alert>
 
@@ -496,10 +496,10 @@ export function ImportProgress({
                       </Table>
                     </div>
 
-                    {progress.errors.length > 10 && (
+                    {(progress.errors?.length || 0) > 10 && (
                       <div className="text-center py-4">
                         <p className="text-sm text-gray-600 mb-2">
-                          {t('showingFirstErrors', { shown: 10, total: progress.errors.length })}
+                          {t('showingFirstErrors', { shown: 10, total: progress.errors?.length || 0 })}
                         </p>
                         <Button variant="outline" size="sm" onClick={downloadErrors}>
                           <Download className="h-4 w-4 mr-2" />
@@ -530,8 +530,8 @@ export function ImportProgress({
                 <div className="text-blue-600">[{new Date(progress.startTime).toLocaleTimeString()}] Import batch started</div>
                 <div className="text-green-600">[{new Date().toLocaleTimeString()}] Processing {progress.processedRecords} / {progress.totalRecords} records</div>
                 <div className="text-orange-600">[{new Date().toLocaleTimeString()}] Processing rate: {getProcessingRate()} records/sec</div>
-                {progress.errors.length > 0 && (
-                  <div className="text-red-600">[{new Date().toLocaleTimeString()}] {progress.errors.length} errors encountered</div>
+                {(progress.errors?.length || 0) > 0 && (
+                  <div className="text-red-600">[{new Date().toLocaleTimeString()}] {progress.errors?.length || 0} errors encountered</div>
                 )}
                 <div className="text-gray-600">[{new Date().toLocaleTimeString()}] Status: {progress.status}</div>
               </div>
@@ -548,7 +548,7 @@ export function ImportProgress({
             {t('refreshStatus')}
           </Button>
           
-          {progress.errors.length > 0 && (
+          {(progress.errors?.length || 0) > 0 && (
             <Button variant="outline" onClick={downloadErrors}>
               <Download className="h-4 w-4 mr-2" />
               {t('downloadErrors')}

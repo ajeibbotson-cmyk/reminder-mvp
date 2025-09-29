@@ -446,7 +446,7 @@ function calculateEffectivenessMetrics(emails: any[]) {
 async function enrichTemplatePerformance(templateData: any[]) {
   const enriched = await Promise.all(
     templateData.map(async (item) => {
-      const template = await prisma.emailTemplates.findUnique({
+      const template = await prisma.emailTemplate.findUnique({
         where: { id: item.templateId },
         select: { name: true, templateType: true }
       })

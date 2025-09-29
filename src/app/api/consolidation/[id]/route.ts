@@ -307,7 +307,7 @@ export async function PUT(
 
     if (updates.templateId) {
       // Validate template exists and supports consolidation
-      const template = await prisma.emailTemplates.findFirst({
+      const template = await prisma.emailTemplate.findFirst({
         where: {
           id: updates.templateId,
           companyId: session.user.companyId,

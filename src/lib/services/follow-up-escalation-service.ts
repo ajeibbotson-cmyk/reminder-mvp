@@ -700,7 +700,7 @@ export class FollowUpEscalationService {
       const emailService = getDefaultEmailService()
 
       // Find company managers/admins
-      const managers = await prisma.users.findMany({
+      const managers = await prisma.user.findMany({
         where: {
           companyId: followUp.invoice.companyId,
           role: { in: ['ADMIN', 'MANAGER'] }

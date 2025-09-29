@@ -394,7 +394,7 @@ export class StatusNotificationService {
   }
 
   private async getEmailTemplate(companyId: string, templateType: StatusNotificationTemplate) {
-    return await prisma.emailTemplates.findFirst({
+    return await prisma.emailTemplate.findFirst({
       where: {
         companyId,
         type: templateType,
