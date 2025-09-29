@@ -384,7 +384,7 @@ export class UAEBusinessIntelligenceService {
    * Get business type distribution
    */
   private async getBusinessTypeDistribution(companyId: string) {
-    const distribution = await prisma.customer.groupBy({
+    const distribution = await prisma.customers.groupBy({
       by: ['businessType'],
       where: {
         companyId,
@@ -409,7 +409,7 @@ export class UAEBusinessIntelligenceService {
    */
   private async getGeographicDistribution(companyId: string) {
     // Simplified geographic distribution based on common UAE emirates
-    const customers = await prisma.customer.count({
+    const customers = await prisma.customers.count({
       where: { companyId, isActive: true }
     })
 
@@ -427,7 +427,7 @@ export class UAEBusinessIntelligenceService {
    * Get industry performance analysis
    */
   private async getIndustryPerformance(companyId: string) {
-    const customers = await prisma.customer.findMany({
+    const customers = await prisma.customers.findMany({
       where: {
         companyId,
         isActive: true
@@ -496,10 +496,10 @@ export class UAEBusinessIntelligenceService {
    */
   private async getTRNComplianceRate(companyId: string) {
     const [totalCustomers, customersWithTRN] = await Promise.all([
-      prisma.customer.count({
+      prisma.customers.count({
         where: { companyId, isActive: true }
       }),
-      prisma.customer.count({
+      prisma.customers.count({
         where: {
           companyId,
           isActive: true,
@@ -515,7 +515,7 @@ export class UAEBusinessIntelligenceService {
    * Get VAT calculation accuracy
    */
   private async getVATCalculationAccuracy(companyId: string) {
-    const invoices = await prisma.invoice.findMany({
+    const invoices = await prisma.invoices.findMany({
       where: {
         companyId,
         isActive: true,
@@ -572,7 +572,7 @@ export class UAEBusinessIntelligenceService {
    * Calculate business confidence indicator
    */
   private async calculateBusinessConfidence(companyId: string, dateRange: AnalyticsDateRange) {
-    const invoices = await prisma.invoice.findMany({
+    const invoices = await prisma.invoices.findMany({
       where: {
         companyId,
         createdAt: {
@@ -694,8 +694,8 @@ export class UAEBusinessIntelligenceService {
   private async getTotalRecordsCount(companyId: string): Promise<number> {
     const [emails, customers, invoices] = await Promise.all([
       prisma.emailLog.count({ where: { companyId } }),
-      prisma.customer.count({ where: { companyId, isActive: true } }),
-      prisma.invoice.count({ where: { companyId, isActive: true } })
+      prisma.customers.count({ where: { companyId, isActive: true } }),
+      prisma.invoices.count({ where: { companyId, isActive: true } })
     ])
 
     return emails + customers + invoices

@@ -213,7 +213,7 @@ export class UAEBusinessTestEnvironment {
     const customerId = UAETestUtils.generateId()
 
     // Create customer first
-    await prisma.customer.create({
+    await prisma.customers.create({
       data: {
         id: customerId,
         companyId: customization.companyId,
@@ -226,7 +226,7 @@ export class UAEBusinessTestEnvironment {
     })
 
     // Create invoice
-    const invoice = await prisma.invoice.create({
+    const invoice = await prisma.invoices.create({
       data: {
         id: invoiceId,
         companyId: customization.companyId,
@@ -653,7 +653,7 @@ JazakAllahu khair`,
     const testCompanyId = 'test-company-main'
     const testUserId = 'test-user-main'
 
-    await prisma.company.create({
+    await prisma.companies.create({
       data: {
         id: testCompanyId,
         name: 'UAE Test Company LLC',
@@ -668,7 +668,7 @@ JazakAllahu khair`,
       }
     })
 
-    await prisma.user.create({
+    await prisma.users.create({
       data: {
         id: testUserId,
         email: 'test@uaetest.ae',

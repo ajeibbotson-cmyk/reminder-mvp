@@ -92,7 +92,7 @@ describe('Performance and Scale End-to-End Tests', () => {
     testCompanyId = UAETestUtils.generateId()
     testUserId = UAETestUtils.generateId()
 
-    await prisma.company.create({
+    await prisma.companies.create({
       data: {
         id: testCompanyId,
         name: 'Performance Test LLC',
@@ -107,7 +107,7 @@ describe('Performance and Scale End-to-End Tests', () => {
       }
     })
 
-    await prisma.user.create({
+    await prisma.users.create({
       data: {
         id: testUserId,
         email: 'performance@test.ae',
@@ -501,7 +501,7 @@ Finance Team`,
       const dbOperations = []
       for (let i = 0; i < 100; i++) {
         dbOperations.push(
-          prisma.company.findFirst({
+          prisma.companies.findFirst({
             where: { id: testCompanyId },
             select: { id: true, name: true }
           })
@@ -525,7 +525,7 @@ Finance Team`,
     const invoiceId = UAETestUtils.generateId()
     const sequenceId = UAETestUtils.generateId()
 
-    await prisma.customer.create({
+    await prisma.customers.create({
       data: {
         id: customerId,
         companyId: testCompanyId,
@@ -535,7 +535,7 @@ Finance Team`,
       }
     })
 
-    await prisma.invoice.create({
+    await prisma.invoices.create({
       data: {
         id: invoiceId,
         companyId: testCompanyId,
@@ -609,7 +609,7 @@ Finance Team`,
       const invoiceId = UAETestUtils.generateId()
       const logId = UAETestUtils.generateId()
 
-      await prisma.customer.create({
+      await prisma.customers.create({
         data: {
           id: customerId,
           companyId: testCompanyId,
@@ -619,7 +619,7 @@ Finance Team`,
         }
       })
 
-      await prisma.invoice.create({
+      await prisma.invoices.create({
         data: {
           id: invoiceId,
           companyId: testCompanyId,
@@ -658,7 +658,7 @@ Finance Team`,
       const companyId = UAETestUtils.generateId()
       const domain = `company${i}.ae`
       
-      const company = await prisma.company.create({
+      const company = await prisma.companies.create({
         data: {
           id: companyId,
           name: `Concurrent Test Company ${i}`,

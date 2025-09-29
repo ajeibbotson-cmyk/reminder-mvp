@@ -54,7 +54,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
     testCompany1 = generateUAECompany()
     testCompany2 = generateUAECompany()
     
-    await prisma.company.createMany({
+    await prisma.companies.createMany({
       data: [
         {
           id: testCompany1.id,
@@ -79,7 +79,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
     testCustomer1 = generateUAECustomer()
     testCustomer2 = generateUAECustomer()
 
-    await prisma.customer.createMany({
+    await prisma.customers.createMany({
       data: [
         {
           id: testCustomer1.id,
@@ -120,17 +120,17 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
 
   afterAll(async () => {
     // Cleanup test data
-    await prisma.invoice.deleteMany({ 
+    await prisma.invoices.deleteMany({ 
       where: { 
         companyId: { in: [testCompany1.id, testCompany2.id] }
       }
     })
-    await prisma.customer.deleteMany({ 
+    await prisma.customers.deleteMany({ 
       where: { 
         companyId: { in: [testCompany1.id, testCompany2.id] }
       }
     })
-    await prisma.company.deleteMany({ 
+    await prisma.companies.deleteMany({ 
       where: { 
         id: { in: [testCompany1.id, testCompany2.id] }
       }
@@ -216,7 +216,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(sendResponse.success).toBe(true)
 
       // Verify status changed to SENT
-      const sentInvoice = await prisma.invoice.findUnique({
+      const sentInvoice = await prisma.invoices.findUnique({
         where: { id: invoiceId }
       })
       expect(sentInvoice?.status).toBe('SENT')
@@ -234,7 +234,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(statusRes._getStatusCode()).toBe(200)
       
       // Verify status changed to VIEWED
-      const viewedInvoice = await prisma.invoice.findUnique({
+      const viewedInvoice = await prisma.invoices.findUnique({
         where: { id: invoiceId }
       })
       expect(viewedInvoice?.status).toBe('VIEWED')
@@ -264,7 +264,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(paymentResponse.success).toBe(true)
 
       // Verify final status is PAID
-      const paidInvoice = await prisma.invoice.findUnique({
+      const paidInvoice = await prisma.invoices.findUnique({
         where: { id: invoiceId }
       })
       expect(paidInvoice?.status).toBe('PAID')
@@ -296,7 +296,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       const invoiceId = createResponse.invoice.id
 
       // Manually update to simulate overdue
-      await prisma.invoice.update({
+      await prisma.invoices.update({
         where: { id: invoiceId },
         data: { 
           status: 'OVERDUE',
@@ -316,7 +316,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(statusRes._getStatusCode()).toBe(200)
       
       // Verify overdue handling
-      const overdueInvoice = await prisma.invoice.findUnique({
+      const overdueInvoice = await prisma.invoices.findUnique({
         where: { id: invoiceId }
       })
       expect(overdueInvoice?.status).toBe('OVERDUE')
@@ -493,7 +493,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(errorResponse.error).toContain('authorized')
 
       // Verify invoice wasn't modified
-      const unchangedInvoice = await prisma.invoice.findUnique({
+      const unchangedInvoice = await prisma.invoices.findUnique({
         where: { id: invoice1Id }
       })
       expect(unchangedInvoice?.amount).toBe(invoice1Data.amount)
@@ -584,7 +584,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(bulkResponse.processed).toBe(5)
 
       // Verify all invoices were updated
-      const updatedInvoices = await prisma.invoice.findMany({
+      const updatedInvoices = await prisma.invoices.findMany({
         where: { id: { in: invoiceIds } }
       })
 
@@ -686,7 +686,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(paymentResponse.error).toContain('Payment gateway error')
 
       // Verify invoice status unchanged
-      const unchangedInvoice = await prisma.invoice.findUnique({
+      const unchangedInvoice = await prisma.invoices.findUnique({
         where: { id: invoiceId }
       })
       expect(unchangedInvoice?.status).not.toBe('PAID')
@@ -734,7 +734,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(sendResponse.error).toContain('Failed to send email')
 
       // Verify invoice status didn't change to SENT
-      const invoice = await prisma.invoice.findUnique({
+      const invoice = await prisma.invoices.findUnique({
         where: { id: invoiceId }
       })
       expect(invoice?.status).toBe('DRAFT')
@@ -742,8 +742,8 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
 
     it('should handle database transaction rollbacks', async () => {
       // Mock database error during invoice creation
-      const originalCreate = prisma.invoice.create
-      prisma.invoice.create = jest.fn().mockRejectedValueOnce(
+      const originalCreate = prisma.invoices.create
+      prisma.invoices.create = jest.fn().mockRejectedValueOnce(
         new Error('Database connection lost')
       )
 
@@ -765,7 +765,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(response.error).toContain('Database')
 
       // Restore original method
-      prisma.invoice.create = originalCreate
+      prisma.invoices.create = originalCreate
     })
   })
 
@@ -801,7 +801,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(avgTimePerInvoice).toBeLessThan(100) // Less than 100ms per invoice
       
       // Verify all invoices were created
-      const createdInvoices = await prisma.invoice.findMany({
+      const createdInvoices = await prisma.invoices.findMany({
         where: { companyId: testCompany1.id }
       })
       expect(createdInvoices.length).toBeGreaterThanOrEqual(batchSize)
@@ -848,7 +848,7 @@ describe('Invoice Lifecycle Workflow E2E Tests', () => {
       expect(results.some(status => status === 200)).toBe(true)
       
       // Final state should be consistent
-      const finalInvoice = await prisma.invoice.findUnique({
+      const finalInvoice = await prisma.invoices.findUnique({
         where: { id: invoiceId }
       })
       expect(['SENT', 'VIEWED', 'PAID']).toContain(finalInvoice?.status)

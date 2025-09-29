@@ -35,7 +35,7 @@ describe('Import Functionality Integration Tests', () => {
     
     // Create test company
     testCompany = generateUAECompany()
-    await prisma.company.create({
+    await prisma.companies.create({
       data: {
         id: testCompany.id,
         name: testCompany.name,
@@ -58,9 +58,9 @@ describe('Import Functionality Integration Tests', () => {
 
   afterAll(async () => {
     // Cleanup test data
-    await prisma.invoice.deleteMany({ where: { companyId: testCompany.id } })
+    await prisma.invoices.deleteMany({ where: { companyId: testCompany.id } })
     await prisma.importBatch.deleteMany({ where: { companyId: testCompany.id } })
-    await prisma.company.delete({ where: { id: testCompany.id } })
+    await prisma.companies.delete({ where: { id: testCompany.id } })
     await prisma.$disconnect()
   })
 
@@ -526,7 +526,7 @@ describe('Import Functionality Integration Tests', () => {
     it('should isolate import data between companies', async () => {
       // Create second test company
       const company2 = generateUAECompany()
-      await prisma.company.create({
+      await prisma.companies.create({
         data: {
           id: company2.id,
           name: company2.name,
@@ -592,7 +592,7 @@ describe('Import Functionality Integration Tests', () => {
 
       // Cleanup
       await prisma.importBatch.deleteMany({ where: { companyId: company2.id } })
-      await prisma.company.delete({ where: { id: company2.id } })
+      await prisma.companies.delete({ where: { id: company2.id } })
     })
   })
 

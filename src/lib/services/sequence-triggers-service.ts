@@ -287,7 +287,7 @@ export class SequenceTriggersService {
         break
     }
 
-    return await prisma.invoice.findMany({
+    return await prisma.invoices.findMany({
       where: baseWhere,
       include: {
         customer: true,
@@ -534,7 +534,7 @@ export class SequenceTriggersService {
     try {
       // In a real implementation, you'd have a dedicated trigger_events table
       // For now, we'll log to activities table
-      await prisma.activity.create({
+      await prisma.activities.create({
         data: {
           id: crypto.randomUUID(),
           companyId: event.companyId,
@@ -584,7 +584,7 @@ export class SequenceTriggersService {
       )
 
       // Log manual trigger
-      await prisma.activity.create({
+      await prisma.activities.create({
         data: {
           id: crypto.randomUUID(),
           companyId: '', // Would get from sequence
@@ -634,7 +634,7 @@ export class SequenceTriggersService {
       }
 
       // Log payment event
-      const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } })
+      const invoice = await prisma.invoices.findUnique({ where: { id: invoiceId } })
       if (invoice) {
         await this.logTriggerEvent({
           companyId: invoice.companyId,
@@ -678,7 +678,7 @@ export class SequenceTriggersService {
 
       // If invoice becomes overdue, trigger overdue sequences
       if (newStatus === 'OVERDUE' && oldStatus !== 'OVERDUE') {
-        const invoice = await prisma.invoice.findUnique({
+        const invoice = await prisma.invoices.findUnique({
           where: { id: invoiceId },
           include: { company: true }
         })
@@ -751,7 +751,7 @@ export class SequenceTriggersService {
         }),
 
         // Triggers last hour (using activities as proxy)
-        prisma.activity.count({
+        prisma.activities.count({
           where: {
             ...whereClause,
             type: 'SEQUENCE_TRIGGERED',
@@ -760,7 +760,7 @@ export class SequenceTriggersService {
         }),
 
         // Triggers last day
-        prisma.activity.count({
+        prisma.activities.count({
           where: {
             ...whereClause,
             type: 'SEQUENCE_TRIGGERED',
@@ -769,7 +769,7 @@ export class SequenceTriggersService {
         }),
 
         // Recent trigger events for analysis
-        prisma.activity.findMany({
+        prisma.activities.findMany({
           where: {
             ...whereClause,
             type: { in: ['SEQUENCE_TRIGGERED', 'MANUAL_SEQUENCE_TRIGGER'] },

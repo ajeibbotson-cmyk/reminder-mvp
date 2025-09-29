@@ -28,7 +28,7 @@ describe('Cron Job Orchestration E2E Tests', () => {
     testCompanyId = UAETestUtils.generateId()
     testUserId = UAETestUtils.generateId()
 
-    await prisma.company.create({
+    await prisma.companies.create({
       data: {
         id: testCompanyId,
         name: 'Test Company LLC',
@@ -43,7 +43,7 @@ describe('Cron Job Orchestration E2E Tests', () => {
       }
     })
 
-    await prisma.user.create({
+    await prisma.users.create({
       data: {
         id: testUserId,
         email: 'test@company.ae',
@@ -309,7 +309,7 @@ describe('Cron Job Orchestration E2E Tests', () => {
       expect(response.status).toBe(200)
 
       // Check that activity was logged
-      const activities = await prisma.activity.findMany({
+      const activities = await prisma.activities.findMany({
         where: {
           type: 'SEQUENCE_PROCESSING',
           companyId: 'system'
@@ -460,7 +460,7 @@ describe('Cron Job Orchestration E2E Tests', () => {
     const invoiceId = UAETestUtils.generateId()
     const sequenceId = UAETestUtils.generateId()
 
-    await prisma.customer.create({
+    await prisma.customers.create({
       data: {
         id: customerId,
         companyId: testCompanyId,
@@ -470,7 +470,7 @@ describe('Cron Job Orchestration E2E Tests', () => {
       }
     })
 
-    await prisma.invoice.create({
+    await prisma.invoices.create({
       data: {
         id: invoiceId,
         companyId: testCompanyId,

@@ -198,7 +198,7 @@ describe('GET /api/sequences/analytics', () => {
     getServerSession.mockResolvedValue(mockSession)
     
     // Setup default database responses
-    prisma.user.findUnique.mockResolvedValue(mockUser)
+    prisma.users.findUnique.mockResolvedValue(mockUser)
     prisma.sequences.findMany.mockResolvedValue(mockSequences)
     prisma.sequenceExecutions.findMany.mockResolvedValue(mockExecutions)
     prisma.emailLogs.findMany.mockResolvedValue(mockEmailLogs)
@@ -254,7 +254,7 @@ describe('GET /api/sequences/analytics', () => {
 
     it('should require user to have company association', async () => {
       const userWithoutCompany = { ...mockUser, company: null }
-      prisma.user.findUnique.mockResolvedValue(userWithoutCompany)
+      prisma.users.findUnique.mockResolvedValue(userWithoutCompany)
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics')
       const response = await GET(request)
@@ -290,7 +290,7 @@ describe('GET /api/sequences/analytics', () => {
 
     it('should handle role-based access control', async () => {
       const viewerUser = { ...mockUser, role: 'VIEWER' }
-      prisma.user.findUnique.mockResolvedValue(viewerUser)
+      prisma.users.findUnique.mockResolvedValue(viewerUser)
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics')
       const response = await GET(request)
@@ -676,7 +676,7 @@ describe('GET /api/sequences/analytics', () => {
 
   describe('Error Handling', () => {
     it('should handle database connection errors', async () => {
-      prisma.user.findUnique.mockRejectedValue(new Error('Database connection failed'))
+      prisma.users.findUnique.mockRejectedValue(new Error('Database connection failed'))
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics')
       const response = await GET(request)

@@ -120,8 +120,8 @@ describe('/api/cron/process-sequences', () => {
     uaeBusinessHours.isPrayerTime.mockReturnValue(false)
 
     prisma.$queryRaw.mockResolvedValue([{ result: 1 }])
-    prisma.activity.create.mockResolvedValue({ id: 'activity-123' })
-    prisma.activity.findMany.mockResolvedValue([])
+    prisma.activities.create.mockResolvedValue({ id: 'activity-123' })
+    prisma.activities.findMany.mockResolvedValue([])
 
     // Mock environment variables
     process.env.CRON_SECRET = 'test-cron-secret'
@@ -461,7 +461,7 @@ describe('/api/cron/process-sequences', () => {
         await response.json()
 
         const { prisma } = require('@/lib/prisma')
-        expect(prisma.activity.create).toHaveBeenCalledWith({
+        expect(prisma.activities.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
             companyId: 'system',
             userId: 'cron-job',
@@ -490,7 +490,7 @@ describe('/api/cron/process-sequences', () => {
         expect(data.success).toBe(false)
 
         const { prisma } = require('@/lib/prisma')
-        expect(prisma.activity.create).toHaveBeenCalledWith({
+        expect(prisma.activities.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
             type: 'SEQUENCE_PROCESSING',
             description: expect.stringContaining('Sequence processing failed'),
@@ -658,7 +658,7 @@ describe('/api/cron/process-sequences', () => {
         }
       ]
       
-      prisma.activity.findMany.mockResolvedValue(recentActivity)
+      prisma.activities.findMany.mockResolvedValue(recentActivity)
     })
 
     it('should return comprehensive cron job status', async () => {
@@ -728,7 +728,7 @@ describe('/api/cron/process-sequences', () => {
 
     it('should handle errors gracefully', async () => {
       const { prisma } = require('@/lib/prisma')
-      prisma.activity.findMany.mockRejectedValue(new Error('Database error'))
+      prisma.activities.findMany.mockRejectedValue(new Error('Database error'))
 
       const response = await GET(mockRequest)
       const data = await response.json()
@@ -763,13 +763,13 @@ describe('/api/cron/process-sequences', () => {
         metadata: {}
       }))
       
-      prisma.activity.findMany.mockResolvedValue(manyActivities)
+      prisma.activities.findMany.mockResolvedValue(manyActivities)
 
       const response = await GET(mockRequest)
       const data = await response.json()
 
       expect(data.recentActivity).toHaveLength(10) // Should be limited
-      expect(prisma.activity.findMany).toHaveBeenCalledWith(
+      expect(prisma.activities.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 10
         })

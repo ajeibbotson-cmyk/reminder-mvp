@@ -505,7 +505,7 @@ export class EmailSchedulingService {
    */
   private async validateSchedulingConstraints(companyId: string): Promise<void> {
     try {
-      const company = await prisma.company.findUnique({
+      const company = await prisma.companies.findUnique({
         where: { id: companyId }
       })
 

@@ -176,7 +176,7 @@ export async function DELETE(
     progressStore.delete(batchId)
 
     // Log cancellation activity
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: authContext.user.companyId,

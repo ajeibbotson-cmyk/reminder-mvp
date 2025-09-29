@@ -21,14 +21,14 @@ describe('/api/auth/signup', () => {
     ])
     
     ;(prisma.$transaction as jest.Mock) = mockTransaction
-    ;(prisma.user.findUnique as jest.Mock) = jest.fn()
+    ;(prisma.users.findUnique as jest.Mock) = jest.fn()
     ;(bcrypt.hash as jest.Mock) = jest.fn().mockResolvedValue('hashedpassword')
   })
 
   describe('POST /api/auth/signup', () => {
     it('should create a new user and company successfully', async () => {
       // Arrange
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(null) // User doesn't exist
+      ;(prisma.users.findUnique as jest.Mock).mockResolvedValue(null) // User doesn't exist
 
       const { req } = createMocks({
         method: 'POST',
@@ -57,7 +57,7 @@ describe('/api/auth/signup', () => {
       expect(bcrypt.hash).toHaveBeenCalledWith('password123', 12)
       
       // Verify user existence check
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      expect(prisma.users.findUnique).toHaveBeenCalledWith({
         where: { email: 'test@example.com' }
       })
       
@@ -67,7 +67,7 @@ describe('/api/auth/signup', () => {
 
     it('should return 400 if user already exists', async () => {
       // Arrange
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      ;(prisma.users.findUnique as jest.Mock).mockResolvedValue({
         id: 'existing-user',
         email: 'test@example.com'
       })
@@ -157,7 +157,7 @@ describe('/api/auth/signup', () => {
 
     it('should return 500 for database transaction failure', async () => {
       // Arrange
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
+      ;(prisma.users.findUnique as jest.Mock).mockResolvedValue(null)
       ;(prisma.$transaction as jest.Mock).mockRejectedValue(new Error('Database error'))
 
       const { req } = createMocks({
@@ -181,7 +181,7 @@ describe('/api/auth/signup', () => {
 
     it('should return 500 for bcrypt hashing failure', async () => {
       // Arrange
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
+      ;(prisma.users.findUnique as jest.Mock).mockResolvedValue(null)
       ;(bcrypt.hash as jest.Mock).mockRejectedValue(new Error('Hashing failed'))
 
       const { req } = createMocks({
@@ -205,7 +205,7 @@ describe('/api/auth/signup', () => {
 
     it('should handle special characters in company name', async () => {
       // Arrange
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
+      ;(prisma.users.findUnique as jest.Mock).mockResolvedValue(null)
 
       const { req } = createMocks({
         method: 'POST',
@@ -229,7 +229,7 @@ describe('/api/auth/signup', () => {
 
     it('should trim whitespace from inputs', async () => {
       // Arrange
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
+      ;(prisma.users.findUnique as jest.Mock).mockResolvedValue(null)
 
       const { req } = createMocks({
         method: 'POST',
@@ -247,7 +247,7 @@ describe('/api/auth/signup', () => {
 
       // Assert
       expect(response.status).toBe(201)
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      expect(prisma.users.findUnique).toHaveBeenCalledWith({
         where: { email: 'test@example.com' } // Should be trimmed
       })
     })

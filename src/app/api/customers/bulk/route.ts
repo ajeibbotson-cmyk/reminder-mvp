@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     const responseTime = Date.now() - startTime
 
     // Log bulk operation for audit
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         companyId: authContext.user.companyId,
         userId: authContext.user.id,

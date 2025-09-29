@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -315,7 +315,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Log creation activity
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.company.id,
@@ -369,7 +369,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -433,7 +433,7 @@ export async function PUT(request: NextRequest) {
     })
 
     // Log bulk action
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.company.id,

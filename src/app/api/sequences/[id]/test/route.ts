@@ -70,7 +70,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -123,7 +123,7 @@ export async function POST(
     let sampleInvoice = null
     
     if (body.sampleInvoiceId) {
-      sampleInvoice = await prisma.invoice.findFirst({
+      sampleInvoice = await prisma.invoices.findFirst({
         where: {
           id: body.sampleInvoiceId,
           companyId: user.company.id
@@ -219,7 +219,7 @@ export async function POST(
     }
 
     // Log test activity
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.company.id,

@@ -134,7 +134,7 @@ describe('Analytics and Monitoring End-to-End Tests', () => {
 
       // Simulate payments for some invoices (conversion)
       for (const invoice of testInvoices.slice(0, 2)) {
-        await prisma.payment.create({
+        await prisma.payments.create({
           data: {
             id: UAETestUtils.generateId(),
             invoiceId: invoice.id,
@@ -147,7 +147,7 @@ describe('Analytics and Monitoring End-to-End Tests', () => {
         })
 
         // Update invoice status
-        await prisma.invoice.update({
+        await prisma.invoices.update({
           where: { id: invoice.id },
           data: { status: 'PAID' }
         })
@@ -246,7 +246,7 @@ describe('Analytics and Monitoring End-to-End Tests', () => {
       for (const segment of customerSegments) {
         // Create customer
         const customerId = UAETestUtils.generateId()
-        await prisma.customer.create({
+        await prisma.customers.create({
           data: {
             id: customerId,
             companyId: testCompanyId,
@@ -510,7 +510,7 @@ describe('Analytics and Monitoring End-to-End Tests', () => {
     // Create test companies
     for (let i = 0; i < 2; i++) {
       const companyId = UAETestUtils.generateId()
-      const company = await prisma.company.create({
+      const company = await prisma.companies.create({
         data: {
           id: companyId,
           name: `Analytics Test Company ${i + 1}`,
@@ -532,7 +532,7 @@ describe('Analytics and Monitoring End-to-End Tests', () => {
     for (const companyData of companies) {
       for (let i = 0; i < 4; i++) {
         const customerId = UAETestUtils.generateId()
-        const customer = await prisma.customer.create({
+        const customer = await prisma.customers.create({
           data: {
             id: customerId,
             companyId: companyData.id,
@@ -585,7 +585,7 @@ describe('Analytics and Monitoring End-to-End Tests', () => {
     for (const customer of customers) {
       for (let i = 0; i < 2; i++) {
         const invoiceId = UAETestUtils.generateId()
-        const invoice = await prisma.invoice.create({
+        const invoice = await prisma.invoices.create({
           data: {
             id: invoiceId,
             companyId: customer.companyId,
@@ -687,7 +687,7 @@ describe('Analytics and Monitoring End-to-End Tests', () => {
     ]
 
     for (const activity of activities) {
-      await prisma.activity.create({
+      await prisma.activities.create({
         data: {
           id: UAETestUtils.generateId(),
           companyId: testCompanyId,

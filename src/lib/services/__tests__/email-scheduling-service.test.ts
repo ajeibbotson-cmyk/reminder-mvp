@@ -126,8 +126,8 @@ describe('EmailSchedulingService', () => {
     const { culturalCompliance } = require('../cultural-compliance-service')
     const { getDefaultEmailService } = require('../email-service')
 
-    prisma.company.findUnique.mockResolvedValue(mockCompany)
-    prisma.customer.findUnique.mockResolvedValue(mockCustomer)
+    prisma.companies.findUnique.mockResolvedValue(mockCompany)
+    prisma.customers.findUnique.mockResolvedValue(mockCustomer)
     prisma.emailLog.create.mockResolvedValue({ id: 'email-log-123' })
     prisma.emailLog.count.mockResolvedValue(0)
     
@@ -198,7 +198,7 @@ describe('EmailSchedulingService', () => {
         ...mockCompany,
         emailSettings: { disabled: true }
       }
-      prisma.company.findUnique.mockResolvedValue(disabledCompany)
+      prisma.companies.findUnique.mockResolvedValue(disabledCompany)
 
       await expect(service.scheduleEmail(mockEmailData)).rejects.toThrow(
         'Email sending is disabled for this company'
@@ -555,7 +555,7 @@ describe('EmailSchedulingService', () => {
         createdAt: new Date('2020-01-01'), // Long-term customer
         invoices: Array(60).fill({ status: 'PAID' }) // Many paid invoices
       }
-      prisma.customer.findUnique.mockResolvedValue(vipCustomer)
+      prisma.customers.findUnique.mockResolvedValue(vipCustomer)
 
       const relationship = await (service as any).inferCustomerRelationship(
         'company-123',
@@ -571,7 +571,7 @@ describe('EmailSchedulingService', () => {
         ...mockCustomer,
         name: 'Ministry of Health and Prevention'
       }
-      prisma.customer.findUnique.mockResolvedValue(govCustomer)
+      prisma.customers.findUnique.mockResolvedValue(govCustomer)
 
       const relationship = await (service as any).inferCustomerRelationship(
         'company-123',
@@ -588,7 +588,7 @@ describe('EmailSchedulingService', () => {
         createdAt: new Date(), // Recent creation
         invoices: [] // No payment history
       }
-      prisma.customer.findUnique.mockResolvedValue(newCustomer)
+      prisma.customers.findUnique.mockResolvedValue(newCustomer)
 
       const relationship = await (service as any).inferCustomerRelationship(
         'company-123',
@@ -755,7 +755,7 @@ describe('EmailSchedulingService', () => {
 
     it('should handle missing customer data', async () => {
       const { prisma } = require('@/lib/prisma')
-      prisma.customer.findUnique.mockResolvedValue(null)
+      prisma.customers.findUnique.mockResolvedValue(null)
 
       // Should not fail, just use default relationship
       const relationship = await (service as any).inferCustomerRelationship(
@@ -866,7 +866,7 @@ describe('EmailSchedulingService', () => {
   describe('Security and Data Protection', () => {
     it('should validate company access', async () => {
       const { prisma } = require('@/lib/prisma')
-      prisma.company.findUnique.mockResolvedValue(null)
+      prisma.companies.findUnique.mockResolvedValue(null)
 
       await expect(service.scheduleEmail(mockEmailData)).rejects.toThrow(
         'Company not found'
@@ -879,7 +879,7 @@ describe('EmailSchedulingService', () => {
         ...mockCompany,
         emailSettings: { disabled: true }
       }
-      prisma.company.findUnique.mockResolvedValue(disabledCompany)
+      prisma.companies.findUnique.mockResolvedValue(disabledCompany)
 
       await expect(service.scheduleEmail(mockEmailData)).rejects.toThrow(
         'Email sending is disabled for this company'

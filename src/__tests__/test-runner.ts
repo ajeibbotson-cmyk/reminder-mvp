@@ -375,10 +375,10 @@ export const TestUtils = {
       await prisma.invoiceLineItem.deleteMany({})
       await prisma.paymentTransaction.deleteMany({})
       await prisma.invoiceStatusHistory.deleteMany({})
-      await prisma.invoice.deleteMany({})
-      await prisma.customer.deleteMany({})
+      await prisma.invoices.deleteMany({})
+      await prisma.customers.deleteMany({})
       await prisma.importBatch.deleteMany({})
-      await prisma.company.deleteMany({
+      await prisma.companies.deleteMany({
         where: {
           name: {
             contains: 'Test'

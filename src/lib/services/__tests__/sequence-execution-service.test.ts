@@ -163,7 +163,7 @@ describe('SequenceExecutionService', () => {
     const { culturalCompliance } = require('../cultural-compliance-service')
 
     prisma.follow_up_sequences.findUnique.mockResolvedValue(mockSequence)
-    prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
+    prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
     prisma.follow_up_logs.findFirst.mockResolvedValue(null)
     prisma.emailLog.findFirst.mockResolvedValue(null)
     prisma.emailLog.count.mockResolvedValue(0)
@@ -250,7 +250,7 @@ describe('SequenceExecutionService', () => {
     it('should handle paid invoices gracefully', async () => {
       const paidInvoice = { ...mockInvoice, status: 'PAID' }
       const { prisma } = require('@/lib/prisma')
-      prisma.invoice.findUnique.mockResolvedValue(paidInvoice)
+      prisma.invoices.findUnique.mockResolvedValue(paidInvoice)
 
       const triggerCondition: TriggerCondition = {
         type: 'DUE_DATE',
@@ -484,7 +484,7 @@ describe('SequenceExecutionService', () => {
       prisma.follow_up_logs.findFirst.mockResolvedValue(existingLog)
       
       // Mock payment received
-      prisma.payment.findMany.mockResolvedValue([
+      prisma.payments.findMany.mockResolvedValue([
         { amount: 5500, paymentDate: new Date() }
       ])
 
@@ -739,7 +739,7 @@ describe('SequenceExecutionService', () => {
 
     it('should handle missing invoice gracefully', async () => {
       const { prisma } = require('@/lib/prisma')
-      prisma.invoice.findUnique.mockResolvedValue(null)
+      prisma.invoices.findUnique.mockResolvedValue(null)
 
       const triggerCondition: TriggerCondition = {
         type: 'DUE_DATE',
@@ -848,7 +848,7 @@ describe('SequenceExecutionService', () => {
       }
       
       prisma.follow_up_sequences.findUnique.mockResolvedValue(otherCompanySequence)
-      prisma.invoice.findUnique.mockResolvedValue(otherCompanyInvoice)
+      prisma.invoices.findUnique.mockResolvedValue(otherCompanyInvoice)
 
       const triggerCondition: TriggerCondition = {
         type: 'DUE_DATE',
@@ -911,7 +911,7 @@ describe('SequenceExecutionService', () => {
       }
 
       const { prisma } = require('@/lib/prisma')
-      prisma.invoice.findUnique.mockResolvedValue(governmentInvoice)
+      prisma.invoices.findUnique.mockResolvedValue(governmentInvoice)
 
       const triggerCondition: TriggerCondition = {
         type: 'DUE_DATE',

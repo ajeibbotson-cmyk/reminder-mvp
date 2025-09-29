@@ -156,7 +156,7 @@ export class UnifiedEmailService {
       const validatedOptions = CampaignOptionsSchema.parse(options)
 
       // 2. Fetch invoices with customer data
-      const invoices = await this.prisma.invoice.findMany({
+      const invoices = await this.prisma.invoices.findMany({
         where: {
           id: { in: invoiceIds },
           company_id: companyId // Multi-tenant security

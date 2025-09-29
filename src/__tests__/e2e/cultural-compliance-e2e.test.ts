@@ -23,7 +23,7 @@ describe('UAE Cultural Compliance End-to-End Tests', () => {
     testCompanyId = UAETestUtils.generateId()
     testUserId = UAETestUtils.generateId()
 
-    await prisma.company.create({
+    await prisma.companies.create({
       data: {
         id: testCompanyId,
         name: 'Al Jazeera Cultural Test LLC',
@@ -38,7 +38,7 @@ describe('UAE Cultural Compliance End-to-End Tests', () => {
       }
     })
 
-    await prisma.user.create({
+    await prisma.users.create({
       data: {
         id: testUserId,
         email: 'cultural.test@aljazeera.ae',
@@ -506,7 +506,7 @@ TRN: 100474123400003`,
       const customerId = UAETestUtils.generateId()
       const invoiceId = UAETestUtils.generateId()
 
-      await prisma.customer.create({
+      await prisma.customers.create({
         data: {
           id: customerId,
           companyId: testCompanyId,
@@ -516,7 +516,7 @@ TRN: 100474123400003`,
         }
       })
 
-      await prisma.invoice.create({
+      await prisma.invoices.create({
         data: {
           id: invoiceId,
           companyId: testCompanyId,
@@ -601,7 +601,7 @@ JazakAllahu khair`,
       const customerId = UAETestUtils.generateId()
       const invoiceId = UAETestUtils.generateId()
 
-      await prisma.customer.create({
+      await prisma.customers.create({
         data: {
           id: customerId,
           companyId: testCompanyId,
@@ -612,7 +612,7 @@ JazakAllahu khair`,
         }
       })
 
-      await prisma.invoice.create({
+      await prisma.invoices.create({
         data: {
           id: invoiceId,
           companyId: testCompanyId,

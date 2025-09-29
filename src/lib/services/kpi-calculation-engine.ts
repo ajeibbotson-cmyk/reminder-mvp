@@ -170,7 +170,7 @@ export class KPICalculationEngine {
    */
   private async getInvoiceOverviewMetrics(companyId: string, dateRange: AnalyticsDateRange) {
     const [totalMetrics, outstandingMetrics] = await Promise.all([
-      prisma.invoice.aggregate({
+      prisma.invoices.aggregate({
         where: {
           companyId,
           createdAt: {
@@ -182,7 +182,7 @@ export class KPICalculationEngine {
         _count: { id: true },
         _sum: { totalAmount: true }
       }),
-      prisma.invoice.aggregate({
+      prisma.invoices.aggregate({
         where: {
           companyId,
           status: { in: ['SENT', 'OVERDUE'] },
@@ -227,7 +227,7 @@ export class KPICalculationEngine {
    * Calculate average payment delay
    */
   private async calculateAveragePaymentDelay(companyId: string, dateRange: AnalyticsDateRange) {
-    const paidInvoices = await prisma.invoice.findMany({
+    const paidInvoices = await prisma.invoices.findMany({
       where: {
         companyId,
         status: 'PAID',
@@ -262,7 +262,7 @@ export class KPICalculationEngine {
    * Get customer overview metrics
    */
   private async getCustomerOverviewMetrics(companyId: string) {
-    const customers = await prisma.customer.findMany({
+    const customers = await prisma.customers.findMany({
       where: {
         companyId,
         isActive: true
@@ -294,7 +294,7 @@ export class KPICalculationEngine {
    */
   private async calculateCollectionEfficiency(companyId: string, dateRange: AnalyticsDateRange) {
     const [totalInvoiced, totalCollected] = await Promise.all([
-      prisma.invoice.aggregate({
+      prisma.invoices.aggregate({
         where: {
           companyId,
           createdAt: {
@@ -305,7 +305,7 @@ export class KPICalculationEngine {
         },
         _sum: { totalAmount: true }
       }),
-      prisma.payment.aggregate({
+      prisma.payments.aggregate({
         where: {
           paymentDate: {
             gte: dateRange.startDate,
@@ -387,7 +387,7 @@ export class KPICalculationEngine {
     try {
       // Test database connectivity and performance
       const startTime = Date.now()
-      await prisma.company.findUnique({ where: { id: companyId } })
+      await prisma.companies.findUnique({ where: { id: companyId } })
       const dbResponseTime = Date.now() - startTime
 
       // Calculate health score based on response time
@@ -412,7 +412,7 @@ export class KPICalculationEngine {
 
     // Count various types of alerts
     const [overdueInvoices, highRiskCustomers, failedEmails] = await Promise.all([
-      prisma.invoice.count({
+      prisma.invoices.count({
         where: {
           companyId,
           status: 'OVERDUE',
@@ -420,7 +420,7 @@ export class KPICalculationEngine {
           isActive: true
         }
       }),
-      prisma.customer.count({
+      prisma.customers.count({
         where: {
           companyId,
           riskScore: { gte: 8 },
@@ -460,7 +460,7 @@ export class KPICalculationEngine {
    * Predict expected payments
    */
   private async predictExpectedPayments(companyId: string) {
-    const outstandingInvoices = await prisma.invoice.findMany({
+    const outstandingInvoices = await prisma.invoices.findMany({
       where: {
         companyId,
         status: { in: ['SENT', 'OVERDUE'] },
@@ -506,7 +506,7 @@ export class KPICalculationEngine {
     const alerts = []
 
     // High-risk customers
-    const highRiskCustomers = await prisma.customer.count({
+    const highRiskCustomers = await prisma.customers.count({
       where: {
         companyId,
         riskScore: { gte: 8 },
@@ -524,7 +524,7 @@ export class KPICalculationEngine {
     }
 
     // Overdue invoices
-    const overdueInvoices = await prisma.invoice.count({
+    const overdueInvoices = await prisma.invoices.count({
       where: {
         companyId,
         status: 'OVERDUE',

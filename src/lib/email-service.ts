@@ -244,7 +244,7 @@ export class EmailService {
 
     // Add invoice-specific variables
     if (options.invoiceId) {
-      const invoice = await prisma.invoice.findUnique({
+      const invoice = await prisma.invoices.findUnique({
         where: { id: options.invoiceId },
         include: {
           customer: true,
@@ -284,7 +284,7 @@ export class EmailService {
 
     // Add customer-specific variables
     if (options.customerId) {
-      const customer = await prisma.customer.findUnique({
+      const customer = await prisma.customers.findUnique({
         where: { id: options.customerId },
         include: {
           invoices: {

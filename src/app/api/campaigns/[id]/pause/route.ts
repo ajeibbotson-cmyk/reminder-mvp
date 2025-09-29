@@ -52,7 +52,7 @@ export async function POST(
     })
 
     // Log activity
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         type: 'CAMPAIGN_PAUSED',
         description: `Campaign "${campaign.name}" paused`,

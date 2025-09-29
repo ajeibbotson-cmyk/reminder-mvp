@@ -137,7 +137,7 @@ class UAEBusinessTestEnvironment {
     ]
 
     for (const company of companies) {
-      await prisma.company.create({
+      await prisma.companies.create({
         data: {
           id: company.id,
           name: company.name,
@@ -200,7 +200,7 @@ class UAEBusinessTestEnvironment {
     ]
 
     for (const customer of customers) {
-      await prisma.customer.create({
+      await prisma.customers.create({
         data: {
           id: customer.id,
           companyId: customer.companyId,
@@ -283,7 +283,7 @@ class UAEBusinessTestEnvironment {
     ]
 
     for (const invoice of invoices) {
-      await prisma.invoice.create({
+      await prisma.invoices.create({
         data: {
           id: invoice.id,
           companyId: invoice.companyId,
@@ -706,7 +706,7 @@ describe('UAE Payment Collection Automation - End-to-End Tests', () => {
       expect(sequenceResult.success).toBe(true)
 
       // Simulate payment received
-      await prisma.payment.create({
+      await prisma.payments.create({
         data: {
           id: UAETestUtils.generateId(),
           invoiceId: regInvoice.id,
@@ -719,7 +719,7 @@ describe('UAE Payment Collection Automation - End-to-End Tests', () => {
       })
 
       // Update invoice status
-      await prisma.invoice.update({
+      await prisma.invoices.update({
         where: { id: regInvoice.id },
         data: { status: 'PAID' }
       })
@@ -1189,7 +1189,7 @@ TRN: {{trnNumber}}`,
       // Create 50 test invoices
       const testInvoices = []
       for (let i = 0; i < 50; i++) {
-        const invoice = await prisma.invoice.create({
+        const invoice = await prisma.invoices.create({
           data: {
             id: UAETestUtils.generateId(),
             companyId: company.id,

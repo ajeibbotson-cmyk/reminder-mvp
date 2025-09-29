@@ -35,7 +35,7 @@ export async function POST(
     const validatedData = sendEmailSchema.parse(body)
 
     // Get user and company info
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -45,7 +45,7 @@ export async function POST(
     }
 
     // Get invoice with related data
-    const invoice = await prisma.invoice.findFirst({
+    const invoice = await prisma.invoices.findFirst({
       where: {
         id: invoiceId,
         companyId: user.company.id
@@ -160,7 +160,7 @@ export async function POST(
     })
 
     // Log activity
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.company.id,
@@ -234,7 +234,7 @@ export async function GET(
     const { id: invoiceId } = await params
 
     // Get user and company info
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -244,7 +244,7 @@ export async function GET(
     }
 
     // Get invoice
-    const invoice = await prisma.invoice.findFirst({
+    const invoice = await prisma.invoices.findFirst({
       where: {
         id: invoiceId,
         companyId: user.company.id

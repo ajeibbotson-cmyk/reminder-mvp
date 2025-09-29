@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Log activity
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: authContext.user.companyId,

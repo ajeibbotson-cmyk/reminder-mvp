@@ -218,7 +218,7 @@ export async function GET(request: NextRequest) {
     const nextBusinessHour = uaeBusinessHours.getNextBusinessHour(now)
 
     // Get recent processing activity
-    const recentActivity = await prisma.activity.findMany({
+    const recentActivity = await prisma.activities.findMany({
       where: {
         type: 'FOLLOW_UP_PROCESSING',
         createdAt: {
@@ -250,7 +250,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }),
-      prisma.invoice.count({
+      prisma.invoices.count({
         where: {
           status: 'OVERDUE',
           dueDate: {
@@ -327,7 +327,7 @@ async function detectAndInitiateFollowUps(): Promise<{
 
   try {
     // Find overdue invoices that don't have active follow-ups
-    const overdueInvoices = await prisma.invoice.findMany({
+    const overdueInvoices = await prisma.invoices.findMany({
       where: {
         status: 'OVERDUE',
         dueDate: {
@@ -786,7 +786,7 @@ async function logProcessingActivity(
   isError: boolean = false
 ): Promise<void> {
   try {
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: 'system',

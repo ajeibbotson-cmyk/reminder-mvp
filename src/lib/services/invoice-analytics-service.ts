@@ -99,7 +99,7 @@ export class InvoiceAnalyticsService {
    * Get metrics for specific invoice status
    */
   private async getStatusMetrics(companyId: string, status: string, dateRange: AnalyticsDateRange) {
-    const metrics = await prisma.invoice.aggregate({
+    const metrics = await prisma.invoices.aggregate({
       where: {
         companyId,
         status: status as any,
@@ -126,7 +126,7 @@ export class InvoiceAnalyticsService {
     const now = new Date()
 
     // Get all outstanding invoices (SENT and OVERDUE)
-    const outstandingInvoices = await prisma.invoice.findMany({
+    const outstandingInvoices = await prisma.invoices.findMany({
       where: {
         companyId,
         status: { in: ['SENT', 'OVERDUE'] },
@@ -214,7 +214,7 @@ export class InvoiceAnalyticsService {
    */
   private async getProcessingMetrics(companyId: string, dateRange: AnalyticsDateRange) {
     // Get processing times for invoices in the date range
-    const invoices = await prisma.invoice.findMany({
+    const invoices = await prisma.invoices.findMany({
       where: {
         companyId,
         createdAt: {
@@ -325,7 +325,7 @@ export class InvoiceAnalyticsService {
 
     const [newInvoices, paymentsReceived, overdueAlerts] = await Promise.all([
       // New invoices in the last hour
-      prisma.invoice.count({
+      prisma.invoices.count({
         where: {
           companyId,
           createdAt: {
@@ -336,7 +336,7 @@ export class InvoiceAnalyticsService {
       }),
 
       // Payments received in the last hour
-      prisma.payment.count({
+      prisma.payments.count({
         where: {
           createdAt: {
             gte: oneHourAgo
@@ -348,7 +348,7 @@ export class InvoiceAnalyticsService {
       }),
 
       // New overdue invoices today
-      prisma.invoice.count({
+      prisma.invoices.count({
         where: {
           companyId,
           status: 'OVERDUE',
@@ -371,7 +371,7 @@ export class InvoiceAnalyticsService {
    * Get total invoice count for performance metadata
    */
   private async getTotalInvoiceCount(companyId: string): Promise<number> {
-    return prisma.invoice.count({
+    return prisma.invoices.count({
       where: {
         companyId,
         isActive: true
@@ -401,7 +401,7 @@ export class InvoiceAnalyticsService {
         }
       }
 
-      await prisma.invoice.update({
+      await prisma.invoices.update({
         where: { id: invoiceId },
         data: updateData
       })
@@ -422,7 +422,7 @@ export class InvoiceAnalyticsService {
     try {
       const now = new Date()
 
-      const result = await prisma.invoice.updateMany({
+      const result = await prisma.invoices.updateMany({
         where: {
           companyId,
           status: 'SENT',

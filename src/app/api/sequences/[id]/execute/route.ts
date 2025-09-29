@@ -27,7 +27,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -65,7 +65,7 @@ export async function POST(
     }
 
     // Verify invoice exists and belongs to company
-    const invoice = await prisma.invoice.findFirst({
+    const invoice = await prisma.invoices.findFirst({
       where: {
         id: body.invoiceId,
         companyId: user.company.id
@@ -143,7 +143,7 @@ export async function POST(
 
     if (executionResult.success) {
       // Log manual execution activity
-      await prisma.activity.create({
+      await prisma.activities.create({
         data: {
           id: crypto.randomUUID(),
           companyId: user.company.id,
@@ -208,7 +208,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -315,7 +315,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -348,7 +348,7 @@ export async function DELETE(
     }
 
     // Verify invoice belongs to company
-    const invoice = await prisma.invoice.findFirst({
+    const invoice = await prisma.invoices.findFirst({
       where: {
         id: invoiceId,
         companyId: user.company.id
@@ -368,7 +368,7 @@ export async function DELETE(
 
     if (stopResult) {
       // Log stop activity
-      await prisma.activity.create({
+      await prisma.activities.create({
         data: {
           id: crypto.randomUUID(),
           companyId: user.company.id,

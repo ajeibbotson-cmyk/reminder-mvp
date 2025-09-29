@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     // Check if user exists
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email },
       include: { companies: true }
     });
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
 
     // Save reset token to database
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: user.id },
       data: {
         reset_token: resetToken,

@@ -415,7 +415,7 @@ export class FollowUpEscalationService {
    */
   private async checkCustomerComplaint(followUp: any): Promise<{ trigger: boolean; reason?: string }> {
     // Check for complaint activities
-    const complaints = await prisma.activity.findMany({
+    const complaints = await prisma.activities.findMany({
       where: {
         type: 'CUSTOMER_COMPLAINT',
         companyId: followUp.invoice.companyId,
@@ -443,7 +443,7 @@ export class FollowUpEscalationService {
    * Check for manual escalation flag
    */
   private async checkManualEscalation(followUp: any): Promise<{ trigger: boolean; reason?: string }> {
-    const manualFlags = await prisma.activity.findMany({
+    const manualFlags = await prisma.activities.findMany({
       where: {
         type: 'MANUAL_ESCALATION',
         metadata: {
@@ -647,7 +647,7 @@ export class FollowUpEscalationService {
     })
 
     // Create hold record
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: followUp.invoice.companyId,
@@ -700,7 +700,7 @@ export class FollowUpEscalationService {
       const emailService = getDefaultEmailService()
 
       // Find company managers/admins
-      const managers = await prisma.user.findMany({
+      const managers = await prisma.users.findMany({
         where: {
           companyId: followUp.invoice.companyId,
           role: { in: ['ADMIN', 'MANAGER'] }
@@ -774,7 +774,7 @@ export class FollowUpEscalationService {
    * Helper methods
    */
   private async getLastCustomerContact(customerId: string): Promise<Date | null> {
-    const lastActivity = await prisma.activity.findFirst({
+    const lastActivity = await prisma.activities.findFirst({
       where: {
         type: { in: ['EMAIL_SENT', 'PHONE_CALL', 'MEETING'] },
         metadata: {
@@ -789,7 +789,7 @@ export class FollowUpEscalationService {
   }
 
   private async hasRecentCustomerContact(customerId: string, since: Date): Promise<boolean> {
-    const recentContact = await prisma.activity.findFirst({
+    const recentContact = await prisma.activities.findFirst({
       where: {
         type: { in: ['CUSTOMER_RESPONSE', 'PHONE_CALL', 'EMAIL_REPLY'] },
         metadata: {
@@ -812,7 +812,7 @@ export class FollowUpEscalationService {
     actionDetails: any
   ): Promise<void> {
     try {
-      await prisma.activity.create({
+      await prisma.activities.create({
         data: {
           id: crypto.randomUUID(),
           companyId: followUp.invoice.companyId,
@@ -863,7 +863,7 @@ export class FollowUpEscalationService {
       }
     }
 
-    const escalations = await prisma.activity.findMany({
+    const escalations = await prisma.activities.findMany({
       where: whereClause
     })
 
@@ -895,7 +895,7 @@ export class FollowUpEscalationService {
 
     try {
       // Find sequences that should be resumed
-      const heldActivities = await prisma.activity.findMany({
+      const heldActivities = await prisma.activities.findMany({
         where: {
           type: 'FOLLOW_UP_HELD',
           metadata: {

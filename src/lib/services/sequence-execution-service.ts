@@ -93,7 +93,7 @@ export class SequenceExecutionService {
           where: { id: sequenceId },
           include: { company: true }
         }),
-        prisma.invoice.findUnique({
+        prisma.invoices.findUnique({
           where: { id: invoiceId },
           include: { customer: true, company: true }
         })
@@ -542,7 +542,7 @@ export class SequenceExecutionService {
   ): Promise<{ shouldStop: boolean; reason?: string }> {
     
     // Check payment received
-    const payments = await prisma.payment.findMany({
+    const payments = await prisma.payments.findMany({
       where: { invoiceId: invoice.id }
     })
 

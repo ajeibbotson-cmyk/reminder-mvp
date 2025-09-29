@@ -213,7 +213,7 @@ export class FollowUpDetectionService {
       whereClause.totalAmount = { ...whereClause.totalAmount, lte: conditions.maxAmount }
     }
 
-    return await prisma.invoice.findMany({
+    return await prisma.invoices.findMany({
       where: whereClause,
       include: {
         company: {
@@ -323,7 +323,7 @@ export class FollowUpDetectionService {
     })
 
     // Log the trigger activity
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: invoice.companyId,
@@ -433,7 +433,7 @@ export class FollowUpDetectionService {
     }
 
     // Check for recent payment activity
-    const recentPayments = await prisma.payment.findMany({
+    const recentPayments = await prisma.payments.findMany({
       where: {
         invoiceId: invoice.id,
         paymentDate: {
@@ -450,7 +450,7 @@ export class FollowUpDetectionService {
     }
 
     // Check for manual override flags
-    const manualOverride = await prisma.activity.findFirst({
+    const manualOverride = await prisma.activities.findFirst({
       where: {
         type: 'FOLLOW_UP_OVERRIDE',
         metadata: {

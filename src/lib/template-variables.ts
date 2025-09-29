@@ -24,7 +24,7 @@ export async function getTemplateVariables(context: VariableContext): Promise<Va
 
   // Add invoice variables
   if (context.invoiceId) {
-    const invoice = await prisma.invoice.findUnique({
+    const invoice = await prisma.invoices.findUnique({
       where: { id: context.invoiceId },
       include: {
         customer: true,
@@ -280,7 +280,7 @@ export async function getTemplateVariables(context: VariableContext): Promise<Va
   }
 
   // Add company variables
-  const company = await prisma.company.findUnique({
+  const company = await prisma.companies.findUnique({
     where: { id: context.companyId }
   })
 

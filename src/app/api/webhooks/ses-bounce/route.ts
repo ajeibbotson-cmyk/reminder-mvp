@@ -208,7 +208,7 @@ async function handleDeliveryNotification(message: any) {
 async function suppressEmailAddress(emailAddress: string, companyId: string, reason: string) {
   try {
     // Check if customer exists and update their email status
-    const customer = await prisma.customer.findFirst({
+    const customer = await prisma.customers.findFirst({
       where: {
         email: emailAddress,
         companyId
@@ -221,7 +221,7 @@ async function suppressEmailAddress(emailAddress: string, companyId: string, rea
       const existingNotes = customer.notes || ''
       const newNotes = existingNotes ? `${existingNotes}\n${suppressionNote}` : suppressionNote
 
-      await prisma.customer.update({
+      await prisma.customers.update({
         where: { id: customer.id },
         data: {
           notes: newNotes

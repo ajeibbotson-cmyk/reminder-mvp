@@ -292,7 +292,7 @@ describe('GET /api/sequences/analytics/[id]', () => {
     getServerSession.mockResolvedValue(mockSession)
     
     // Setup default database responses
-    prisma.user.findUnique.mockResolvedValue(mockUser)
+    prisma.users.findUnique.mockResolvedValue(mockUser)
     prisma.sequences.findUnique.mockResolvedValue(mockSequence)
     prisma.sequenceExecutions.findMany.mockResolvedValue(mockExecutions)
     prisma.sequenceStepExecutions.findMany.mockResolvedValue(mockStepExecutions)
@@ -318,7 +318,7 @@ describe('GET /api/sequences/analytics/[id]', () => {
 
     it('should require user to have company association', async () => {
       const userWithoutCompany = { ...mockUser, company: null }
-      prisma.user.findUnique.mockResolvedValue(userWithoutCompany)
+      prisma.users.findUnique.mockResolvedValue(userWithoutCompany)
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics/seq-12345')
       const response = await GET(request, { params: { id: 'seq-12345' } })

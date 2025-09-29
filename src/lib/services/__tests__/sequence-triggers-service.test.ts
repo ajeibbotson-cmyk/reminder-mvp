@@ -154,9 +154,9 @@ describe('SequenceTriggersService', () => {
     const { uaeBusinessHours } = require('../uae-business-hours-service')
 
     prisma.follow_up_sequences.findMany.mockResolvedValue([mockSequence])
-    prisma.invoice.findMany.mockResolvedValue([mockInvoice])
+    prisma.invoices.findMany.mockResolvedValue([mockInvoice])
     prisma.follow_up_logs.findFirst.mockResolvedValue(null)
-    prisma.payment.findMany.mockResolvedValue([])
+    prisma.payments.findMany.mockResolvedValue([])
     
     sequenceExecutionService.startSequenceExecution.mockResolvedValue({
       success: true,
@@ -242,7 +242,7 @@ describe('SequenceTriggersService', () => {
 
       await service.monitorInvoiceEvents()
 
-      expect(prisma.activity.create).toHaveBeenCalledWith({
+      expect(prisma.activities.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           type: 'SEQUENCE_TRIGGERED',
           description: 'Sequence triggered: OVERDUE_DAYS',
@@ -267,7 +267,7 @@ describe('SequenceTriggersService', () => {
         }
 
         const { prisma } = require('@/lib/prisma')
-        prisma.invoice.findMany.mockResolvedValue([overdueInvoice])
+        prisma.invoices.findMany.mockResolvedValue([overdueInvoice])
 
         const result = await service.monitorInvoiceEvents()
 
@@ -282,7 +282,7 @@ describe('SequenceTriggersService', () => {
         }
 
         const { prisma } = require('@/lib/prisma')
-        prisma.invoice.findMany.mockResolvedValue([futureInvoice])
+        prisma.invoices.findMany.mockResolvedValue([futureInvoice])
 
         const result = await service.monitorInvoiceEvents()
 
@@ -318,7 +318,7 @@ describe('SequenceTriggersService', () => {
 
         const { prisma } = require('@/lib/prisma')
         prisma.follow_up_sequences.findMany.mockResolvedValue([approachingDueSequence])
-        prisma.invoice.findMany.mockResolvedValue([approachingInvoice])
+        prisma.invoices.findMany.mockResolvedValue([approachingInvoice])
 
         const result = await service.monitorInvoiceEvents()
 
@@ -336,7 +336,7 @@ describe('SequenceTriggersService', () => {
         ]
 
         const { prisma } = require('@/lib/prisma')
-        prisma.invoice.findMany.mockResolvedValue(invoices)
+        prisma.invoices.findMany.mockResolvedValue(invoices)
 
         const result = await service.monitorInvoiceEvents()
 
@@ -350,7 +350,7 @@ describe('SequenceTriggersService', () => {
         }
 
         const { prisma } = require('@/lib/prisma')
-        prisma.invoice.findMany.mockResolvedValue([paidInvoice])
+        prisma.invoices.findMany.mockResolvedValue([paidInvoice])
 
         const result = await service.monitorInvoiceEvents()
 
@@ -368,8 +368,8 @@ describe('SequenceTriggersService', () => {
         }
 
         const { prisma } = require('@/lib/prisma')
-        prisma.invoice.findMany.mockResolvedValue([partiallyPaidInvoice])
-        prisma.payment.findMany.mockResolvedValue(partiallyPaidInvoice.payments)
+        prisma.invoices.findMany.mockResolvedValue([partiallyPaidInvoice])
+        prisma.payments.findMany.mockResolvedValue(partiallyPaidInvoice.payments)
 
         const result = await service.monitorInvoiceEvents()
 
@@ -385,8 +385,8 @@ describe('SequenceTriggersService', () => {
         }
 
         const { prisma } = require('@/lib/prisma')
-        prisma.invoice.findMany.mockResolvedValue([fullyPaidInvoice])
-        prisma.payment.findMany.mockResolvedValue(fullyPaidInvoice.payments)
+        prisma.invoices.findMany.mockResolvedValue([fullyPaidInvoice])
+        prisma.payments.findMany.mockResolvedValue(fullyPaidInvoice.payments)
 
         // Mock condition evaluation to check payments
         const shouldTrigger = await (service as any).evaluateTriggerConditions(
@@ -548,7 +548,7 @@ describe('SequenceTriggersService', () => {
         'Urgent customer request'
       )
 
-      expect(prisma.activity.create).toHaveBeenCalledWith({
+      expect(prisma.activities.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           type: 'MANUAL_SEQUENCE_TRIGGER',
           description: 'Manual sequence trigger: Urgent customer request',
@@ -595,7 +595,7 @@ describe('SequenceTriggersService', () => {
       ]
       
       prisma.follow_up_logs.findMany.mockResolvedValue(activeSequences)
-      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
       sequenceExecutionService.stopSequenceExecution.mockResolvedValue(true)
 
       await service.handlePaymentReceived('invoice-123', 5500)
@@ -611,11 +611,11 @@ describe('SequenceTriggersService', () => {
       const { prisma } = require('@/lib/prisma')
       
       prisma.follow_up_logs.findMany.mockResolvedValue([])
-      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
 
       await service.handlePaymentReceived('invoice-123', 2500)
 
-      expect(prisma.activity.create).toHaveBeenCalledWith({
+      expect(prisma.activities.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           type: 'SEQUENCE_TRIGGERED',
           metadata: expect.objectContaining({
@@ -656,7 +656,7 @@ describe('SequenceTriggersService', () => {
         name: 'Overdue Payment Collection'
       }
       
-      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
       prisma.follow_up_sequences.findMany.mockResolvedValue([overdueSequence])
       sequenceExecutionService.startSequenceExecution.mockResolvedValue({
         success: true
@@ -771,7 +771,7 @@ describe('SequenceTriggersService', () => {
         { ...mockInvoice, id: 'inv-2', dueDate: new Date(Date.now() - 48 * 60 * 60 * 1000) }
       ]
       
-      prisma.invoice.findMany.mockResolvedValue(overdueInvoices)
+      prisma.invoices.findMany.mockResolvedValue(overdueInvoices)
 
       const candidates = await (service as any).findCandidateInvoices(
         'company-123',
@@ -779,7 +779,7 @@ describe('SequenceTriggersService', () => {
       )
 
       expect(candidates).toHaveLength(2)
-      expect(prisma.invoice.findMany).toHaveBeenCalledWith({
+      expect(prisma.invoices.findMany).toHaveBeenCalledWith({
         where: expect.objectContaining({
           companyId: 'company-123',
           status: { in: ['SENT', 'OVERDUE'] },
@@ -798,7 +798,7 @@ describe('SequenceTriggersService', () => {
         { type: 'DUE_DATE_REACHED', conditions: [] }
       )
 
-      expect(prisma.invoice.findMany).toHaveBeenCalledWith({
+      expect(prisma.invoices.findMany).toHaveBeenCalledWith({
         where: expect.objectContaining({
           dueDate: { lte: expect.any(Date) } // Within 7 days
         }),
@@ -815,7 +815,7 @@ describe('SequenceTriggersService', () => {
         { type: 'OVERDUE_DAYS', conditions: [] }
       )
 
-      expect(prisma.invoice.findMany).toHaveBeenCalledWith(
+      expect(prisma.invoices.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 100 // Should limit batch size
         })
@@ -873,7 +873,7 @@ describe('SequenceTriggersService', () => {
       // Mock metrics queries
       prisma.follow_up_sequences.count.mockResolvedValue(5)
       prisma.follow_up_logs.count.mockResolvedValue(25)
-      prisma.activity.count
+      prisma.activities.count
         .mockResolvedValueOnce(10) // triggersLastHour
         .mockResolvedValueOnce(45) // triggersLastDay
 
@@ -892,7 +892,7 @@ describe('SequenceTriggersService', () => {
           createdAt: new Date()
         }
       ]
-      prisma.activity.findMany.mockResolvedValue(triggerEvents)
+      prisma.activities.findMany.mockResolvedValue(triggerEvents)
     })
 
     it('should calculate comprehensive monitoring metrics', async () => {
@@ -924,8 +924,8 @@ describe('SequenceTriggersService', () => {
       
       prisma.follow_up_sequences.count.mockResolvedValue(0)
       prisma.follow_up_logs.count.mockResolvedValue(0)
-      prisma.activity.count.mockResolvedValue(0)
-      prisma.activity.findMany.mockResolvedValue([])
+      prisma.activities.count.mockResolvedValue(0)
+      prisma.activities.findMany.mockResolvedValue([])
 
       const metrics = await service.getMonitoringMetrics()
 
@@ -975,7 +975,7 @@ describe('SequenceTriggersService', () => {
 
     it('should handle missing invoice data', async () => {
       const { prisma } = require('@/lib/prisma')
-      prisma.invoice.findMany.mockResolvedValue([])
+      prisma.invoices.findMany.mockResolvedValue([])
 
       const result = await service.monitorInvoiceEvents()
 
@@ -1027,12 +1027,12 @@ describe('SequenceTriggersService', () => {
         id: `invoice-${i}`
       }))
       
-      prisma.invoice.findMany.mockResolvedValue(largeInvoiceSet.slice(0, 100)) // Batch size
+      prisma.invoices.findMany.mockResolvedValue(largeInvoiceSet.slice(0, 100)) // Batch size
 
       await service.monitorInvoiceEvents()
 
       // Should limit batch processing
-      expect(prisma.invoice.findMany).toHaveBeenCalledWith(
+      expect(prisma.invoices.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 100
         })

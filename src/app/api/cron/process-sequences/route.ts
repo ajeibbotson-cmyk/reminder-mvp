@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
     const nextBusinessHour = uaeBusinessHours.getNextBusinessHour(now)
     
     // Get recent processing activity
-    const recentActivity = await prisma.activity.findMany({
+    const recentActivity = await prisma.activities.findMany({
       where: {
         type: 'SEQUENCE_PROCESSING',
         createdAt: {
@@ -411,7 +411,7 @@ async function logProcessingActivity(
   isError: boolean = false
 ): Promise<void> {
   try {
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: 'system', // System-level activity

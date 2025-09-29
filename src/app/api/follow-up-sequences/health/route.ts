@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the test activity
-    await prisma.activity.create({
+    await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.company.id,
@@ -263,7 +263,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       include: { company: true }
     })
@@ -295,7 +295,7 @@ export async function PUT(request: NextRequest) {
     if (metric === 'all' || metric === 'volume') {
       // Volume metrics
       const [invoicesProcessed, emailsSent, sequencesTriggered] = await Promise.all([
-        prisma.invoice.count({
+        prisma.invoices.count({
           where: {
             companyId: user.company.id,
             updatedAt: { gte: startDate }
@@ -307,7 +307,7 @@ export async function PUT(request: NextRequest) {
             sentAt: { gte: startDate }
           }
         }),
-        prisma.activity.count({
+        prisma.activities.count({
           where: {
             companyId: user.company.id,
             type: 'FOLLOW_UP_TRIGGERED',
@@ -332,14 +332,14 @@ export async function PUT(request: NextRequest) {
     if (metric === 'all' || metric === 'compliance') {
       // UAE compliance metrics
       const [complianceViolations, rescheduledEmails, holidaySkips] = await Promise.all([
-        prisma.activity.count({
+        prisma.activities.count({
           where: {
             companyId: user.company.id,
             type: 'COMPLIANCE_VIOLATION',
             createdAt: { gte: startDate }
           }
         }),
-        prisma.activity.count({
+        prisma.activities.count({
           where: {
             companyId: user.company.id,
             type: 'EMAIL_RESCHEDULED',
@@ -347,7 +347,7 @@ export async function PUT(request: NextRequest) {
             createdAt: { gte: startDate }
           }
         }),
-        prisma.activity.count({
+        prisma.activities.count({
           where: {
             companyId: user.company.id,
             type: 'HOLIDAY_SKIP',
@@ -438,7 +438,7 @@ async function performStressTest(companyId: string) {
     // Test 1: Database load
     const dbStartTime = Date.now()
     await Promise.all([
-      prisma.invoice.findMany({ where: { companyId }, take: 100 }),
+      prisma.invoices.findMany({ where: { companyId }, take: 100 }),
       prisma.follow_up_sequences.findMany({ where: { companyId } }),
       prisma.follow_up_logs.findMany({ where: { invoice: { companyId } }, take: 100 })
     ])
@@ -451,7 +451,7 @@ async function performStressTest(companyId: string) {
     const concurrentStartTime = Date.now()
     const concurrentPromises = Array.from({ length: 10 }, async (_, i) => {
       await new Promise(resolve => setTimeout(resolve, Math.random() * 100))
-      return await prisma.activity.count({
+      return await prisma.activities.count({
         where: { companyId, type: 'FOLLOW_UP_TRIGGERED' }
       })
     })
