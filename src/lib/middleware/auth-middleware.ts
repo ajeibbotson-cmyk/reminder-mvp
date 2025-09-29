@@ -47,7 +47,7 @@ export function withAuth(
       }
 
       // 2. Get user from database with fresh data
-      const user = await prisma.users.findUnique({
+      const user = await prisma.user.findUnique({
         where: { email: session.user.email },
         include: {
           companies: true
@@ -320,7 +320,7 @@ export async function canAccessUser(
   
   // Admins can access other users in their company
   if (requesterRole === UserRole.ADMIN) {
-    const targetUser = await prisma.users.findUnique({
+    const targetUser = await prisma.user.findUnique({
       where: { id: targetUserId }
     })
     

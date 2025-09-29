@@ -27,7 +27,7 @@ export async function getAuthContext(_request: NextRequest): Promise<AuthContext
     throw new UnauthorizedError('Authentication required')
   }
 
-  const user = await prisma.users.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     include: {
       companies: true
