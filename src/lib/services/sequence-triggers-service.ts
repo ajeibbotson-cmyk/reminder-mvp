@@ -291,7 +291,7 @@ export class SequenceTriggersService {
       where: baseWhere,
       include: {
         customer: true,
-        company: true,
+        companies: true,
         payments: true
       },
       take: 100 // Process in batches

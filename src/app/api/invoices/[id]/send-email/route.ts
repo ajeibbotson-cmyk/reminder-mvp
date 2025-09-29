@@ -52,7 +52,7 @@ export async function POST(
       },
       include: {
         customer: true,
-        company: true,
+        companies: true,
         invoiceItems: true,
         payments: true
       }

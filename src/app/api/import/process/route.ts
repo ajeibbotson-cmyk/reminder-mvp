@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
         id: processData.importBatchId 
       },
       include: {
-        company: true,
+        companies: true,
         user: true
       }
     })

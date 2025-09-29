@@ -248,7 +248,7 @@ export class EmailService {
         where: { id: options.invoiceId },
         include: {
           customer: true,
-          company: true,
+          companies: true,
           invoiceItems: true,
           payments: true
         }

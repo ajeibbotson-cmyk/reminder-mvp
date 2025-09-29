@@ -343,7 +343,7 @@ async function detectAndInitiateFollowUps(): Promise<{
         }
       },
       include: {
-        company: true,
+        companies: true,
         customer: true
       }
     })
@@ -467,7 +467,7 @@ async function processPendingFollowUpSteps(): Promise<{
       include: {
         invoice: {
           include: {
-            company: true
+            companies: true
           }
         },
         followUpSequence: true

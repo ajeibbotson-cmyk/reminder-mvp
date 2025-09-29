@@ -28,7 +28,7 @@ export async function getTemplateVariables(context: VariableContext): Promise<Va
       where: { id: context.invoiceId },
       include: {
         customer: true,
-        company: true,
+        companies: true,
         invoiceItems: true,
         payments: true
       }

@@ -130,7 +130,7 @@ export async function POST(
         },
         include: {
           customer: true,
-          company: true,
+          companies: true,
           payments: true
         }
       })

@@ -200,7 +200,7 @@ export class FollowUpEscalationService {
       include: {
         invoice: {
           include: {
-            company: true,
+            companies: true,
             customer: true,
             payments: {
               where: {

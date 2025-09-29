@@ -163,7 +163,7 @@ export class UnifiedEmailService {
         },
         include: {
           customer: true,
-          company: true
+          companies: true
         }
       })
 
