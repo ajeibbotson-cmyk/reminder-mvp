@@ -72,17 +72,17 @@ export async function POST(
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
     const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
-        companyId: user.company.id
+        companyId: user.companies.id
       }
     })
 
@@ -126,7 +126,7 @@ export async function POST(
       sampleInvoice = await prisma.invoices.findFirst({
         where: {
           id: body.sampleInvoiceId,
-          companyId: user.company.id
+          companyId: user.companies.id
         },
         include: {
           customer: true,
@@ -147,7 +147,7 @@ export async function POST(
       currency: 'AED',
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       status: 'SENT',
-      company: user.company,
+      company: user.companies,
       customer: {
         name: body.testCustomerName || 'Ahmed Al-Rashid',
         email: body.testEmail || 'ahmed@example.ae',
@@ -176,7 +176,7 @@ export async function POST(
     let simulationResults: any = undefined
 
     for (const step of stepsToTest) {
-      const stepResult = await testSequenceStep(step, testInvoice, user.company)
+      const stepResult = await testSequenceStep(step, testInvoice, user.companies)
       stepResults.push(stepResult)
       
       allIssues.push(...stepResult.issues)
@@ -198,7 +198,7 @@ export async function POST(
       simulationResults = await simulateSequenceExecution(
         stepsToTest,
         testInvoice,
-        user.company.id,
+        user.companies.id,
         body.testMode === 'SEND_SAMPLE'
       )
     }
@@ -222,7 +222,7 @@ export async function POST(
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.company.id,
+        companyId: user.companies.id,
         userId: user.id,
         type: 'SEQUENCE_TESTED',
         description: `Tested sequence: ${sequence.name} (${body.testMode})`,

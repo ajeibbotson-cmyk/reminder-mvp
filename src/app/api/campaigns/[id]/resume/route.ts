@@ -23,7 +23,7 @@ export async function POST(
     const campaign = await prisma.campaign.findFirst({
       where: {
         id: campaignId,
-        companyId: session.user.companyId
+        companyId: session.user.companiesId
       }
     })
 
@@ -58,7 +58,7 @@ export async function POST(
         type: 'CAMPAIGN_RESUMED',
         description: `Campaign "${campaign.name}" resumed`,
         userId: session.user.id,
-        companyId: session.user.companyId,
+        companyId: session.user.companiesId,
         metadata: {
           campaignId: campaign.id,
           campaignName: campaign.name

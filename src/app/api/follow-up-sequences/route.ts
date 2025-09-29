@@ -51,10 +51,10 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: any = {
-      companyId: user.company.id
+      companyId: user.companies.id
     }
 
     if (active !== null) {
@@ -191,10 +191,10 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
     // Validate sequence name uniqueness
     const existingSequence = await prisma.follow_up_sequences.findFirst({
       where: {
-        companyId: user.company.id,
+        companyId: user.companies.id,
         name: body.name
       }
     })
@@ -304,7 +304,7 @@ export async function POST(request: NextRequest) {
     const sequence = await prisma.follow_up_sequences.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.company.id,
+        companyId: user.companies.id,
         name: body.name.trim(),
         description: body.description?.trim(),
         steps: JSON.stringify(sanitizedSteps),
@@ -318,7 +318,7 @@ export async function POST(request: NextRequest) {
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.company.id,
+        companyId: user.companies.id,
         userId: user.id,
         type: 'FOLLOW_UP_SEQUENCE_CREATED',
         description: `Created follow-up sequence: ${body.name}`,
@@ -371,10 +371,10 @@ export async function PUT(request: NextRequest) {
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -405,7 +405,7 @@ export async function PUT(request: NextRequest) {
     const existingSequences = await prisma.follow_up_sequences.findMany({
       where: {
         id: { in: sequenceIds },
-        companyId: user.company.id
+        companyId: user.companies.id
       },
       select: { id: true, name: true }
     })
@@ -424,7 +424,7 @@ export async function PUT(request: NextRequest) {
     const updateResult = await prisma.follow_up_sequences.updateMany({
       where: {
         id: { in: sequenceIds },
-        companyId: user.company.id
+        companyId: user.companies.id
       },
       data: {
         active: action === 'activate',
@@ -436,7 +436,7 @@ export async function PUT(request: NextRequest) {
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.company.id,
+        companyId: user.companies.id,
         userId: user.id,
         type: 'FOLLOW_UP_SEQUENCE_BULK_UPDATE',
         description: `Bulk ${action} on ${updateResult.count} follow-up sequences`,

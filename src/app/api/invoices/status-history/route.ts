@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     // Build comprehensive filter conditions
     const whereConditions: any = {
-      companyId: authContext.user.companyId, // Enforce company isolation
+      companyId: authContext.user.companiesId, // Enforce company isolation
       type: 'invoice_status_updated'
     }
 
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
       return await handleStatusHistoryExport(
         whereConditions,
         exportFormat,
-        authContext.user.companyId,
+        authContext.user.companiesId,
         sortBy,
         sortOrder
       )
@@ -255,7 +255,7 @@ export async function GET(request: NextRequest) {
       analytics,
       filters: {
         applied: Object.keys(queryParams).filter(key => queryParams[key] !== undefined),
-        companyId: authContext.user.companyId
+        companyId: authContext.user.companiesId
       }
     }
 
@@ -297,7 +297,7 @@ export async function POST(request: NextRequest) {
     }
 
     const analytics = await generateAdvancedStatusAnalytics(
-      authContext.user.companyId,
+      authContext.user.companiesId,
       startDate,
       endDate,
       reportType,
@@ -308,7 +308,7 @@ export async function POST(request: NextRequest) {
     return successResponse({
       analytics,
       reportParameters: {
-        companyId: authContext.user.companyId,
+        companyId: authContext.user.companiesId,
         reportType,
         dateRange: { from: startDate, to: endDate },
         groupBy,

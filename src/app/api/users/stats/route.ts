@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const authContext = await requireRole(request, [UserRole.ADMIN])
 
     const stats = await userService.getUserStats(
-      authContext.user.companyId,
+      authContext.user.companiesId,
       authContext.user.role
     )
 

@@ -77,7 +77,7 @@ export class EmailService {
       if (options.templateId) {
         template = await prisma.emailTemplate.findUnique({
           where: { id: options.templateId },
-          include: { company: true }
+          include: { companies: true }
         })
 
         if (!template) {

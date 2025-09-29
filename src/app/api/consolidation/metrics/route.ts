@@ -59,12 +59,12 @@ export async function GET(request: NextRequest) {
       dateRange = { from: start, to: now }
     }
 
-    console.log(`📊 Getting consolidation metrics for company ${session.user.companyId}, period: ${period}`)
+    console.log(`📊 Getting consolidation metrics for company ${session.user.companiesId}, period: ${period}`)
 
     // Get metrics from consolidation service
     const [consolidationMetrics, detectionStats] = await Promise.all([
-      customerConsolidationService.getConsolidationMetrics(session.user.companyId, dateRange),
-      followUpDetectionService.getConsolidationStatistics(session.user.companyId, dateRange)
+      customerConsolidationService.getConsolidationMetrics(session.user.companiesId, dateRange),
+      followUpDetectionService.getConsolidationStatistics(session.user.companiesId, dateRange)
     ])
 
     // Combine and enhance metrics

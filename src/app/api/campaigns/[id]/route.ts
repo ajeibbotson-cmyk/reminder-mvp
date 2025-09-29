@@ -90,14 +90,14 @@ export async function GET(
       )
     }
 
-    if (!session.user.companyId) {
+    if (!session.user.companiesId) {
       return NextResponse.json(
         { error: 'Unauthorized - Company association required' },
         { status: 401 }
       )
     }
 
-    const companyId = session.user.companyId
+    const companyId = session.user.companiesId
     const campaignId = params.id
 
     // 2. Validate campaign ID format

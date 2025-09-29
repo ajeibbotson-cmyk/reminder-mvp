@@ -174,7 +174,7 @@ describe('/api/email/templates API Routes', () => {
       expect(mockPrisma.emailTemplate.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            companyId: authContext.user.companyId
+            companyId: authContext.user.companiesId
           })
         })
       )
@@ -200,7 +200,7 @@ describe('/api/email/templates API Routes', () => {
       testAssertions.expectSuccessResponse(data)
       validateEmailTemplateData(data.data)
       expect(data.data.name).toBe(templateData.name)
-      expect(data.data.companyId).toBe(authContext.user.companyId)
+      expect(data.data.companyId).toBe(authContext.user.companiesId)
       expect(data.data.createdBy).toBe(authContext.user.id)
     })
 
@@ -297,7 +297,7 @@ describe('/api/email/templates API Routes', () => {
       // Should have updated other templates to not be default
       expect(mockPrisma.emailTemplate.updateMany).toHaveBeenCalledWith({
         where: {
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           templateType: 'FOLLOW_UP',
           isDefault: true
         },
@@ -311,7 +311,7 @@ describe('/api/email/templates API Routes', () => {
       })
       const createdTemplate = testDataFactories.createEmailTemplate({
         ...templateData,
-        companyId: authContext.user.companyId
+        companyId: authContext.user.companiesId
       })
       
       mockPrisma.emailTemplate.findFirst.mockResolvedValue(null)
@@ -325,7 +325,7 @@ describe('/api/email/templates API Routes', () => {
       const data = await response.json()
 
       testAssertions.expectSuccessResponse(data)
-      expect(data.data.companyId).toBe(authContext.user.companyId)
+      expect(data.data.companyId).toBe(authContext.user.companiesId)
     })
 
     it('validates email template content', async () => {
@@ -360,7 +360,7 @@ describe('/api/email/templates API Routes', () => {
 
       expect(mockPrisma.activity.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           userId: authContext.user.id,
           type: 'email_template_created',
           description: `Created email template: ${templateData.name}`,
@@ -382,7 +382,7 @@ describe('/api/email/templates API Routes', () => {
         contentEn: 'Test Content with TRN: {{company_trn}}',
         subjectAr: 'موضوع تجريبي',
         contentAr: 'محتوى تجريبي مع الرقم الضريبي: {{company_trn}}',
-        companyId: authContext.user.companyId
+        companyId: authContext.user.companiesId
       }
       
       const createdTemplate = testDataFactories.createEmailTemplate(minimalData)

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const companyId = session.user.company_id
+    const companyId = session.user.companies_id
 
     // Get comprehensive aging report
     const agingReport = await invoiceAnalyticsService.getInvoiceAgingReport(companyId)
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const companyId = session.user.company_id
+    const companyId = session.user.companies_id
 
     // Batch update overdue invoices
     const updatedCount = await invoiceAnalyticsService.batchUpdateOverdueInvoices(companyId)

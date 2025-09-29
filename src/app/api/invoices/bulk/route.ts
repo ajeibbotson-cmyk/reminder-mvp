@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const invoices = await prisma.invoices.findMany({
       where: {
         id: { in: bulkData.invoiceIds },
-        companyId: authContext.user.companyId // Enforce company-level security
+        companyId: authContext.user.companiesId // Enforce company-level security
       },
       include: {
         customers: {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: authContext.user.companyId,
+        companyId: authContext.user.companiesId,
         userId: authContext.user.id,
         type: 'bulk_invoice_action',
         description: `Bulk ${bulkData.action} performed on ${results.successCount}/${results.requestedCount} invoices`,
@@ -161,7 +161,7 @@ async function handleBulkStatusUpdate(
         await tx.activities.create({
           data: {
             id: crypto.randomUUID(),
-            companyId: user.companyId,
+            companyId: user.companiesId,
             userId: user.id,
             type: 'invoice_status_updated',
             description: `Bulk status update: ${invoice.number} from ${invoice.status} to ${newStatus}`,
@@ -213,7 +213,7 @@ async function handleBulkSendReminder(
   const emailTemplate = await prisma.emailTemplate.findFirst({
     where: {
       id: emailTemplateId,
-      companyId: user.companyId,
+      companyId: user.companiesId,
       isActive: true
     }
   })
@@ -236,7 +236,7 @@ async function handleBulkSendReminder(
         data: {
           id: crypto.randomUUID(),
           templateId: emailTemplateId,
-          companyId: user.companyId,
+          companyId: user.companiesId,
           invoiceId: invoice.id,
           customerId: invoice.customers.id,
           recipientEmail: invoice.customerEmail,
@@ -307,7 +307,7 @@ async function handleBulkDelete(
         await tx.activities.create({
           data: {
             id: crypto.randomUUID(),
-            companyId: user.companyId,
+            companyId: user.companiesId,
             userId: user.id,
             type: 'invoice_deleted',
             description: `Bulk deleted invoice ${invoice.number}`,

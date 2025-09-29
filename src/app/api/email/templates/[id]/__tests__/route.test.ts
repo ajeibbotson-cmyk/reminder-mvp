@@ -199,7 +199,7 @@ describe('/api/email/templates/[id] API Routes', () => {
       // Should have unset other default templates
       expect(mockPrisma.emailTemplate.updateMany).toHaveBeenCalledWith({
         where: {
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           templateType: 'FOLLOW_UP',
           isDefault: true,
           id: { not: 'test-id' }

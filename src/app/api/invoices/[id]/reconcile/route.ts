@@ -47,7 +47,7 @@ export async function GET(
     // Get comprehensive reconciliation data
     const reconciliation = await paymentReconciliationService.getInvoiceReconciliation(
       invoiceId,
-      authContext.user.companyId
+      authContext.user.companiesId
     )
 
     // Check for discrepancies
@@ -106,7 +106,7 @@ export async function POST(
       // Get current reconciliation status
       const reconciliation = await paymentReconciliationService.getInvoiceReconciliation(
         invoiceId,
-        authContext.user.companyId
+        authContext.user.companiesId
       )
 
       // Validate action is appropriate
@@ -145,7 +145,7 @@ export async function POST(
         {
           userId: authContext.user.id,
           userRole: authContext.user.role,
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           ipAddress: request.headers.get('x-forwarded-for') || undefined,
           userAgent: request.headers.get('user-agent') || undefined,
           apiEndpoint: '/api/invoices/[id]/reconcile'
@@ -168,7 +168,7 @@ export async function POST(
         await webhookService.triggerInvoiceEvent(
           WebhookEventType.INVOICE_PAID,
           { id: invoiceId, number: reconciliation.invoiceNumber },
-          authContext.user.companyId,
+          authContext.user.companiesId,
           { reconciliationResult, action: actionData.action }
         )
       }
@@ -390,7 +390,7 @@ async function markDiscrepancy(
   await prisma.activities.create({
     data: {
       id: crypto.randomUUID(),
-      companyId: authContext.user.companyId,
+      companyId: authContext.user.companiesId,
       userId: authContext.user.id,
       type: 'payment_discrepancy_marked',
       description: `Payment discrepancy marked for invoice ${reconciliation.invoiceNumber}`,
@@ -450,7 +450,7 @@ async function approveOverpayment(
   await prisma.activities.create({
     data: {
       id: crypto.randomUUID(),
-      companyId: authContext.user.companyId,
+      companyId: authContext.user.companiesId,
       userId: authContext.user.id,
       type: 'overpayment_approved',
       description: `Overpayment of ${formatUAECurrency(overpaymentAmount, reconciliation.currency)} approved for refund processing`,

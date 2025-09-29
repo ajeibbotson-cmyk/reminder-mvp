@@ -88,10 +88,10 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
       new Date(dateTo.getTime() - 30 * 24 * 60 * 60 * 1000)
 
     // Build analytics response
-    const analytics = await buildOverallAnalytics(user.company.id, dateFrom, dateTo, query)
+    const analytics = await buildOverallAnalytics(user.companies.id, dateFrom, dateTo, query)
 
     return NextResponse.json(analytics)
 

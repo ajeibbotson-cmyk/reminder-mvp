@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const companyId = session.user.company_id
+    const companyId = session.user.companies_id
 
     // Get real-time metrics with minimal caching
     const filters = {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const companyId = session.user.company_id
+    const companyId = session.user.companies_id
     const body = await request.json()
 
     // Validate event data

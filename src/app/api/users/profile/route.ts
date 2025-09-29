@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     const user = await userService.getUserById(
       authContext.user.id,
-      authContext.user.companyId,
+      authContext.user.companiesId,
       authContext.user.role,
       authContext.user.id
     )
@@ -39,7 +39,7 @@ export async function PUT(request: NextRequest) {
     const user = await userService.updateUser(
       authContext.user.id,
       profileUpdateData,
-      authContext.user.companyId,
+      authContext.user.companiesId,
       authContext.user.role,
       authContext.user.id
     )

@@ -48,7 +48,7 @@ export async function getAuthContext(_request: NextRequest): Promise<AuthContext
       email: user.email,
       name: user.name,
       role: user.role,
-      companyId: user.company_id
+      companyId: user.companies_id
     },
     company: {
       id: user.companies.id,
@@ -81,7 +81,7 @@ export async function requireCompanyAccess(
 ): Promise<AuthContext> {
   const authContext = await getAuthContext(request)
   
-  if (authContext.user.companyId !== companyId) {
+  if (authContext.user.companiesId !== companyId) {
     throw new ForbiddenError('Access denied to this company data')
   }
   
@@ -94,7 +94,7 @@ export async function requireResourceAccess(
 ): Promise<AuthContext> {
   const authContext = await getAuthContext(request)
   
-  if (authContext.user.companyId !== resourceCompanyId) {
+  if (authContext.user.companiesId !== resourceCompanyId) {
     throw new ForbiddenError('Access denied to this resource')
   }
   

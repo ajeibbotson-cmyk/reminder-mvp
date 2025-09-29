@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { extractedData, action, matchResults } = body
 
-    const extractionService = createCustomerExtractionService(session.user.companyId)
+    const extractionService = createCustomerExtractionService(session.user.companiesId)
 
     switch (action) {
       case 'extract_spreadsheet': {

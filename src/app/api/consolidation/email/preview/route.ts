@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
           {
             includeIndividualInvoices,
             includeSummaryPDF: includeSummaryPdf,
-            companyId: authContext.user.companyId,
+            companyId: authContext.user.companiesId,
             language: language as 'en' | 'ar'
           }
         )

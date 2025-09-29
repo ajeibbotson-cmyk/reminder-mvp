@@ -65,7 +65,7 @@ export async function GET(
     }
 
     // Check if user has access to this customer
-    if (customer.companyId !== authContext.user.companyId) {
+    if (customer.companyId !== authContext.user.companiesId) {
       throw new NotFoundError('Customer')
     }
 
@@ -175,7 +175,7 @@ export async function PUT(
       throw new NotFoundError('Customer')
     }
 
-    if (existingCustomer.companyId !== authContext.user.companyId) {
+    if (existingCustomer.companyId !== authContext.user.companiesId) {
       throw new NotFoundError('Customer')
     }
 
@@ -188,7 +188,7 @@ export async function PUT(
       // Check for duplicate TRN (excluding current customer)
       const existingTrnCustomer = await prisma.customers.findFirst({
         where: {
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           // trn: updateData.trn,
           id: { not: id },
           is_active: true
@@ -204,7 +204,7 @@ export async function PUT(
     if (updateData.email && updateData.email !== existingCustomer.email) {
       const existingEmailCustomer = await prisma.customers.findFirst({
         where: {
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           email: updateData.email,
           id: { not: id },
           is_active: true
@@ -253,7 +253,7 @@ export async function PUT(
         await tx.invoices.updateMany({
           where: {
             customerEmail: existingCustomer.email,
-            companyId: authContext.user.companyId,
+            companyId: authContext.user.companiesId,
             is_active: true
           },
           data: {
@@ -269,7 +269,7 @@ export async function PUT(
         await tx.invoices.updateMany({
           where: {
             customerEmail: customer.email,
-            companyId: authContext.user.companyId,
+            companyId: authContext.user.companiesId,
             is_active: true
           },
           data: {
@@ -286,7 +286,7 @@ export async function PUT(
       
       await tx.activities.create({
         data: {
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           userId: authContext.user.id,
           type: 'customer_updated',
           description: `Updated customer ${customer.name}${customer.nameAr ? ` (${customer.nameAr})` : ''} - Fields: ${changedFields.join(', ')}`,
@@ -364,7 +364,7 @@ export async function DELETE(
       throw new NotFoundError('Customer')
     }
 
-    if (existingCustomer.companyId !== authContext.user.companyId) {
+    if (existingCustomer.companyId !== authContext.user.companiesId) {
       throw new NotFoundError('Customer')
     }
 
@@ -410,7 +410,7 @@ export async function DELETE(
         await tx.invoices.updateMany({
           where: {
             customerEmail: existingCustomer.email,
-            companyId: authContext.user.companyId
+            companyId: authContext.user.companiesId
           },
           data: {
             is_active: false,
@@ -422,7 +422,7 @@ export async function DELETE(
       // Log comprehensive activity for UAE audit requirements
       await tx.activities.create({
         data: {
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           userId: authContext.user.id,
           type: 'customer_deleted',
           description: `Archived customer ${existingCustomer.name}${existingCustomer.nameAr ? ` (${existingCustomer.nameAr})` : ''} for compliance`,

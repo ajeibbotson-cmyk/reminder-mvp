@@ -38,17 +38,17 @@ export async function GET(
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
     const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
-        companyId: user.company.id
+        companyId: user.companies.id
       }
     })
 
@@ -136,17 +136,17 @@ export async function PUT(
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
     const existingSequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
-        companyId: user.company.id
+        companyId: user.companies.id
       }
     })
 
@@ -160,7 +160,7 @@ export async function PUT(
     if (body.name && body.name !== existingSequence.name) {
       const nameExists = await prisma.follow_up_sequences.findFirst({
         where: {
-          companyId: user.company.id,
+          companyId: user.companies.id,
           name: body.name,
           id: { not: params.id }
         }
@@ -270,7 +270,7 @@ export async function PUT(
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.company.id,
+        companyId: user.companies.id,
         userId: user.id,
         type: 'SEQUENCE_UPDATED',
         description: `Updated sequence: ${updatedSequence.name}`,
@@ -315,17 +315,17 @@ export async function DELETE(
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
     const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
-        companyId: user.company.id
+        companyId: user.companies.id
       }
     })
 
@@ -382,7 +382,7 @@ export async function DELETE(
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.company.id,
+        companyId: user.companies.id,
         userId: user.id,
         type: 'SEQUENCE_DELETED',
         description: `Deleted sequence: ${sequence.name}`,

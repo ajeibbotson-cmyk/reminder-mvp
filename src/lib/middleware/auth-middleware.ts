@@ -67,7 +67,7 @@ export function withAuth(
 
       // 4. Company access validation
       if (options.requireCompanyAccess && context?.params?.companyId) {
-        if (user.company_id !== context.params.companyId) {
+        if (user.companies_id !== context.params.companyId) {
           throw new ForbiddenError('Access denied to this company data')
         }
       }
@@ -119,7 +119,7 @@ export function withAuth(
         email: user.email,
         name: user.name,
         role: user.role,
-        companyId: user.company_id
+        companyId: user.companies_id
       }
       authenticatedRequest.company = {
         id: user.companies.id,
@@ -128,7 +128,7 @@ export function withAuth(
       }
 
       // 8. Log API access for security monitoring
-      await logApiAccess(user.id, user.company_id, request.method, request.nextUrl.pathname)
+      await logApiAccess(user.id, user.companies_id, request.method, request.nextUrl.pathname)
 
       // 9. Call the actual handler
       return await handler(authenticatedRequest, context)

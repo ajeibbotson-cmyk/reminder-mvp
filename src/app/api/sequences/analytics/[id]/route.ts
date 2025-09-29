@@ -97,10 +97,10 @@ export async function GET(
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -117,7 +117,7 @@ export async function GET(
     const sequence = await prisma.follow_up_sequences.findFirst({
       where: {
         id: params.id,
-        companyId: user.company.id
+        companyId: user.companies.id
       }
     })
 
@@ -139,7 +139,7 @@ export async function GET(
     const analytics = await buildDetailedAnalytics(
       sequence,
       steps,
-      user.company.id,
+      user.companies.id,
       dateFrom,
       dateTo
     )

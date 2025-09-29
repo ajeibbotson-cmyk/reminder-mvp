@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const filters = validateQueryParams(searchParams, customerSearchSchema)
     
     // Ensure user can only search their company's customers
-    if (filters.companyId !== authContext.user.companyId) {
+    if (filters.companyId !== authContext.user.companiesId) {
       throw new Error('Access denied to company data')
     }
 
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     // Build main where clause
     const whereClause: Prisma.CustomerWhereInput = {
-      companyId: authContext.user.companyId,
+      companyId: authContext.user.companiesId,
       isActive: filters.includeInactive ? undefined : true,
       OR: searchConditions.length > 0 ? searchConditions : undefined
     }

@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
     // Parse query parameters
     const { searchParams } = new URL(request.url)
     const params = analyticsRequestSchema.parse({
-      companyId: session.user.companyId,
+      companyId: session.user.companiesId,
       period: searchParams.get('period') || '30d',
       includeRealTime: searchParams.get('includeRealTime') !== 'false',
       includeCustomerBreakdown: searchParams.get('includeCustomerBreakdown') === 'true'

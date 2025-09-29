@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const companyId = session.user.company_id
+    const companyId = session.user.companies_id
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)

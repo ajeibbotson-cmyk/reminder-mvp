@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     // Base where clause
     const baseWhere = {
-      company_id: authContext.user.companyId,
+      company_id: authContext.user.companiesId,
       created_at: { gte: startDate }
     }
 
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       getDailyStats(baseWhere, daysBack),
       
       // Template performance comparison
-      getTemplatePerformance(authContext.user.companyId, startDate),
+      getTemplatePerformance(authContext.user.companiesId, startDate),
       
       // Top recipient engagement
       getRecipientEngagement(baseWhere),

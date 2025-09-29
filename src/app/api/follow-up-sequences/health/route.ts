@@ -19,10 +19,10 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
     ] = await Promise.all([
       followUpMonitoringService.performHealthCheck(),
       includeMetrics ? followUpMonitoringService.getPerformanceMetrics(timeframe) : null,
-      includeMetrics ? followUpDetectionService.getDetectionStatistics(user.company.id) : null,
-      includeMetrics ? followUpEscalationService.getEscalationStatistics(user.company.id) : null
+      includeMetrics ? followUpDetectionService.getDetectionStatistics(user.companies.id) : null,
+      includeMetrics ? followUpEscalationService.getEscalationStatistics(user.companies.id) : null
     ])
 
     // Build response
@@ -142,10 +142,10 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company || user.role !== 'ADMIN') {
+    if (!user?.companies || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -209,14 +209,14 @@ export async function POST(request: NextRequest) {
 
     if (testType === 'stress') {
       // Stress test the system with artificial load
-      testResults.results.stressTest = await performStressTest(user.company.id)
+      testResults.results.stressTest = await performStressTest(user.companies.id)
     }
 
     // Log the test activity
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.company.id,
+        companyId: user.companies.id,
         userId: user.id,
         type: 'SYSTEM_TEST',
         description: `Manual ${testType} system test performed`,
@@ -265,10 +265,10 @@ export async function PUT(request: NextRequest) {
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company || user.role !== 'ADMIN') {
+    if (!user?.companies || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -289,7 +289,7 @@ export async function PUT(request: NextRequest) {
     const metrics: any = {
       timeframe,
       period: { start: startDate, end: now },
-      companyId: user.company.id
+      companyId: user.companies.id
     }
 
     if (metric === 'all' || metric === 'volume') {
@@ -297,19 +297,19 @@ export async function PUT(request: NextRequest) {
       const [invoicesProcessed, emailsSent, sequencesTriggered] = await Promise.all([
         prisma.invoices.count({
           where: {
-            companyId: user.company.id,
+            companyId: user.companies.id,
             updatedAt: { gte: startDate }
           }
         }),
         prisma.follow_up_logs.count({
           where: {
-            invoice: { companyId: user.company.id },
+            invoice: { companyId: user.companies.id },
             sentAt: { gte: startDate }
           }
         }),
         prisma.activities.count({
           where: {
-            companyId: user.company.id,
+            companyId: user.companies.id,
             type: 'FOLLOW_UP_TRIGGERED',
             createdAt: { gte: startDate }
           }
@@ -334,14 +334,14 @@ export async function PUT(request: NextRequest) {
       const [complianceViolations, rescheduledEmails, holidaySkips] = await Promise.all([
         prisma.activities.count({
           where: {
-            companyId: user.company.id,
+            companyId: user.companies.id,
             type: 'COMPLIANCE_VIOLATION',
             createdAt: { gte: startDate }
           }
         }),
         prisma.activities.count({
           where: {
-            companyId: user.company.id,
+            companyId: user.companies.id,
             type: 'EMAIL_RESCHEDULED',
             description: { contains: 'UAE compliance' },
             createdAt: { gte: startDate }
@@ -349,7 +349,7 @@ export async function PUT(request: NextRequest) {
         }),
         prisma.activities.count({
           where: {
-            companyId: user.company.id,
+            companyId: user.companies.id,
             type: 'HOLIDAY_SKIP',
             createdAt: { gte: startDate }
           }

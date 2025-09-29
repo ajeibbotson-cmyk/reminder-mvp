@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       const validationResult = await validateBulkStatusUpdate(
         invoiceIds,
         status,
-        authContext.user.companyId,
+        authContext.user.companiesId,
         authContext.user.role,
         forceOverride
       )
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       invoiceIds,
       status,
       {
-        companyId: authContext.user.companyId,
+        companyId: authContext.user.companiesId,
         userId: authContext.user.id,
         userRole: authContext.user.role,
         reason: reason || `Bulk update to ${status}`,
@@ -169,10 +169,10 @@ export async function GET(request: NextRequest) {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
     
     // Get company-wide status insights
-    const statusInsights = await invoiceStatusService.getStatusInsights(authContext.user.companyId)
+    const statusInsights = await invoiceStatusService.getStatusInsights(authContext.user.companiesId)
     
     // Get recent bulk operations from audit trail
-    const recentBulkOperations = await getBulkOperationHistory(authContext.user.companyId)
+    const recentBulkOperations = await getBulkOperationHistory(authContext.user.companiesId)
     
     return successResponse({
       statusInsights,

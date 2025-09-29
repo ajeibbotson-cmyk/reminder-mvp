@@ -91,11 +91,11 @@ export class SequenceExecutionService {
       const [sequence, invoice] = await Promise.all([
         prisma.follow_up_sequences.findUnique({
           where: { id: sequenceId },
-          include: { company: true }
+          include: { companies: true }
         }),
         prisma.invoices.findUnique({
           where: { id: invoiceId },
-          include: { customer: true, company: true }
+          include: { customers: true, companies: true }
         })
       ])
 
@@ -211,7 +211,7 @@ export class SequenceExecutionService {
         include: {
           followUpSequence: true,
           invoice: {
-            include: { customer: true, company: true }
+            include: { customers: true, companies: true }
           }
         },
         orderBy: { stepNumber: 'desc' }

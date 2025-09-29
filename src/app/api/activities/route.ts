@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const limitParam = searchParams.get('limit')
     
     // Ensure user can only access their company's activities
-    if (companyId && companyId !== authContext.user.companyId) {
+    if (companyId && companyId !== authContext.user.companiesId) {
       throw new Error('Access denied to company data')
     }
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const activities = await prisma.activities.findMany({
       where: {
-        companyId: authContext.user.companyId
+        companyId: authContext.user.companiesId
       },
       include: {
         user: {
@@ -59,8 +59,8 @@ export async function POST(request: NextRequest) {
     const activityData = await validateRequestBody(request, createActivitySchema)
     
     // Ensure user can only create activities for their company
-    if (activityData.companyId !== authContext.user.companyId) {
-      activityData.companyId = authContext.user.companyId
+    if (activityData.companyId !== authContext.user.companiesId) {
+      activityData.companyId = authContext.user.companiesId
     }
 
     // Ensure user can only log activities for themselves

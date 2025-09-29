@@ -101,13 +101,13 @@ export async function GET(request: NextRequest) {
     const searchQuery = advancedSearchSchema.parse(Object.fromEntries(searchParams.entries()))
     
     // Build comprehensive search where clause
-    const whereClause = buildSearchWhereClause(searchQuery, authContext.user.companyId)
+    const whereClause = buildSearchWhereClause(searchQuery, authContext.user.companiesId)
     
     // Execute search with parallel queries for better performance
     const [invoices, totalCount, facetData] = await Promise.all([
       executeInvoiceSearch(whereClause, searchQuery),
       getSearchCount(whereClause),
-      searchQuery.facets.length > 0 ? buildFacetData(whereClause, searchQuery.facets, authContext.user.companyId) : {}
+      searchQuery.facets.length > 0 ? buildFacetData(whereClause, searchQuery.facets, authContext.user.companiesId) : {}
     ])
     
     // Calculate relevance scores and apply highlighting
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
     if (searchQuery.includeSuggestions && processedInvoices.length < 5) {
       suggestions = await generateSearchSuggestions(
         searchQuery.query, 
-        authContext.user.companyId
+        authContext.user.companiesId
       )
     }
     
@@ -146,12 +146,12 @@ export async function GET(request: NextRequest) {
         searchTime,
         totalResults: totalCount,
         appliedFilters: getAppliedFilters(searchQuery),
-        didYouMean: await generateDidYouMeanSuggestion(searchQuery.query, authContext.user.companyId)
+        didYouMean: await generateDidYouMeanSuggestion(searchQuery.query, authContext.user.companiesId)
       }
     }
 
     // Log search activity for analytics
-    await logSearchActivity(authContext.user.id, authContext.user.companyId, searchQuery, result)
+    await logSearchActivity(authContext.user.id, authContext.user.companiesId, searchQuery, result)
 
     return successResponse(result, `Found ${totalCount} invoices matching your search`)
 

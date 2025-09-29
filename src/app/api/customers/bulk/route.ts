@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const bulkAction = await validateRequestBody(request, bulkCustomerActionSchema)
     
     // Ensure user can only operate on their company's customers
-    if (bulkAction.companyId !== authContext.user.companyId) {
+    if (bulkAction.companyId !== authContext.user.companiesId) {
       throw new Error('Access denied to company data')
     }
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const customersToProcess = await prisma.customers.findMany({
       where: {
         id: { in: bulkAction.customerIds },
-        companyId: authContext.user.companyId,
+        companyId: authContext.user.companiesId,
         isActive: true
       },
       include: {
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     switch (bulkAction.action) {
       case 'update':
         results = await performBulkUpdate(
-          authContext.user.companyId,
+          authContext.user.companiesId,
           authContext.user.id,
           customersToProcess,
           bulkAction.updateData!
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       case 'delete':
       case 'archive':
         results = await performBulkArchive(
-          authContext.user.companyId,
+          authContext.user.companiesId,
           authContext.user.id,
           customersToProcess,
           bulkAction.reason
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
           throw new Error('Merge data is required for merge operation')
         }
         results = await performBulkMerge(
-          authContext.user.companyId,
+          authContext.user.companiesId,
           authContext.user.id,
           bulkAction.mergeData
         )
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
     // Log bulk operation for audit
     await prisma.activities.create({
       data: {
-        companyId: authContext.user.companyId,
+        companyId: authContext.user.companiesId,
         userId: authContext.user.id,
         type: `customer_bulk_${bulkAction.action}`,
         description: `Bulk ${bulkAction.action} operation on ${results.processedCount} customers`,

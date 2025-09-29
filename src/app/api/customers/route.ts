@@ -24,13 +24,13 @@ export async function GET(request: NextRequest) {
     const filters = validateQueryParams(searchParams, customerFiltersSchema)
     
     // Ensure user can only access their company's customers
-    if (filters.companyId !== authContext.user.companyId) {
+    if (filters.companyId !== authContext.user.companiesId) {
       throw new Error('Access denied to company data')
     }
 
     // Build dynamic where clause for advanced filtering
     const whereClause: Prisma.CustomerWhereInput = {
-      companyId: authContext.user.companyId,
+      companyId: authContext.user.companiesId,
       isActive: filters.isActive
     }
 
@@ -242,8 +242,8 @@ export async function POST(request: NextRequest) {
     const customerData = await validateRequestBody(request, createCustomerSchema)
     
     // Ensure user can only create customers for their company
-    if (customerData.companyId !== authContext.user.companyId) {
-      customerData.companyId = authContext.user.companyId
+    if (customerData.companyId !== authContext.user.companiesId) {
+      customerData.companyId = authContext.user.companiesId
     }
 
     // UAE-specific business validations
@@ -255,7 +255,7 @@ export async function POST(request: NextRequest) {
     if (customerData.trn) {
       const existingTrnCustomer = await prisma.customers.findFirst({
         where: {
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           // Note: TRN field needs to be added to customer schema
           // trn: customerData.trn,
           isActive: true
@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
     // Check for duplicate email within the company
     const existingEmailCustomer = await prisma.customers.findFirst({
       where: {
-        companyId: authContext.user.companyId,
+        companyId: authContext.user.companiesId,
         email: customerData.email,
         isActive: true
       }
@@ -309,7 +309,7 @@ export async function POST(request: NextRequest) {
       // Log activity with detailed metadata
       await tx.activities.create({
         data: {
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           userId: authContext.user.id,
           type: 'customer_created',
           description: `Created customer ${customerData.name}${customerData.nameAr ? ` (${customerData.nameAr})` : ''}`,

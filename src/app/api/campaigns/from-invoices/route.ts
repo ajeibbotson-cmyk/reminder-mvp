@@ -93,7 +93,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    if (!session.user.companyId) {
+    if (!session.user.companiesId) {
       return NextResponse.json(
         { error: 'Unauthorized - Company association required' },
         { status: 401 }

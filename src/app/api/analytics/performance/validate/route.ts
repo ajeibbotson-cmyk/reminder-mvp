@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const companyId = session.user.companyId
+    const companyId = session.user.companiesId
     const metrics: PerformanceMetric[] = []
 
     // Test 1: Dashboard Analytics Query (<200ms target)
@@ -340,11 +340,11 @@ export async function POST(request: NextRequest) {
         const [analytics, customers, queue] = await Promise.all([
           fetch(`${process.env.NEXTAUTH_URL}/api/analytics/consolidation/dashboard?period=30d`),
           prisma.customers.findMany({
-            where: { companyId: session.user.companyId },
+            where: { companyId: session.user.companiesId },
             take: 50
           }),
           prisma.customer_consolidated_reminders.findMany({
-            where: { companyId: session.user.companyId },
+            where: { companyId: session.user.companiesId },
             take: 20
           })
         ])
@@ -368,7 +368,7 @@ export async function POST(request: NextRequest) {
         const analyticsStart = Date.now()
         await prisma.$queryRaw`
           SELECT * FROM get_consolidation_analytics(
-            ${session.user.companyId}::VARCHAR,
+            ${session.user.companiesId}::VARCHAR,
             CURRENT_DATE - INTERVAL '30 days',
             CURRENT_DATE,
             NULL::VARCHAR
@@ -389,7 +389,7 @@ export async function POST(request: NextRequest) {
         const bulkStart = Date.now()
         // Simulate bulk operation on sample data
         const sampleConsolidations = await prisma.customer_consolidated_reminders.findMany({
-          where: { companyId: session.user.companyId },
+          where: { companyId: session.user.companiesId },
           take: 10
         })
 

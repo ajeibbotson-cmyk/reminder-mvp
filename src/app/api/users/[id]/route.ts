@@ -19,7 +19,7 @@ export async function GET(
 
     const user = await userService.getUserById(
       userId,
-      authContext.user.companyId,
+      authContext.user.companiesId,
       authContext.user.role,
       authContext.user.id
     )
@@ -48,7 +48,7 @@ export async function PUT(
     const user = await userService.updateUser(
       userId,
       updateData,
-      authContext.user.companyId,
+      authContext.user.companiesId,
       authContext.user.role,
       authContext.user.id
     )
@@ -72,7 +72,7 @@ export async function DELETE(
 
     await userService.deleteUser(
       userId,
-      authContext.user.companyId,
+      authContext.user.companiesId,
       authContext.user.role,
       authContext.user.id
     )

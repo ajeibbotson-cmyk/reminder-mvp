@@ -54,7 +54,7 @@ export async function POST(
       )
     }
 
-    if (!session.user.companyId) {
+    if (!session.user.companiesId) {
       return NextResponse.json(
         { error: 'Unauthorized - Company association required' },
         { status: 401 }

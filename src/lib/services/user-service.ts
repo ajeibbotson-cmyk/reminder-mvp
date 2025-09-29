@@ -183,7 +183,7 @@ export class UserService {
 
     // Users can view their own profile, or admins can view any user in their company
     const canView = userId === requesterId || 
-                   (requesterRole === UserRole.ADMIN && user.company_id === requesterCompanyId)
+                   (requesterRole === UserRole.ADMIN && user.companies_id === requesterCompanyId)
 
     if (!canView) {
       throw new ForbiddenError('Access denied to this user')
@@ -213,7 +213,7 @@ export class UserService {
 
     // Check permissions - users can edit their own profile (limited), admins can edit any user in their company
     const isSelfEdit = userId === requesterId
-    const isAdminEdit = requesterRole === UserRole.ADMIN && user.company_id === requesterCompanyId
+    const isAdminEdit = requesterRole === UserRole.ADMIN && user.companies_id === requesterCompanyId
 
     if (!isSelfEdit && !isAdminEdit) {
       throw new ForbiddenError('Access denied to edit this user')
@@ -289,7 +289,7 @@ export class UserService {
     }
 
     // Can only delete users from same company
-    if (user.company_id !== requesterCompanyId) {
+    if (user.companies_id !== requesterCompanyId) {
       throw new ForbiddenError('Cannot delete users from other companies')
     }
 
@@ -346,7 +346,7 @@ export class UserService {
 
     // Log the activity
     await this.logUserActivity(
-      user.company_id,
+      user.companies_id,
       userId,
       'PASSWORD_CHANGED',
       'Password changed successfully'
@@ -488,7 +488,7 @@ export class UserService {
       email: user.email,
       name: user.name,
       role: user.role,
-      companyId: user.company_id,
+      companyId: user.companies_id,
       createdAt: user.created_at,
       updatedAt: user.updated_at,
       company: user.companies ? {

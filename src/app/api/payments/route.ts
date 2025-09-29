@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       const invoice = await tx.invoices.findUnique({
         where: { 
           id: paymentData.invoiceId,
-          companyId: authContext.user.companyId // Enforce company isolation
+          companyId: authContext.user.companiesId // Enforce company isolation
         },
         include: {
           payments: {
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           {
             userId: authContext.user.id,
             userRole: authContext.user.role,
-            companyId: authContext.user.companyId,
+            companyId: authContext.user.companiesId,
             reason: `Payment received - ${formatUAECurrency(new Decimal(paymentData.amount), invoice.currency)} via ${paymentData.method}`,
             notes: `Reference: ${paymentData.reference || 'N/A'}. Total paid: ${formatUAECurrency(totalPaid, invoice.currency)}`,
             notifyCustomer: true
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       await tx.activities.create({
         data: {
           id: crypto.randomUUID(),
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           userId: authContext.user.id,
           type: 'payment_recorded',
           description: `Payment of ${formatUAECurrency(new Decimal(paymentData.amount), invoice.currency)} recorded for invoice ${invoice.number}`,
@@ -241,7 +241,7 @@ export async function GET(request: NextRequest) {
     // Build where clause with company isolation
     const whereClause: any = {
       invoices: {
-        companyId: authContext.user.companyId
+        companyId: authContext.user.companiesId
       }
     }
 
@@ -292,7 +292,7 @@ export async function GET(request: NextRequest) {
     ])
 
     // Calculate payment statistics
-    const paymentStats = await getPaymentStatistics(authContext.user.companyId, whereClause)
+    const paymentStats = await getPaymentStatistics(authContext.user.companiesId, whereClause)
 
     // Format response
     const formattedPayments = payments.map(payment => ({

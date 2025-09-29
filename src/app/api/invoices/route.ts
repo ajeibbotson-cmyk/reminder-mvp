@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const filters = invoiceFiltersSchema.parse(params)
 
     // Company ID comes from authenticated session, not query parameters
-    const companyId = authContext.user.companyId
+    const companyId = authContext.user.companiesId
 
     const skip = (filters.page - 1) * filters.limit
 
@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
     ])
 
     // Calculate additional insights for UAE business needs
-    const insights = await calculateInvoiceInsights(invoices, authContext.user.companyId)
+    const insights = await calculateInvoiceInsights(invoices, authContext.user.companiesId)
 
     // Enhanced response with UAE business insights
     return successResponse({

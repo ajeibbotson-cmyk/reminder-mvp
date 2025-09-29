@@ -84,7 +84,7 @@ export class SequenceTriggersService {
       // Get all active trigger rules
       const triggerRules = await prisma.follow_up_sequences.findMany({
         where: { active: true },
-        include: { company: true }
+        include: { companies: true }
       })
 
       for (const sequence of triggerRules) {
@@ -680,7 +680,7 @@ export class SequenceTriggersService {
       if (newStatus === 'OVERDUE' && oldStatus !== 'OVERDUE') {
         const invoice = await prisma.invoices.findUnique({
           where: { id: invoiceId },
-          include: { company: true }
+          include: { companies: true }
         })
 
         if (invoice) {

@@ -40,7 +40,7 @@ export async function GET(
     }
 
     // Verify user can access this template
-    if (template.companyId !== authContext.user.companyId) {
+    if (template.companyId !== authContext.user.companiesId) {
       throw new Error('Access denied to email template')
     }
 
@@ -140,7 +140,7 @@ export async function PUT(
     }
 
     // Verify user can access this template
-    if (existingTemplate.companyId !== authContext.user.companyId) {
+    if (existingTemplate.companyId !== authContext.user.companiesId) {
       throw new Error('Access denied to email template')
     }
 
@@ -207,7 +207,7 @@ export async function PUT(
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: authContext.user.companyId,
+        companyId: authContext.user.companiesId,
         userId: authContext.user.id,
         type: 'email_template_updated',
         description: `Updated email template: ${updatedTemplate.name}`,
@@ -256,7 +256,7 @@ export async function DELETE(
     }
 
     // Verify user can access this template
-    if (existingTemplate.companyId !== authContext.user.companyId) {
+    if (existingTemplate.companyId !== authContext.user.companiesId) {
       throw new Error('Access denied to email template')
     }
 
@@ -275,7 +275,7 @@ export async function DELETE(
       await prisma.activities.create({
         data: {
           id: crypto.randomUUID(),
-          companyId: authContext.user.companyId,
+          companyId: authContext.user.companiesId,
           userId: authContext.user.id,
           type: 'email_template_deactivated',
           description: `Deactivated email template: ${existingTemplate.name} (had ${existingTemplate._count.emailLogs} sent emails)`,
@@ -302,7 +302,7 @@ export async function DELETE(
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: authContext.user.companyId,
+        companyId: authContext.user.companiesId,
         userId: authContext.user.id,
         type: 'email_template_deleted',
         description: `Deleted email template: ${existingTemplate.name}`,

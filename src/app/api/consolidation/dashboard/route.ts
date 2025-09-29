@@ -24,10 +24,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`📊 Getting consolidation dashboard for company ${session.user.companyId}`)
+    console.log(`📊 Getting consolidation dashboard for company ${session.user.companiesId}`)
 
     // Get current consolidation candidates
-    const candidates = await customerConsolidationService.getConsolidationCandidates(session.user.companyId)
+    const candidates = await customerConsolidationService.getConsolidationCandidates(session.user.companiesId)
     const eligibleCandidates = candidates.filter(c => c.canContact)
 
     // Calculate queue summary
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     // Get recent consolidation activity (last 7 days)
     const recentActivity = await prisma.customerConsolidatedReminders.findMany({
       where: {
-        companyId: session.user.companyId,
+        companyId: session.user.companiesId,
         createdAt: {
           gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
         }
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
     // Get upcoming scheduled consolidations
     const upcomingScheduled = await prisma.customerConsolidatedReminders.findMany({
       where: {
-        companyId: session.user.companyId,
+        companyId: session.user.companiesId,
         deliveryStatus: 'QUEUED',
         scheduledFor: {
           gte: new Date(),
@@ -201,7 +201,7 @@ export async function GET(request: NextRequest) {
     // Get effectiveness metrics (last 30 days)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const effectivenessMetrics = await customerConsolidationService.getConsolidationMetrics(
-      session.user.companyId,
+      session.user.companiesId,
       { from: thirtyDaysAgo, to: new Date() }
     )
 

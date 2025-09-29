@@ -37,10 +37,10 @@ export async function POST(
     // Get user and company info
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -48,7 +48,7 @@ export async function POST(
     const invoice = await prisma.invoices.findFirst({
       where: {
         id: invoiceId,
-        companyId: user.company.id
+        companyId: user.companies.id
       },
       include: {
         customer: true,
@@ -76,7 +76,7 @@ export async function POST(
     const suppressionCheck = await prisma.emailSuppressionList.findFirst({
       where: {
         emailAddress: recipientEmail,
-        companyId: user.company.id,
+        companyId: user.companies.id,
         isActive: true
       }
     })
@@ -94,7 +94,7 @@ export async function POST(
       template = await prisma.emailTemplate.findFirst({
         where: {
           id: validatedData.templateId,
-          companyId: user.company.id,
+          companyId: user.companies.id,
           isActive: true
         }
       })
@@ -110,7 +110,7 @@ export async function POST(
     if (!template && !validatedData.subject && !validatedData.content) {
       template = await prisma.emailTemplate.findFirst({
         where: {
-          companyId: user.company.id,
+          companyId: user.companies.id,
           templateType: 'INVOICE_REMINDER',
           isDefault: true,
           isActive: true
@@ -130,7 +130,7 @@ export async function POST(
     // Prepare email options
     const emailOptions = {
       templateId: template?.id,
-      companyId: user.company.id,
+      companyId: user.companies.id,
       invoiceId: invoice.id,
       customerId: invoice.customer?.id,
       recipientEmail,
@@ -163,7 +163,7 @@ export async function POST(
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.company.id,
+        companyId: user.companies.id,
         userId: user.id,
         type: 'invoice_email_sent',
         description: `Sent email for invoice ${invoice.number} to ${recipientEmail}`,
@@ -236,10 +236,10 @@ export async function GET(
     // Get user and company info
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
-      include: { company: true }
+      include: { companies: true }
     })
 
-    if (!user?.company) {
+    if (!user?.companies) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -247,7 +247,7 @@ export async function GET(
     const invoice = await prisma.invoices.findFirst({
       where: {
         id: invoiceId,
-        companyId: user.company.id
+        companyId: user.companies.id
       },
       include: {
         customer: true
@@ -261,7 +261,7 @@ export async function GET(
     // Get available email templates
     const templates = await prisma.emailTemplate.findMany({
       where: {
-        companyId: user.company.id,
+        companyId: user.companies.id,
         isActive: true,
         templateType: {
           in: ['INVOICE_REMINDER', 'OVERDUE_NOTICE', 'PAYMENT_REQUEST', 'FOLLOW_UP']
@@ -288,7 +288,7 @@ export async function GET(
     const emailHistory = await prisma.emailLog.findMany({
       where: {
         invoiceId: invoice.id,
-        companyId: user.company.id
+        companyId: user.companies.id
       },
       include: {
         emailTemplate: {
@@ -307,7 +307,7 @@ export async function GET(
     const isEmailSuppressed = await prisma.emailSuppressionList.findFirst({
       where: {
         emailAddress: invoice.customerEmail,
-        companyId: user.company.id,
+        companyId: user.companies.id,
         isActive: true
       }
     })
