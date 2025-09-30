@@ -9,6 +9,7 @@ import {
 import { formatUAECurrency } from '@/lib/vat-calculator'
 import { UserRole, InvoiceStatus } from '@prisma/client'
 import { Decimal } from 'decimal.js'
+import { randomUUID } from 'crypto'
 
 // GET /api/invoices - Fetch invoices with filters and pagination
 export async function GET(request: NextRequest) {
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
     const filters = invoiceFiltersSchema.parse(params)
 
     // Company ID comes from authenticated session, not query parameters
-    const companyId = authContext.user.companiesId
+    const companyId = authContext.user.companyId
 
     const skip = (filters.page - 1) * filters.limit
 
@@ -329,6 +330,145 @@ async function calculateInvoiceInsights(invoices: any[], companyId: string) {
       totalOutstanding: formatUAECurrency(totalOutstanding),
       totalOverdue: formatUAECurrency(totalOverdue)
     }
+  }
+}
+
+// POST /api/invoices - Create invoice from extracted PDF data
+export async function POST(request: NextRequest) {
+  try {
+    // Authenticate user and require proper permissions
+    const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
+    const companyId = authContext.user.companyId
+
+    // Parse request body
+    const body = await request.json()
+    const {
+      invoiceNumber,
+      customerName,
+      customerEmail,
+      amount,
+      vatAmount,
+      totalAmount,
+      currency = 'AED',
+      dueDate,
+      description
+    } = body
+
+    // Validate required fields
+    if (!invoiceNumber) {
+      return handleApiError(new Error('Invoice number is required'), 'Missing invoice number')
+    }
+    if (!customerName) {
+      return handleApiError(new Error('Customer name is required'), 'Missing customer name')
+    }
+    if (!customerEmail) {
+      return handleApiError(new Error('Customer email is required'), 'Missing customer email')
+    }
+    if (!amount || amount <= 0) {
+      return handleApiError(new Error('Valid amount is required'), 'Invalid amount')
+    }
+
+    // Calculate amounts if not provided
+    const invoiceAmount = new Decimal(amount)
+    const calculatedVatAmount = vatAmount ? new Decimal(vatAmount) : invoiceAmount.mul(0.05) // 5% UAE VAT
+    const calculatedTotalAmount = totalAmount ? new Decimal(totalAmount) : invoiceAmount.add(calculatedVatAmount)
+
+    // Parse due date or set default (30 days from now for UAE business terms)
+    let parsedDueDate: Date
+    if (dueDate) {
+      parsedDueDate = new Date(dueDate)
+      if (isNaN(parsedDueDate.getTime())) {
+        return handleApiError(new Error('Invalid due date format'), 'Invalid due date')
+      }
+    } else {
+      parsedDueDate = new Date()
+      parsedDueDate.setDate(parsedDueDate.getDate() + 30)
+    }
+
+    // Create invoice and invoice item in transaction for atomicity
+    const result = await prisma.$transaction(async (tx) => {
+      // Check for duplicate invoice number within company
+      const existingInvoice = await tx.invoices.findFirst({
+        where: {
+          company_id: companyId,
+          number: invoiceNumber
+        }
+      })
+
+      if (existingInvoice) {
+        throw new Error(`Invoice number ${invoiceNumber} already exists`)
+      }
+
+      // Create the invoice
+      const invoice = await tx.invoices.create({
+        data: {
+          id: randomUUID(),
+          company_id: companyId,
+          number: invoiceNumber,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          amount: invoiceAmount,
+          subtotal: invoiceAmount,
+          vat_amount: calculatedVatAmount,
+          total_amount: calculatedTotalAmount,
+          currency: currency,
+          due_date: parsedDueDate,
+          status: 'SENT',
+          description: description || `Invoice ${invoiceNumber}`,
+          created_at: new Date(),
+          updated_at: new Date()
+        }
+      })
+
+      // Create associated invoice item
+      const invoiceItem = await tx.invoice_items.create({
+        data: {
+          id: randomUUID(),
+          invoice_id: invoice.id,
+          description: description || `Invoice ${invoiceNumber}`,
+          quantity: new Decimal(1),
+          unit_price: invoiceAmount,
+          total: invoiceAmount,
+          vat_rate: new Decimal(5.00), // UAE VAT rate
+          vat_amount: calculatedVatAmount,
+          total_with_vat: calculatedTotalAmount,
+          created_at: new Date(),
+          updated_at: new Date()
+        }
+      })
+
+      return { invoice, invoiceItem }
+    })
+
+    // Log successful creation
+    logError('POST /api/invoices', null, {
+      action: 'invoice_created',
+      invoiceId: result.invoice.id,
+      invoiceNumber: invoiceNumber,
+      companyId: companyId,
+      userId: authContext.user.id
+    })
+
+    // Return success response
+    return successResponse({
+      invoice: {
+        id: result.invoice.id,
+        number: result.invoice.number,
+        customer_name: result.invoice.customer_name,
+        customer_email: result.invoice.customer_email,
+        total_amount: result.invoice.total_amount?.toString(),
+        currency: result.invoice.currency,
+        due_date: result.invoice.due_date,
+        status: result.invoice.status
+      }
+    }, 'Invoice created successfully', 201)
+
+  } catch (error) {
+    logError('POST /api/invoices', error, {
+      action: 'invoice_creation_failed',
+      companyId: 'unknown'
+    })
+    return handleApiError(error, 'Failed to create invoice')
   }
 }
 
