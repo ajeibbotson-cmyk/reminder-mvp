@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+import { getAuthPrisma } from "@/lib/prisma";
 import { handleApiError, successResponse, logError, ValidationError } from '@/lib/errors';
 
 export async function POST(request: NextRequest) {
@@ -23,9 +23,11 @@ export async function POST(request: NextRequest) {
       throw new ValidationError("Password must be at least 8 characters", "password");
     }
 
+    // Use direct connection for authentication operations
+    const authPrisma = getAuthPrisma();
 
     // Check if user already exists
-    const existingUser = await prisma.users.findUnique({
+    const existingUser = await authPrisma.users.findUnique({
       where: { email },
     });
 
@@ -36,8 +38,8 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hash(password, 12);
 
-    // Create company and user in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    // Create company and user in a transaction using direct connection
+    const result = await authPrisma.$transaction(async (tx) => {
       // Create company
       const newCompany = await tx.companies.create({
         data: {
