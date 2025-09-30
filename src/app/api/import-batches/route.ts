@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const companyId = searchParams.get('companyId')
 
     // Validate company access
-    if (companyId !== authContext.user.companiesId) {
+    if (companyId !== authContext.user.companyId) {
       return Response.json(
         { success: false, error: 'Access denied to this company data' },
         { status: 403 }
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch import batches for the company
-    const batches = await prisma.importBatches.findMany({
+    const batches = await prisma.import_batches.findMany({
       where: {
         company_id: companyId
       },

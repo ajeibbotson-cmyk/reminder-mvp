@@ -48,7 +48,7 @@ export async function getAuthContext(_request: NextRequest): Promise<AuthContext
       email: user.email,
       name: user.name,
       role: user.role,
-      companyId: user.companies_id
+      companyId: user.company_id
     },
     company: {
       id: user.companies.id,

@@ -74,8 +74,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logError('POST /api/auth/signup', error, {
-      email: request.body?.email || 'unknown',
-      company: request.body?.company || 'unknown'
+      email: 'redacted_for_security',
+      company: 'redacted_for_security'
     });
     return handleApiError(error);
   }
