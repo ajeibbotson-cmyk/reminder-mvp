@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
     const { fileName, fileSize, totalRecords, fileType } = body
 
     // Create new import batch
-    const batch = await prisma.importBatches.create({
+    const batch = await prisma.import_batches.create({
       data: {
-        company_id: authContext.user.companiesId,
+        company_id: authContext.user.companyId,
         file_name: fileName,
         file_size: fileSize,
         total_records: totalRecords,
