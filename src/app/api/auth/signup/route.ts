@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
         data: {
           id: randomUUID(),
           name: company,
+          updated_at: new Date(),
         },
       });
 
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
           password: hashedPassword,
           company_id: newCompany.id,
           role: "ADMIN", // First user is admin
+          updated_at: new Date(),
         },
       });
 
