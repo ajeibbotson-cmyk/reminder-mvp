@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { getAuthPrisma } from "@/lib/prisma";
 import { handleApiError, successResponse, logError, ValidationError } from '@/lib/errors';
+import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
       // Create company
       const newCompany = await tx.companies.create({
         data: {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           name: company,
         },
       });
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
       // Create user
       const newUser = await tx.users.create({
         data: {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           email,
           name,
           password: hashedPassword,
