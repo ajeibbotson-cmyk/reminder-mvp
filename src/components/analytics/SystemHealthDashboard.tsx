@@ -628,7 +628,7 @@ export const SystemHealthDashboard: React.FC = () => {
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span>Slow Queries (>500ms)</span>
+                    <span>Slow Queries ({'>'}500ms)</span>
                     <span className={`font-bold ${
                       systemHealth.databaseHealth.slowQueries > 5 ? 'text-red-600' : 'text-green-600'
                     }`}>

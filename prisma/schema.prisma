@@ -8,6 +8,58 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model ab_test_assignments {
+  id              String           @id
+  test_id         String
+  variant_id      String
+  recipient_email String
+  recipient_id    String?
+  assigned_at     DateTime         @default(now())
+  ab_test_config  ab_test_config   @relation(fields: [test_id], references: [id], onDelete: Cascade)
+  ab_test_events  ab_test_events[]
+
+  @@unique([test_id, recipient_email])
+  @@index([recipient_email])
+  @@index([test_id, variant_id])
+}
+
+model ab_test_config {
+  id                  String                @id
+  name                String
+  description         String?
+  company_id          String
+  variants            Json
+  target_audience     Json
+  success_metrics     Json
+  minimum_sample_size Int                   @default(1000)
+  significance_level  Decimal               @default(0.05) @db.Decimal(3, 2)
+  power               Decimal               @default(0.80) @db.Decimal(3, 2)
+  status              String                @default("draft")
+  start_date          DateTime
+  end_date            DateTime?
+  created_at          DateTime              @default(now())
+  updated_at          DateTime
+  ab_test_assignments ab_test_assignments[]
+  companies           companies             @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id, status])
+  @@index([status, start_date])
+}
+
+model ab_test_events {
+  id                  String              @id
+  test_id             String
+  assignment_id       String
+  event_type          String
+  event_data          Json?
+  timestamp           DateTime            @default(now())
+  ab_test_assignments ab_test_assignments @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
+
+  @@index([assignment_id, event_type])
+  @@index([test_id, event_type])
+  @@index([timestamp])
+}
+
 model accounts {
   id                  String  @id
   user_id             String
@@ -38,117 +90,361 @@ model activities {
   users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
+model audit_logs {
+  id              String    @id
+  company_id      String
+  user_id         String?
+  entity_type     String
+  entity_id       String
+  action          String
+  old_values      Json?
+  new_values      Json?
+  changed_fields  String[]
+  ip_address      String?
+  user_agent      String?
+  session_id      String?
+  request_id      String?
+  compliance_flag Boolean   @default(false)
+  risk_level      String    @default("LOW")
+  metadata        Json?
+  created_at      DateTime  @default(now())
+  companies       companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([action, created_at])
+  @@index([company_id, created_at])
+  @@index([company_id, entity_type, action])
+  @@index([company_id, entity_type, created_at])
+  @@index([compliance_flag, risk_level])
+  @@index([created_at, risk_level])
+  @@index([entity_type, entity_id])
+  @@index([user_id, action, created_at])
+  @@index([user_id, created_at])
+}
+
+model bank_reconciliation {
+  id                  String    @id
+  company_id          String
+  bank_account        String
+  statement_date      DateTime
+  statement_ref       String?
+  opening_balance     Decimal   @db.Decimal(12, 2)
+  closing_balance     Decimal   @db.Decimal(12, 2)
+  total_credits       Decimal   @db.Decimal(12, 2)
+  total_debits        Decimal   @db.Decimal(12, 2)
+  reconciled_amount   Decimal   @db.Decimal(12, 2)
+  unreconciled_amount Decimal   @db.Decimal(12, 2)
+  status              String    @default("PENDING")
+  reconciled_by       String?
+  reconciled_at       DateTime?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime
+  companies           companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([bank_account, statement_date])
+  @@index([company_id, statement_date])
+  @@index([reconciled_by, reconciled_at])
+  @@index([status, created_at])
+}
+
 model companies {
-  id                  String                @id
-  name                String
-  trn                 String?               @unique
-  address             String?
-  settings            Json?                 @default("{}")
-  default_vat_rate    Decimal?              @db.Decimal(5, 2) @default(5.00) // UAE VAT rate
-  email_settings      Json?                 // Email configuration settings
-  business_hours      Json?                 // UAE business hours configuration
-  is_active           Boolean               @default(true) // Soft delete flag
-  archived_at         DateTime?             // Archival timestamp
-  created_at          DateTime              @default(now())
-  updated_at          DateTime              @updatedAt
-  activities          activities[]
-  customers           customers[]
-  follow_up_sequences follow_up_sequences[]
-  invoices            invoices[]
-  users               users[]
-  import_batches      import_batches[]
-  email_templates     email_templates[]
-  email_logs          email_logs[]
-  email_suppression_list email_suppression_list[]
-  ab_test_config      ab_test_config[]
-  audit_logs          audit_logs[]
-  bank_reconciliation bank_reconciliation[]
+  id                              String                            @id
+  name                            String
+  trn                             String?                           @unique
+  address                         String?
+  settings                        Json?                             @default("{}")
+  created_at                      DateTime                          @default(now())
+  updated_at                      DateTime
+  business_hours                  Json?
+  default_vat_rate                Decimal?                          @default(5.00) @db.Decimal(5, 2)
+  email_settings                  Json?
+  archived_at                     DateTime?
+  is_active                       Boolean                           @default(true)
+  ab_test_config                  ab_test_config[]
+  activities                      activities[]
+  audit_logs                      audit_logs[]
+  bank_reconciliation             bank_reconciliation[]
   customer_consolidated_reminders customer_consolidated_reminders[]
+  customers                       customers[]
+  email_logs                      email_logs[]
+  email_suppression_list          email_suppression_list[]
+  email_templates                 email_templates[]
+  follow_up_sequences             follow_up_sequences[]
+  import_batches                  import_batches[]
+  invoices                        invoices[]
+  users                           users[]
 
   @@index([is_active, created_at])
   @@index([trn])
 }
 
+model customer_consolidated_reminders {
+  id                        String              @id
+  customer_id               String
+  company_id                String
+  invoice_ids               String[]
+  total_amount              Decimal             @db.Decimal(12, 2)
+  currency                  String              @default("AED")
+  invoice_count             Int
+  reminder_type             ReminderType        @default(CONSOLIDATED)
+  escalation_level          EscalationLevel     @default(POLITE)
+  template_id               String?
+  scheduled_for             DateTime?
+  sent_at                   DateTime?
+  delivery_status           EmailDeliveryStatus @default(QUEUED)
+  aws_message_id            String?
+  last_contact_date         DateTime?
+  next_eligible_contact     DateTime?
+  contact_interval_days     Int                 @default(7)
+  priority_score            Int                 @default(0)
+  consolidation_reason      String?
+  business_rules_applied    Json?               @default("{}")
+  cultural_compliance_flags Json?               @default("{}")
+  email_opened_at           DateTime?
+  email_clicked_at          DateTime?
+  customer_responded_at     DateTime?
+  payment_received_at       DateTime?
+  created_at                DateTime            @default(now())
+  updated_at                DateTime
+  created_by                String?
+  companies                 companies           @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  users                     users?              @relation(fields: [created_by], references: [id])
+  customers                 customers           @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  email_templates           email_templates?    @relation(fields: [template_id], references: [id])
+  email_logs                email_logs[]
+
+  @@index([company_id, created_at])
+  @@index([company_id, delivery_status, priority_score])
+  @@index([company_id, delivery_status])
+  @@index([company_id, escalation_level, delivery_status])
+  @@index([company_id, priority_score])
+  @@index([company_id, reminder_type, escalation_level])
+  @@index([company_id, sent_at])
+  @@index([customer_id, company_id])
+  @@index([customer_id, next_eligible_contact])
+  @@index([customer_id, sent_at, delivery_status])
+  @@index([scheduled_for, delivery_status])
+}
+
 model customers {
-  id                    String          @id
-  company_id            String
-  name                  String
-  name_ar               String?         // Arabic name for UAE bilingual support
-  email                 String
-  phone                 String?
-  payment_terms         Int?            @default(30) // Default 30 days for UAE
-  notes                 String?
-  notes_ar              String?         // Arabic notes for UAE bilingual support
-  is_active             Boolean         @default(true) // Soft delete flag
-  archived_at           DateTime?       // Archival timestamp
-  credit_limit          Decimal?        @db.Decimal(12, 2) // Customer credit limit
-  
-  // UAE-Specific Business Fields
-  trn                   String?         // UAE Trade Registration Number (15 digits)
-  business_type         UaeBusinessType? // UAE business entity type
-  business_name         String?         // Official business name
-  business_name_ar      String?         // Arabic business name
-  address               String?         // Business address
-  address_ar            String?         // Arabic business address
-  contact_person        String?         // Primary contact person name
-  contact_person_ar     String?         // Arabic contact person name
-  
-  // Enhanced Customer Analytics
-  risk_score            Decimal?        @db.Decimal(3, 2) // Risk assessment (0.00-10.00)
-  payment_behavior      Json?           @default("{}") // Payment behavior analytics
-  last_payment_date     DateTime?       // Last successful payment
-  outstanding_balance   Decimal?        @db.Decimal(12, 2) @default(0.00) // Current outstanding amount
-  lifetime_value        Decimal?        @db.Decimal(12, 2) @default(0.00) // Total lifetime value
-  
-  // Metadata and Tracking
-  preferred_language    String?         @default("en") // en, ar
-  payment_method_pref   String?         // Preferred payment method
-  communication_pref    String?         @default("email") // email, sms, both
-  last_interaction      DateTime?       // Last customer interaction
-  customer_since        DateTime?       // When they became a customer
-
-  // Consolidation preferences
-  consolidation_preference  ConsolidationPreference @default(ENABLED) // Customer preference for consolidated vs individual reminders
-  max_consolidation_amount  Decimal?        @db.Decimal(12, 2) // Maximum amount for auto-consolidation (NULL = no limit)
-  preferred_contact_interval Int           @default(7) // Preferred days between reminder contacts
-
-  created_at            DateTime        @default(now())
-  updated_at            DateTime        @updatedAt
-  companies             companies       @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  invoices              invoices[]
-  email_logs            email_logs[]
+  id                              String                            @id
+  company_id                      String
+  name                            String
+  email                           String
+  phone                           String?
+  payment_terms                   Int?                              @default(30)
+  notes                           String?
+  created_at                      DateTime                          @default(now())
+  updated_at                      DateTime
+  name_ar                         String?
+  notes_ar                        String?
+  address                         String?
+  address_ar                      String?
+  archived_at                     DateTime?
+  business_name                   String?
+  business_name_ar                String?
+  business_type                   UaeBusinessType?
+  communication_pref              String?                           @default("email")
+  contact_person                  String?
+  contact_person_ar               String?
+  credit_limit                    Decimal?                          @db.Decimal(12, 2)
+  customer_since                  DateTime?
+  is_active                       Boolean                           @default(true)
+  last_interaction                DateTime?
+  last_payment_date               DateTime?
+  lifetime_value                  Decimal?                          @default(0.00) @db.Decimal(12, 2)
+  outstanding_balance             Decimal?                          @default(0.00) @db.Decimal(12, 2)
+  payment_behavior                Json?                             @default("{}")
+  payment_method_pref             String?
+  preferred_language              String?                           @default("en")
+  risk_score                      Decimal?                          @db.Decimal(3, 2)
+  trn                             String?
+  consolidation_preference        ConsolidationPreference           @default(ENABLED)
+  max_consolidation_amount        Decimal?                          @db.Decimal(12, 2)
+  preferred_contact_interval      Int                               @default(7)
   customer_consolidated_reminders customer_consolidated_reminders[]
+  companies                       companies                         @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  email_logs                      email_logs[]
+  invoices                        invoices[]
 
-  // Unique constraints
   @@unique([email, company_id])
-  @@unique([trn, company_id]) // TRN unique within company scope
-  
-  // Performance indexes for customer search and filtering
-  @@index([name]) // Basic name search
-  @@index([name_ar]) // Arabic name search
-  @@index([company_id, name]) // Company-scoped name search
-  @@index([company_id, email]) // Company-scoped email search
-  @@index([company_id, is_active, created_at]) // Active customers list
-  @@index([company_id, trn]) // TRN lookup
-  @@index([company_id, business_type]) // Business type filtering
-  @@index([phone]) // Phone number search
-  @@index([company_id, outstanding_balance]) // Outstanding balance queries
-  @@index([company_id, risk_score]) // Risk-based filtering
-  @@index([company_id, last_payment_date]) // Payment history analysis
-  @@index([company_id, customer_since]) // Customer acquisition analysis
-  
-  // Composite indexes for complex queries
-  @@index([name, email]) // Full-text search support
-  @@index([name_ar, business_name_ar]) // Arabic search optimization
-  @@index([company_id, is_active, outstanding_balance]) // Active customers with balances
-  @@index([company_id, business_type, is_active]) // Active customers by business type
-  @@index([company_id, payment_terms, risk_score]) // Payment terms analysis
-  @@index([company_id, preferred_language, is_active]) // Language-based customer segmentation
-  
-  // Analytics and reporting indexes
-  @@index([company_id, created_at, lifetime_value]) // Customer value analysis
-  @@index([company_id, last_interaction, is_active]) // Customer engagement tracking
-  @@index([business_type, risk_score, company_id]) // Cross-company risk analysis
+  @@unique([trn, company_id])
+  @@index([business_type, risk_score, company_id])
+  @@index([company_id, business_type])
+  @@index([company_id, business_type, is_active])
+  @@index([company_id, created_at, lifetime_value])
+  @@index([company_id, customer_since])
+  @@index([company_id, email])
+  @@index([company_id, is_active, created_at])
+  @@index([company_id, is_active, outstanding_balance])
+  @@index([company_id, last_interaction, is_active])
+  @@index([company_id, last_payment_date])
+  @@index([company_id, name])
+  @@index([company_id, outstanding_balance])
+  @@index([company_id, payment_terms, risk_score])
+  @@index([company_id, preferred_language, is_active])
+  @@index([company_id, risk_score])
+  @@index([company_id, trn])
+  @@index([name_ar, business_name_ar])
+  @@index([name_ar])
+  @@index([name, email])
+  @@index([name])
+  @@index([phone])
+}
+
+model data_retention_policies {
+  id               String   @id
+  entity_type      String   @unique
+  retention_days   Int
+  archive_days     Int
+  auto_delete_days Int?
+  is_active        Boolean  @default(true)
+  compliance_rule  String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime
+
+  @@index([entity_type, is_active])
+}
+
+model db_performance_logs {
+  id             String   @id
+  query_type     String
+  table_name     String
+  execution_time Int
+  rows_affected  Int?
+  query_hash     String
+  slow_query     Boolean  @default(false)
+  company_id     String?
+  user_id        String?
+  endpoint       String?
+  created_at     DateTime @default(now())
+
+  @@index([company_id, created_at])
+  @@index([query_hash, created_at])
+  @@index([query_type, created_at])
+  @@index([slow_query, created_at])
+  @@index([table_name, execution_time])
+}
+
+model email_bounce_tracking {
+  id              String     @id
+  email_log_id    String     @unique
+  bounce_type     String
+  bounce_subtype  String?
+  diagnostic_code String?
+  feedback_id     String?
+  arrival_date    DateTime
+  is_suppressed   Boolean    @default(false)
+  created_at      DateTime   @default(now())
+  email_logs      email_logs @relation(fields: [email_log_id], references: [id], onDelete: Cascade)
+
+  @@index([arrival_date])
+  @@index([bounce_type, is_suppressed])
+}
+
+model email_logs {
+  id                              String                           @id
+  template_id                     String?
+  company_id                      String
+  invoice_id                      String?
+  customer_id                     String?
+  follow_up_log_id                String?
+  recipient_email                 String
+  recipient_name                  String?
+  subject                         String
+  content                         String
+  language                        EmailLanguage                    @default(ENGLISH)
+  delivery_status                 EmailDeliveryStatus              @default(QUEUED)
+  sent_at                         DateTime?
+  delivered_at                    DateTime?
+  opened_at                       DateTime?
+  clicked_at                      DateTime?
+  bounced_at                      DateTime?
+  complained_at                   DateTime?
+  unsubscribed_at                 DateTime?
+  aws_message_id                  String?
+  aws_request_id                  String?
+  bounce_reason                   String?
+  complaint_feedback              String?
+  engagement_score                Decimal?                         @db.Decimal(3, 2)
+  uae_send_time                   DateTime?
+  retry_count                     Int                              @default(0)
+  max_retries                     Int                              @default(3)
+  created_at                      DateTime                         @default(now())
+  updated_at                      DateTime
+  consolidated_reminder_id        String?
+  consolidation_metadata          Json?                            @default("{}")
+  consolidation_savings           Decimal?                         @default(0.00) @db.Decimal(5, 2)
+  invoice_count                   Int                              @default(1)
+  email_bounce_tracking           email_bounce_tracking?
+  companies                       companies                        @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  customer_consolidated_reminders customer_consolidated_reminders? @relation(fields: [consolidated_reminder_id], references: [id])
+  customers                       customers?                       @relation(fields: [customer_id], references: [id])
+  follow_up_logs                  follow_up_logs?                  @relation(fields: [follow_up_log_id], references: [id])
+  invoices                        invoices?                        @relation(fields: [invoice_id], references: [id])
+  email_templates                 email_templates?                 @relation(fields: [template_id], references: [id])
+
+  @@index([company_id, delivered_at, opened_at, clicked_at])
+  @@index([company_id, delivery_status])
+  @@index([company_id, sent_at, invoice_count, consolidation_savings])
+  @@index([consolidated_reminder_id, delivery_status])
+  @@index([customer_id, sent_at])
+  @@index([delivery_status, created_at])
+  @@index([invoice_id, sent_at])
+  @@index([recipient_email, company_id])
+  @@index([uae_send_time])
+}
+
+model email_suppression_list {
+  id               String    @id
+  email_address    String
+  company_id       String
+  suppression_type String
+  reason           String
+  suppressed_at    DateTime  @default(now())
+  suppressed_by    String?
+  is_active        Boolean   @default(true)
+  notes            String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime
+  companies        companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@unique([email_address, company_id])
+  @@index([company_id, is_active])
+  @@index([email_address])
+  @@index([suppression_type, is_active])
+}
+
+model email_templates {
+  id                              String                            @id
+  company_id                      String
+  name                            String
+  description                     String?
+  template_type                   EmailTemplateType                 @default(FOLLOW_UP)
+  subject_en                      String
+  subject_ar                      String?
+  content_en                      String
+  content_ar                      String?
+  variables                       Json?
+  version                         Int                               @default(1)
+  is_active                       Boolean                           @default(true)
+  is_default                      Boolean                           @default(false)
+  uae_business_hours_only         Boolean                           @default(true)
+  created_by                      String
+  created_at                      DateTime                          @default(now())
+  updated_at                      DateTime
+  consolidation_variables         Json?                             @default("{}")
+  max_invoice_count               Int                               @default(1)
+  supports_consolidation          Boolean                           @default(false)
+  customer_consolidated_reminders customer_consolidated_reminders[]
+  email_logs                      email_logs[]
+  companies                       companies                         @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  users                           users                             @relation(fields: [created_by], references: [id])
+
+  @@unique([company_id, name, version])
+  @@index([company_id, template_type, is_active])
+  @@index([is_default, template_type])
+  @@index([template_type, max_invoice_count, is_active])
+  @@index([template_type, supports_consolidation, is_active])
 }
 
 model follow_up_logs {
@@ -165,9 +461,9 @@ model follow_up_logs {
   response_received   DateTime?
   aws_message_id      String?
   delivery_status     String?
+  email_logs          email_logs[]
   invoices            invoices            @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
   follow_up_sequences follow_up_sequences @relation(fields: [sequence_id], references: [id], onDelete: Cascade)
-  email_logs          email_logs[]
 }
 
 model follow_up_sequences {
@@ -182,113 +478,177 @@ model follow_up_sequences {
   companies      companies        @relation(fields: [company_id], references: [id], onDelete: Cascade)
 }
 
+model import_batches {
+  id                    String                  @id
+  company_id            String
+  user_id               String
+  filename              String
+  original_filename     String
+  file_size             Int
+  total_records         Int                     @default(0)
+  processed_records     Int                     @default(0)
+  successful_records    Int                     @default(0)
+  failed_records        Int                     @default(0)
+  status                ImportBatchStatus       @default(PENDING)
+  import_type           ImportType              @default(INVOICE)
+  field_mappings        Json?
+  processing_started_at DateTime?
+  processing_ended_at   DateTime?
+  error_summary         String?
+  created_at            DateTime                @default(now())
+  updated_at            DateTime
+  companies             companies               @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  users                 users                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  import_errors         import_errors[]
+  import_field_mappings import_field_mappings[]
+  invoices              invoices[]
+
+  @@index([company_id, status])
+  @@index([status, created_at])
+  @@index([user_id, created_at])
+}
+
+model import_errors {
+  id              String          @id
+  import_batch_id String
+  row_number      Int
+  csv_data        Json
+  error_type      ImportErrorType
+  error_message   String
+  field_name      String?
+  attempted_value String?
+  suggestion      String?
+  is_resolved     Boolean         @default(false)
+  resolved_at     DateTime?
+  resolved_by     String?
+  created_at      DateTime        @default(now())
+  import_batches  import_batches  @relation(fields: [import_batch_id], references: [id], onDelete: Cascade)
+
+  @@index([import_batch_id, error_type])
+  @@index([import_batch_id, is_resolved])
+  @@index([row_number, import_batch_id])
+}
+
+model import_field_mappings {
+  id              String         @id
+  import_batch_id String
+  csv_column_name String
+  system_field    String
+  data_type       String
+  is_required     Boolean        @default(false)
+  default_value   String?
+  validation_rule String?
+  transformation  String?
+  created_at      DateTime       @default(now())
+  import_batches  import_batches @relation(fields: [import_batch_id], references: [id], onDelete: Cascade)
+
+  @@unique([import_batch_id, csv_column_name])
+  @@index([import_batch_id])
+}
+
 model invoice_items {
-  id                    String   @id
-  invoice_id            String
-  description           String
-  description_ar        String?  // Arabic description for UAE bilingual support
-  quantity              Decimal  @db.Decimal(10, 2)
-  unit_price            Decimal  @db.Decimal(10, 2)
-  total                 Decimal  @db.Decimal(10, 2)
-  vat_rate              Decimal? @db.Decimal(5, 2) @default(5.00) // UAE VAT rate (5%)
-  vat_amount            Decimal? @db.Decimal(10, 2) @default(0.00)
-  total_with_vat        Decimal? @db.Decimal(10, 2)
-  tax_category          String?  @default("STANDARD") // STANDARD, EXEMPT, ZERO_RATED
-  created_at            DateTime @default(now())
-  updated_at            DateTime @updatedAt
-  invoices              invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  id             String   @id
+  invoice_id     String
+  description    String
+  quantity       Decimal  @db.Decimal(10, 2)
+  unit_price     Decimal  @db.Decimal(10, 2)
+  total          Decimal  @db.Decimal(10, 2)
+  created_at     DateTime @default(now())
+  description_ar String?
+  tax_category   String?  @default("STANDARD")
+  total_with_vat Decimal? @db.Decimal(10, 2)
+  updated_at     DateTime
+  vat_amount     Decimal? @default(0.00) @db.Decimal(10, 2)
+  vat_rate       Decimal? @default(5.00) @db.Decimal(5, 2)
+  invoices       invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
 
   @@index([invoice_id])
   @@index([tax_category])
 }
 
 model invoices {
-  id               String           @id
-  company_id       String
-  number           String
-  customer_name    String
-  customer_email   String
-  amount           Decimal          @db.Decimal(10, 2)
-  subtotal         Decimal?         @db.Decimal(10, 2) // Amount before VAT
-  vat_amount       Decimal?         @db.Decimal(10, 2) @default(0.00) // Total VAT amount
-  total_amount     Decimal?         @db.Decimal(10, 2) // Final amount with VAT
-  currency         String           @default("AED")
-  due_date         DateTime
-  status           InvoiceStatus    @default(SENT)
-  description      String?
-  description_ar   String?          // Arabic description for UAE bilingual support
-  notes            String?
-  notes_ar         String?          // Arabic notes for UAE bilingual support
-  import_batch_id  String?          // Link to CSV import batch
-  trn_number       String?          // UAE TRN for tax calculations
-  payment_intent_id String?         // Stripe Payment Intent ID for payment tracking
-  is_active        Boolean          @default(true) // Soft delete flag
-  archived_at      DateTime?        // Archival timestamp
-  last_reminder_sent DateTime?      // Track follow-up timing
-  payment_link     String?          // Payment portal link
-  created_at       DateTime         @default(now())
-  updated_at       DateTime         @updatedAt
-  follow_up_logs   follow_up_logs[]
-  invoice_items    invoice_items[]
-  companies        companies        @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  customers        customers        @relation(fields: [customer_email, company_id], references: [email, company_id])
-  payments         payments[]
-  import_batches   import_batches?  @relation(fields: [import_batch_id], references: [id])
-  email_logs       email_logs[]
+  id                 String           @id
+  company_id         String
+  number             String
+  customer_name      String
+  customer_email     String
+  amount             Decimal          @db.Decimal(10, 2)
+  currency           String           @default("AED")
+  due_date           DateTime
+  status             InvoiceStatus    @default(SENT)
+  description        String?
+  notes              String?
+  created_at         DateTime         @default(now())
+  updated_at         DateTime
+  description_ar     String?
+  import_batch_id    String?
+  notes_ar           String?
+  subtotal           Decimal?         @db.Decimal(10, 2)
+  total_amount       Decimal?         @db.Decimal(10, 2)
+  trn_number         String?
+  vat_amount         Decimal?         @default(0.00) @db.Decimal(10, 2)
+  archived_at        DateTime?
+  is_active          Boolean          @default(true)
+  last_reminder_sent DateTime?
+  payment_link       String?
+  payment_intent_id  String?
+  email_logs         email_logs[]
+  follow_up_logs     follow_up_logs[]
+  invoice_items      invoice_items[]
+  companies          companies        @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  customers          customers        @relation(fields: [customer_email, company_id], references: [email, company_id])
+  import_batches     import_batches?  @relation(fields: [import_batch_id], references: [id])
+  payments           payments[]
 
   @@unique([company_id, number])
-  @@index([import_batch_id])
-  @@index([trn_number])
-  // Performance optimization indexes for search and filtering
-  @@index([company_id, status, created_at])
-  @@index([company_id, status, due_date])
-  @@index([company_id, customer_email, status])
   @@index([company_id, created_at])
-  @@index([company_id, due_date])
-  @@index([company_id, total_amount])
-  @@index([company_id, currency, status])
-  @@index([status, due_date]) // Overdue invoice queries
-  @@index([company_id, is_active, created_at])
-  // Full-text search support
-  @@index([customer_name, customer_email])
-  @@index([number, customer_name])
-  // Analytics and reporting indexes
-  @@index([company_id, status, total_amount])
   @@index([company_id, created_at, total_amount])
   @@index([company_id, currency, created_at])
+  @@index([company_id, currency, status])
+  @@index([company_id, customer_email, status])
+  @@index([company_id, due_date])
+  @@index([company_id, is_active, created_at])
+  @@index([company_id, status, created_at])
+  @@index([company_id, status, due_date])
+  @@index([company_id, status, total_amount])
+  @@index([company_id, total_amount])
+  @@index([customer_name, customer_email])
+  @@index([import_batch_id])
+  @@index([number, customer_name])
+  @@index([status, due_date])
+  @@index([trn_number])
 }
 
 model payments {
-  id                  String        @id
-  invoice_id          String
-  amount              Decimal       @db.Decimal(10, 2)
-  payment_date        DateTime
-  method              PaymentMethod @default(BANK_TRANSFER)
-  reference           String?
-  notes               String?
-  is_verified         Boolean       @default(false) // Payment verification status
-  verified_by         String?       // User who verified payment
-  verified_at         DateTime?     // Verification timestamp
-  bank_reference      String?       // Bank transaction reference
-  reconciliation_id   String?       // Link to bank reconciliation batch
-  fees_amount         Decimal?      @db.Decimal(10, 2) @default(0.00) // Transaction fees
-  exchange_rate       Decimal?      @db.Decimal(10, 6) // For multi-currency payments
-  original_amount     Decimal?      @db.Decimal(10, 2) // Original amount in foreign currency
-  original_currency   String?       // Original currency code
-  created_at          DateTime      @default(now())
-  updated_at          DateTime      @updatedAt
-  invoices            invoices      @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  id                String        @id
+  invoice_id        String
+  amount            Decimal       @db.Decimal(10, 2)
+  payment_date      DateTime
+  method            PaymentMethod @default(BANK_TRANSFER)
+  reference         String?
+  notes             String?
+  created_at        DateTime      @default(now())
+  bank_reference    String?
+  exchange_rate     Decimal?      @db.Decimal(10, 6)
+  fees_amount       Decimal?      @default(0.00) @db.Decimal(10, 2)
+  is_verified       Boolean       @default(false)
+  original_amount   Decimal?      @db.Decimal(10, 2)
+  original_currency String?
+  reconciliation_id String?
+  updated_at        DateTime
+  verified_at       DateTime?
+  verified_by       String?
+  invoices          invoices      @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
 
-  @@index([invoice_id, payment_date])
-  @@index([payment_date, method])
-  @@index([method, is_verified])
-  @@index([reference])
   @@index([bank_reference])
-  @@index([reconciliation_id])
-  @@index([verified_by, verified_at])
-  // Performance indexes for payment reconciliation
-  @@index([payment_date, amount, method])
+  @@index([invoice_id, payment_date])
   @@index([is_verified, payment_date])
+  @@index([method, is_verified])
+  @@index([payment_date, amount, method])
+  @@index([payment_date, method])
+  @@index([reconciliation_id])
+  @@index([reference])
+  @@index([verified_by, verified_at])
 }
 
 model sessions {
@@ -300,23 +660,23 @@ model sessions {
 }
 
 model users {
-  id              String            @id
-  email           String            @unique
-  name            String
-  password        String?
-  company_id      String
-  role            UserRole          @default(FINANCE)
-  reset_token     String?           // Password reset token
-  reset_token_expiry DateTime?      // Token expiration time
-  created_at      DateTime          @default(now())
-  updated_at      DateTime          @updatedAt
-  accounts        accounts[]
-  activities      activities[]
-  sessions        sessions[]
-  companies       companies         @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  import_batches  import_batches[]
-  email_templates email_templates[]
+  id                              String                            @id
+  email                           String                            @unique
+  name                            String
+  password                        String?
+  company_id                      String
+  role                            UserRole                          @default(FINANCE)
+  created_at                      DateTime                          @default(now())
+  updated_at                      DateTime
+  reset_token                     String?
+  reset_token_expiry              DateTime?
+  accounts                        accounts[]
+  activities                      activities[]
   customer_consolidated_reminders customer_consolidated_reminders[]
+  email_templates                 email_templates[]
+  import_batches                  import_batches[]
+  sessions                        sessions[]
+  companies                       companies                         @relation(fields: [company_id], references: [id], onDelete: Cascade)
 }
 
 model verification_tokens {
@@ -327,425 +687,71 @@ model verification_tokens {
   @@unique([identifier, token])
 }
 
-// Week 2 Enhancement: CSV Import Schema Models
-
-model import_batches {
-  id                    String                @id
-  company_id            String
-  user_id               String
-  filename              String
-  original_filename     String
-  file_size             Int
-  total_records         Int                   @default(0)
-  processed_records     Int                   @default(0)
-  successful_records    Int                   @default(0)
-  failed_records        Int                   @default(0)
-  status                ImportBatchStatus     @default(PENDING)
-  import_type           ImportType            @default(INVOICE)
-  field_mappings        Json?                 // Store field mapping configuration
-  processing_started_at DateTime?
-  processing_ended_at   DateTime?
-  error_summary         String?
-  created_at            DateTime              @default(now())
-  updated_at            DateTime              @updatedAt
-  companies             companies             @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  users                 users                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  invoices              invoices[]
-  import_errors         import_errors[]
-  import_field_mappings import_field_mappings[]
-
-  @@index([company_id, status])
-  @@index([user_id, created_at])
-  @@index([status, created_at])
+enum ConsolidationPreference {
+  ENABLED
+  DISABLED
+  AUTO
 }
 
-model import_field_mappings {
-  id              String         @id
-  import_batch_id String
-  csv_column_name String         // Original CSV column name
-  system_field    String         // Mapped system field name
-  data_type       String         // Expected data type (string, number, date, etc.)
-  is_required     Boolean        @default(false)
-  default_value   String?        // Default value if CSV field is empty
-  validation_rule String?        // Custom validation rule
-  transformation  String?        // Data transformation rule (e.g., format dates)
-  created_at      DateTime       @default(now())
-  import_batches  import_batches @relation(fields: [import_batch_id], references: [id], onDelete: Cascade)
-
-  @@unique([import_batch_id, csv_column_name])
-  @@index([import_batch_id])
+enum EmailDeliveryStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  COMPLAINED
+  UNSUBSCRIBED
+  FAILED
 }
 
-model import_errors {
-  id              String         @id
-  import_batch_id String
-  row_number      Int
-  csv_data        Json           // Store the original CSV row data
-  error_type      ImportErrorType
-  error_message   String
-  field_name      String?        // Specific field that caused the error
-  attempted_value String?        // Value that caused the error
-  suggestion      String?        // Suggested fix for the error
-  is_resolved     Boolean        @default(false)
-  resolved_at     DateTime?
-  resolved_by     String?        // User ID who resolved the error
-  created_at      DateTime       @default(now())
-  import_batches  import_batches @relation(fields: [import_batch_id], references: [id], onDelete: Cascade)
-
-  @@index([import_batch_id, error_type])
-  @@index([import_batch_id, is_resolved])
-  @@index([row_number, import_batch_id])
+enum EmailLanguage {
+  ENGLISH
+  ARABIC
 }
 
-// Week 2 Enhancement: Email Integration Schema Models
-
-model email_templates {
-  id              String              @id
-  company_id      String
-  name            String
-  description     String?
-  template_type   EmailTemplateType   @default(FOLLOW_UP)
-  subject_en      String              // English subject line
-  subject_ar      String?             // Arabic subject line for UAE
-  content_en      String              // English email content (HTML/text)
-  content_ar      String?             // Arabic email content for UAE
-  variables       Json?               // Available template variables
-  version         Int                 @default(1)
-  is_active       Boolean             @default(true)
-  is_default      Boolean             @default(false)
-  uae_business_hours_only Boolean    @default(true) // Send only during UAE business hours
-
-  // Consolidation support
-  supports_consolidation Boolean      @default(false) // Whether this template supports multiple invoices in a single email
-  max_invoice_count      Int          @default(1) // Maximum number of invoices this template can handle
-  consolidation_variables Json?       @default("{}") // Template variables specific to consolidation features
-
-  created_by      String
-  created_at      DateTime            @default(now())
-  updated_at      DateTime            @updatedAt
-  companies       companies           @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  users           users               @relation(fields: [created_by], references: [id])
-  email_logs      email_logs[]
-  customer_consolidated_reminders customer_consolidated_reminders[]
-
-  @@unique([company_id, name, version])
-  @@index([company_id, template_type, is_active])
-  @@index([is_default, template_type])
-  // Consolidation template indexes
-  @@index([template_type, supports_consolidation, is_active])
-  @@index([template_type, max_invoice_count, is_active])
+enum EmailTemplateType {
+  FOLLOW_UP
+  WELCOME
+  INVOICE_REMINDER
+  PAYMENT_CONFIRMATION
+  OVERDUE_NOTICE
+  SYSTEM_NOTIFICATION
+  CONSOLIDATED_REMINDER
+  URGENT_CONSOLIDATED_REMINDER
 }
 
-model email_logs {
-  id                    String             @id
-  template_id           String?
-  company_id            String
-  invoice_id            String?
-  customer_id           String?
-  follow_up_log_id      String?            // Link to existing follow_up_logs
-  recipient_email       String
-  recipient_name        String?
-  subject               String
-  content               String
-  language              EmailLanguage      @default(ENGLISH) // ENGLISH or ARABIC
-  delivery_status       EmailDeliveryStatus @default(QUEUED)
-  sent_at               DateTime?
-  delivered_at          DateTime?
-  opened_at             DateTime?
-  clicked_at            DateTime?
-  bounced_at            DateTime?
-  complained_at         DateTime?
-  unsubscribed_at       DateTime?
-  aws_message_id        String?
-  aws_request_id        String?
-  bounce_reason         String?
-  complaint_feedback    String?
-  engagement_score      Decimal?           @db.Decimal(3, 2) // 0.00 to 1.00
-  uae_send_time         DateTime?          // Adjusted for UAE timezone
-  retry_count           Int                @default(0)
-  max_retries           Int                @default(3)
-
-  // Consolidation tracking
-  consolidated_reminder_id String?          // Links email log to consolidated reminder record
-  invoice_count           Int              @default(1) // Number of invoices included in this email (1 for individual, 2+ for consolidated)
-  consolidation_savings   Decimal?         @db.Decimal(5, 2) @default(0.00) // Percentage of emails saved through consolidation (0-100)
-  consolidation_metadata  Json?            @default("{}") // Additional metadata about consolidation process
-
-  created_at            DateTime           @default(now())
-  updated_at            DateTime           @updatedAt
-  email_templates       email_templates?       @relation(fields: [template_id], references: [id])
-  companies             companies              @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  invoices              invoices?              @relation(fields: [invoice_id], references: [id])
-  customers             customers?             @relation(fields: [customer_id], references: [id])
-  follow_up_logs        follow_up_logs?        @relation(fields: [follow_up_log_id], references: [id])
-  consolidated_reminder customer_consolidated_reminders? @relation(fields: [consolidated_reminder_id], references: [id])
-  email_bounce_tracking email_bounce_tracking?
-
-  @@index([company_id, delivery_status])
-  @@index([invoice_id, sent_at])
-  @@index([customer_id, sent_at])
-  @@index([delivery_status, created_at])
-  @@index([recipient_email, company_id])
-  @@index([uae_send_time])
-  // Consolidation indexes
-  @@index([consolidated_reminder_id, delivery_status])
-  @@index([company_id, sent_at, invoice_count, consolidation_savings])
-  @@index([company_id, delivered_at, opened_at, clicked_at])
+enum EscalationLevel {
+  POLITE
+  FIRM
+  URGENT
+  FINAL
 }
 
-model email_bounce_tracking {
-  id                String    @id
-  email_log_id      String    @unique
-  bounce_type       String    // hard, soft, complaint
-  bounce_subtype    String?   // bounce sub-classification
-  diagnostic_code   String?
-  feedback_id       String?   // For complaint feedback
-  arrival_date      DateTime
-  is_suppressed     Boolean   @default(false) // Whether to suppress future emails
-  created_at        DateTime  @default(now())
-  email_logs        email_logs @relation(fields: [email_log_id], references: [id], onDelete: Cascade)
-
-  @@index([bounce_type, is_suppressed])
-  @@index([arrival_date])
+enum ImportBatchStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  PARTIALLY_COMPLETED
 }
 
-model email_suppression_list {
-  id                String    @id
-  email_address     String    // Email address to suppress
-  company_id        String
-  suppression_type  String    // hard_bounce, soft_bounce, complaint, unsubscribe, manual
-  reason            String    // Reason for suppression
-  suppressed_at     DateTime  @default(now())
-  suppressed_by     String?   // User ID who manually suppressed
-  is_active         Boolean   @default(true)
-  notes             String?
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
-  companies         companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-
-  @@unique([email_address, company_id])
-  @@index([company_id, is_active])
-  @@index([email_address])
-  @@index([suppression_type, is_active])
+enum ImportErrorType {
+  VALIDATION_ERROR
+  FORMAT_ERROR
+  DUPLICATE_ERROR
+  REFERENCE_ERROR
+  CONSTRAINT_ERROR
+  BUSINESS_RULE_ERROR
 }
 
-model ab_test_config {
-  id                   String    @id
-  name                 String
-  description          String?
-  company_id           String
-  variants             Json      // Array of test variants
-  target_audience      Json      // Audience targeting criteria
-  success_metrics      Json      // Primary and secondary metrics
-  minimum_sample_size  Int       @default(1000)
-  significance_level   Decimal   @db.Decimal(3, 2) @default(0.05) // 0.05 = 95% confidence
-  power                Decimal   @db.Decimal(3, 2) @default(0.80) // 0.80 = 80% power
-  status               String    @default("draft") // draft, running, paused, completed, cancelled
-  start_date           DateTime
-  end_date             DateTime?
-  created_at           DateTime  @default(now())
-  updated_at           DateTime  @updatedAt
-  companies            companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  assignments          ab_test_assignments[]
-
-  @@index([company_id, status])
-  @@index([status, start_date])
+enum ImportType {
+  INVOICE
+  CUSTOMER
+  PAYMENT
+  INVOICE_ITEMS
 }
-
-model ab_test_assignments {
-  id               String    @id
-  test_id          String
-  variant_id       String    // Which variant was assigned
-  recipient_email  String
-  recipient_id     String?   // Customer ID if available
-  assigned_at      DateTime  @default(now())
-  ab_test_config   ab_test_config @relation(fields: [test_id], references: [id], onDelete: Cascade)
-  events           ab_test_events[]
-
-  @@unique([test_id, recipient_email])
-  @@index([test_id, variant_id])
-  @@index([recipient_email])
-}
-
-model ab_test_events {
-  id            String    @id
-  test_id       String
-  assignment_id String
-  event_type    String    // sent, delivered, opened, clicked, converted
-  event_data    Json?     // Additional event metadata
-  timestamp     DateTime  @default(now())
-  assignment    ab_test_assignments @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
-
-  @@index([test_id, event_type])
-  @@index([assignment_id, event_type])
-  @@index([timestamp])
-}
-
-// Comprehensive audit log model for UAE compliance and data integrity
-model audit_logs {
-  id              String    @id
-  company_id      String
-  user_id         String?
-  entity_type     String    // invoices, payments, customers, companies, etc.
-  entity_id       String    // ID of the affected entity
-  action          String    // CREATE, UPDATE, DELETE, VIEW, EXPORT, etc.
-  old_values      Json?     // Previous values (for updates)
-  new_values      Json?     // New values (for creates/updates)
-  changed_fields  String[]  // List of fields that changed
-  ip_address      String?   // Client IP address
-  user_agent      String?   // Client user agent
-  session_id      String?   // Session identifier
-  request_id      String?   // Request correlation ID
-  compliance_flag Boolean   @default(false) // Mark for compliance review
-  risk_level      String    @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
-  metadata        Json?     // Additional context data
-  created_at      DateTime  @default(now())
-  companies       companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-
-  @@index([company_id, created_at])
-  @@index([entity_type, entity_id])
-  @@index([user_id, created_at])
-  @@index([action, created_at])
-  @@index([compliance_flag, risk_level])
-  @@index([company_id, entity_type, action])
-  @@index([created_at, risk_level])
-  // Performance indexes for audit reporting
-  @@index([company_id, entity_type, created_at])
-  @@index([user_id, action, created_at])
-}
-
-// Database performance monitoring table
-model db_performance_logs {
-  id              String    @id
-  query_type      String    // SELECT, INSERT, UPDATE, DELETE, AGGREGATE
-  table_name      String    // Primary table accessed
-  execution_time  Int       // Execution time in milliseconds
-  rows_affected   Int?      // Number of rows processed
-  query_hash      String    // Hash of the query for grouping
-  slow_query      Boolean   @default(false) // Mark queries over threshold
-  company_id      String?   // Company context if applicable
-  user_id         String?   // User context if applicable
-  endpoint        String?   // API endpoint that triggered the query
-  created_at      DateTime  @default(now())
-
-  @@index([query_type, created_at])
-  @@index([table_name, execution_time])
-  @@index([slow_query, created_at])
-  @@index([company_id, created_at])
-  @@index([query_hash, created_at])
-}
-
-// Data retention and archival tracking
-model data_retention_policies {
-  id                String    @id
-  entity_type       String    // invoices, payments, audit_logs, etc.
-  retention_days    Int       // Days to retain active data
-  archive_days      Int       // Days to retain in archive
-  auto_delete_days  Int?      // Days before permanent deletion
-  is_active         Boolean   @default(true)
-  compliance_rule   String?   // UAE/Legal requirement reference
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
-
-  @@unique([entity_type])
-  @@index([entity_type, is_active])
-}
-
-// Bank reconciliation tracking for payment processing
-model bank_reconciliation {
-  id                String    @id
-  company_id        String
-  bank_account      String    // Bank account identifier
-  statement_date    DateTime  // Bank statement date
-  statement_ref     String?   // Bank statement reference
-  opening_balance   Decimal   @db.Decimal(12, 2)
-  closing_balance   Decimal   @db.Decimal(12, 2)
-  total_credits     Decimal   @db.Decimal(12, 2)
-  total_debits      Decimal   @db.Decimal(12, 2)
-  reconciled_amount Decimal   @db.Decimal(12, 2)
-  unreconciled_amount Decimal @db.Decimal(12, 2)
-  status            String    @default("PENDING") // PENDING, COMPLETED, FAILED
-  reconciled_by     String?   // User who performed reconciliation
-  reconciled_at     DateTime?
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
-  companies         companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-
-  @@index([company_id, statement_date])
-  @@index([bank_account, statement_date])
-  @@index([status, created_at])
-  @@index([reconciled_by, reconciled_at])
-}
-
-// Customer Consolidation Enhancement: Main Consolidation Table
-
-model customer_consolidated_reminders {
-  id                          String                @id
-  customer_id                 String
-  company_id                  String
-
-  // Consolidation details
-  invoice_ids                 String[]              // Array of invoice IDs included in this consolidation
-  total_amount                Decimal               @db.Decimal(12, 2) // Total amount across all invoices
-  currency                    String                @default("AED")
-  invoice_count               Int                   // Number of invoices in this consolidation
-
-  // Reminder configuration
-  reminder_type               ReminderType          @default(CONSOLIDATED)
-  escalation_level            EscalationLevel       @default(POLITE)
-  template_id                 String?
-
-  // Scheduling and delivery
-  scheduled_for               DateTime?
-  sent_at                     DateTime?
-  delivery_status             EmailDeliveryStatus   @default(QUEUED)
-  aws_message_id              String?               // AWS SES message ID
-
-  // Contact management
-  last_contact_date           DateTime?
-  next_eligible_contact       DateTime?
-  contact_interval_days       Int                   @default(7) // Days between contacts
-
-  // Priority and metadata
-  priority_score              Int                   @default(0) // 0-100 priority score
-  consolidation_reason        String?               // Why these invoices were consolidated
-  business_rules_applied      Json?                 @default("{}")  // Business rules applied during consolidation
-  cultural_compliance_flags   Json?                 @default("{}")  // UAE cultural compliance checks
-
-  // Response tracking
-  email_opened_at             DateTime?
-  email_clicked_at            DateTime?
-  customer_responded_at       DateTime?
-  payment_received_at         DateTime?
-
-  // Audit fields
-  created_at                  DateTime              @default(now())
-  updated_at                  DateTime              @updatedAt
-  created_by                  String?
-
-  // Relations
-  customer                    customers             @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  company                     companies             @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  email_template              email_templates?      @relation(fields: [template_id], references: [id])
-  creator                     users?                @relation(fields: [created_by], references: [id])
-  email_logs                  email_logs[]
-
-  // Constraints and validation
-  @@index([customer_id, company_id])
-  @@index([company_id, delivery_status])
-  @@index([scheduled_for, delivery_status])
-  @@index([company_id, priority_score])
-  @@index([customer_id, next_eligible_contact])
-  @@index([company_id, sent_at])
-  @@index([company_id, escalation_level, delivery_status])
-  @@index([company_id, created_at])
-
-  // Composite indexes for complex queries
-  @@index([company_id, delivery_status, priority_score])
-  @@index([customer_id, sent_at, delivery_status])
-  @@index([company_id, reminder_type, escalation_level])
-}
-
 
 enum InvoiceStatus {
   DRAFT
@@ -764,65 +770,11 @@ enum PaymentMethod {
   OTHER
 }
 
-enum UserRole {
-  ADMIN
-  FINANCE
-  VIEWER
-}
-
-// Week 2 Enhancement: New Enums for CSV Import and Email Integration
-
-enum ImportBatchStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  CANCELLED
-  PARTIALLY_COMPLETED
-}
-
-enum ImportType {
-  INVOICE
-  CUSTOMER
-  PAYMENT
-  INVOICE_ITEMS
-}
-
-enum ImportErrorType {
-  VALIDATION_ERROR
-  FORMAT_ERROR
-  DUPLICATE_ERROR
-  REFERENCE_ERROR
-  CONSTRAINT_ERROR
-  BUSINESS_RULE_ERROR
-}
-
-enum EmailTemplateType {
-  FOLLOW_UP
-  WELCOME
-  INVOICE_REMINDER
-  PAYMENT_CONFIRMATION
-  OVERDUE_NOTICE
-  SYSTEM_NOTIFICATION
-  CONSOLIDATED_REMINDER
-  URGENT_CONSOLIDATED_REMINDER
-}
-
-enum EmailLanguage {
-  ENGLISH
-  ARABIC
-}
-
-enum EmailDeliveryStatus {
-  QUEUED
-  SENT
-  DELIVERED
-  OPENED
-  CLICKED
-  BOUNCED
-  COMPLAINED
-  UNSUBSCRIBED
-  FAILED
+enum ReminderType {
+  CONSOLIDATED
+  URGENT_CONSOLIDATED
+  FINAL_CONSOLIDATED
+  MANUAL_CONSOLIDATED
 }
 
 enum UaeBusinessType {
@@ -836,24 +788,8 @@ enum UaeBusinessType {
   GOVERNMENT_ENTITY
 }
 
-// Customer Consolidation Enhancement: New Enums for Consolidation Feature
-
-enum ReminderType {
-  CONSOLIDATED
-  URGENT_CONSOLIDATED
-  FINAL_CONSOLIDATED
-  MANUAL_CONSOLIDATED
-}
-
-enum EscalationLevel {
-  POLITE
-  FIRM
-  URGENT
-  FINAL
-}
-
-enum ConsolidationPreference {
-  ENABLED
-  DISABLED
-  AUTO
+enum UserRole {
+  ADMIN
+  FINANCE
+  VIEWER
 }

@@ -144,7 +144,7 @@ export default function CampaignInvoicesPage() {
               </h1>
             </div>
             <p className="text-gray-600">
-              {invoices.length} invoices included in "{campaign.name}"
+              {invoices.length} invoices included in &quot;{campaign.name}&quot;
             </p>
           </div>
         </div>
@@ -298,7 +298,7 @@ export default function CampaignInvoicesPage() {
               </svg>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
               <p className="text-gray-600">
-                This campaign doesn't have any invoices assigned to it.
+                This campaign doesn&apos;t have any invoices assigned to it.
               </p>
             </div>
           )}
