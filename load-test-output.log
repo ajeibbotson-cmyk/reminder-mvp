@@ -1,0 +1,4003 @@
+═══════════════════════════════════════════════════════════════
+📊 LOAD TEST - 120 INVOICES
+Week 2: Performance Validation
+═══════════════════════════════════════════════════════════════
+
+📂 Finding PDF files...
+
+✅ Found 133 PDF files
+
+🔄 Processing invoices with Textract...
+
+
+📋 Processing batch 1/14 (10 invoices)
+   Processing: 049 SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761620964-049 SS25 Drop 2  .pdf',
+  size: 74179
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761620964-049 SS25 Drop 2  .pdf'
+}
+Textract job started: 5d5ad27ee9cf48897f816132eb786db50e5830c831fca30c9984474779191172
+Polling Textract job (attempt 1/60): 5d5ad27ee9cf48897f816132eb786db50e5830c831fca30c9984474779191172
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 5d5ad27ee9cf48897f816132eb786db50e5830c831fca30c9984474779191172
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 5d5ad27ee9cf48897f816132eb786db50e5830c831fca30c9984474779191172
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 5d5ad27ee9cf48897f816132eb786db50e5830c831fca30c9984474779191172
+Job status: SUCCEEDED
+Textract job completed, blocks: 663
+Extracted text length: 3303
+First 200 chars: INVOICE P P Invoice number V01250265 Invoice date 02-19-2025 Debtor number 10392 Your VAT IT05517750286 P P 049 srl Pop Trading Company 80 Via Santa Lucia Sint Annendwarsstraat 3 a PADOVA 35139 1012 H
+Textract async extraction complete: {
+  invoiceNumber: 'V01250265',
+  customerName: '049 srl',
+  totalAmount: 2170,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761620964-049 SS25 Drop 2  .pdf
+   ✅ 049 SS25 Drop 2  .pdf: V01250265 - €2170 (19.8s)
+   Processing: Above The Clouds AW25 Drop-1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761640738-Above The Clouds AW25 Drop-1.pdf',
+  size: 300372
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761640738-Above The Clouds AW25 Drop-1.pdf'
+}
+Textract job started: 7f1b27d557fb400d95a2389050b0bb7638e07add74b2569ec60e35beae9f9e3f
+Polling Textract job (attempt 1/60): 7f1b27d557fb400d95a2389050b0bb7638e07add74b2569ec60e35beae9f9e3f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 7f1b27d557fb400d95a2389050b0bb7638e07add74b2569ec60e35beae9f9e3f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 7f1b27d557fb400d95a2389050b0bb7638e07add74b2569ec60e35beae9f9e3f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 7f1b27d557fb400d95a2389050b0bb7638e07add74b2569ec60e35beae9f9e3f
+Job status: SUCCEEDED
+Textract job completed, blocks: 689
+Extracted text length: 3454
+First 200 chars: INVOICE P P Invoice number V01250703 Invoice date 07-15-2025 Debtor number 10313 P P Above The Clouds Pop Trading Company 78 Applebee St, St Peters Sint Annendwarsstraat 3 a SYDNEY 2044 1012 HC AMSTER
+Textract async extraction complete: {
+  invoiceNumber: 'V01250703',
+  customerName: 'Above The Clouds',
+  totalAmount: 7978,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761640738-Above The Clouds AW25 Drop-1.pdf
+   ✅ Above The Clouds AW25 Drop-1.pdf: V01250703 - €7978 (19.5s)
+   Processing: Above The Clouds SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761660257-Above The Clouds SS25 Drop 1 NOS.pdf',
+  size: 74257
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761660257-Above The Clouds SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 6292f29cb4db66c3d0d58df6e6960b3d9f7468c97d7eb55649569ba35671d477
+Polling Textract job (attempt 1/60): 6292f29cb4db66c3d0d58df6e6960b3d9f7468c97d7eb55649569ba35671d477
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 6292f29cb4db66c3d0d58df6e6960b3d9f7468c97d7eb55649569ba35671d477
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 6292f29cb4db66c3d0d58df6e6960b3d9f7468c97d7eb55649569ba35671d477
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 6292f29cb4db66c3d0d58df6e6960b3d9f7468c97d7eb55649569ba35671d477
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 6292f29cb4db66c3d0d58df6e6960b3d9f7468c97d7eb55649569ba35671d477
+Job status: SUCCEEDED
+Textract job completed, blocks: 556
+Extracted text length: 2755
+First 200 chars: INVOICE P P Invoice number V01250077 Invoice date 01-29-2025 Debtor number 10313 P P Above The Clouds Pop Trading Company 78 Applebee St, St Peters Sint Annendwarsstraat 3 a SYDNEY 2044 1012 HC AMSTER
+Textract async extraction complete: {
+  invoiceNumber: 'V01250077',
+  customerName: 'Above The Clouds',
+  totalAmount: 2348,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761660257-Above The Clouds SS25 Drop 1 NOS.pdf
+   ✅ Above The Clouds SS25 Drop 1 NOS.pdf: V01250077 - €2348 (25.3s)
+   Processing: Above the Clouds SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761685588-Above the Clouds SS25 Drop 2  .pdf',
+  size: 74594
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761685588-Above the Clouds SS25 Drop 2  .pdf'
+}
+Textract job started: 5adde10588247a371dc304855062eb4e78fdadcaff711dc0221b929ab1fe2a41
+Polling Textract job (attempt 1/60): 5adde10588247a371dc304855062eb4e78fdadcaff711dc0221b929ab1fe2a41
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 5adde10588247a371dc304855062eb4e78fdadcaff711dc0221b929ab1fe2a41
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 5adde10588247a371dc304855062eb4e78fdadcaff711dc0221b929ab1fe2a41
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 5adde10588247a371dc304855062eb4e78fdadcaff711dc0221b929ab1fe2a41
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 5adde10588247a371dc304855062eb4e78fdadcaff711dc0221b929ab1fe2a41
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): 5adde10588247a371dc304855062eb4e78fdadcaff711dc0221b929ab1fe2a41
+Job status: SUCCEEDED
+Textract job completed, blocks: 603
+Extracted text length: 3031
+First 200 chars: INVOICE P P Invoice number V01250256 Invoice date 02-19-2025 Debtor number 10313 P P Above The Clouds Pop Trading Company 78 Applebee St, St Peters Sint Annendwarsstraat 3 a SYDNEY 2044 1012 HC AMSTER
+Textract async extraction complete: {
+  invoiceNumber: 'V01250256',
+  customerName: 'Above The Clouds',
+  totalAmount: 4070,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761685588-Above the Clouds SS25 Drop 2  .pdf
+   ✅ Above the Clouds SS25 Drop 2  .pdf: V01250256 - €4070 (29.7s)
+   Processing: Bijenkorf SS25 Drop 1  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761715321-Bijenkorf SS25 Drop 1  .pdf',
+  size: 75565
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761715321-Bijenkorf SS25 Drop 1  .pdf'
+}
+Textract job started: a6c8adebfc4b49b6e2abeae09a83e4bbe4ab026233b3e937ab2636791754ced0
+Polling Textract job (attempt 1/60): a6c8adebfc4b49b6e2abeae09a83e4bbe4ab026233b3e937ab2636791754ced0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): a6c8adebfc4b49b6e2abeae09a83e4bbe4ab026233b3e937ab2636791754ced0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): a6c8adebfc4b49b6e2abeae09a83e4bbe4ab026233b3e937ab2636791754ced0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): a6c8adebfc4b49b6e2abeae09a83e4bbe4ab026233b3e937ab2636791754ced0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): a6c8adebfc4b49b6e2abeae09a83e4bbe4ab026233b3e937ab2636791754ced0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): a6c8adebfc4b49b6e2abeae09a83e4bbe4ab026233b3e937ab2636791754ced0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 7/60): a6c8adebfc4b49b6e2abeae09a83e4bbe4ab026233b3e937ab2636791754ced0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 8/60): a6c8adebfc4b49b6e2abeae09a83e4bbe4ab026233b3e937ab2636791754ced0
+Job status: SUCCEEDED
+Textract job completed, blocks: 893
+Extracted text length: 4459
+First 200 chars: INVOICE P P Invoice number V01250056 Invoice date 01-28-2025 Debtor number 10386 P P De Bijenkorf Pop Trading Company Postbus 12870 Sint Annendwarsstraat 3 a 1100 AW AMSTERDAM 1012 HC AMSTERDAM info@p
+Textract async extraction complete: {
+  invoiceNumber: 'V01250056',
+  customerName: 'De Bijenkorf',
+  totalAmount: 42027,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759761715321-Bijenkorf SS25 Drop 1  .pdf
+   ✅ Bijenkorf SS25 Drop 1  .pdf: V01250056 - €42027 (40.2s)
+   Processing: Bijenkorf SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761755550-Bijenkorf SS25 Drop 2  .pdf',
+  size: 75550
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761755550-Bijenkorf SS25 Drop 2  .pdf'
+}
+Textract job started: 477c67db564e165e2bfd1da304e3f3fcfcf0492a378a129c0f78f70204458290
+Polling Textract job (attempt 1/60): 477c67db564e165e2bfd1da304e3f3fcfcf0492a378a129c0f78f70204458290
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 477c67db564e165e2bfd1da304e3f3fcfcf0492a378a129c0f78f70204458290
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 477c67db564e165e2bfd1da304e3f3fcfcf0492a378a129c0f78f70204458290
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 477c67db564e165e2bfd1da304e3f3fcfcf0492a378a129c0f78f70204458290
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 477c67db564e165e2bfd1da304e3f3fcfcf0492a378a129c0f78f70204458290
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): 477c67db564e165e2bfd1da304e3f3fcfcf0492a378a129c0f78f70204458290
+Job status: IN_PROGRESS
+Polling Textract job (attempt 7/60): 477c67db564e165e2bfd1da304e3f3fcfcf0492a378a129c0f78f70204458290
+Job status: IN_PROGRESS
+Polling Textract job (attempt 8/60): 477c67db564e165e2bfd1da304e3f3fcfcf0492a378a129c0f78f70204458290
+Job status: SUCCEEDED
+Textract job completed, blocks: 808
+Extracted text length: 4072
+First 200 chars: INVOICE P P Invoice number V01250234 Invoice date 02-19-2025 Debtor number 10386 P P De Bijenkorf Pop Trading Company Postbus 12870 Sint Annendwarsstraat 3 a 1100 AW AMSTERDAM 1012 HC AMSTERDAM info@p
+Textract async extraction complete: {
+  invoiceNumber: 'V01250234',
+  customerName: 'De Bijenkorf',
+  totalAmount: 32118,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759761755550-Bijenkorf SS25 Drop 2  .pdf
+   ✅ Bijenkorf SS25 Drop 2  .pdf: V01250234 - €32118 (40.0s)
+   Processing: Bijenkorf SS25 NOS .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761795529-Bijenkorf SS25 NOS .pdf',
+  size: 72694
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761795529-Bijenkorf SS25 NOS .pdf'
+}
+Textract job started: 2206dcfb52697af4d6c14c04a5649caeab5adeefba3728a85b6b2d37126d2178
+Polling Textract job (attempt 1/60): 2206dcfb52697af4d6c14c04a5649caeab5adeefba3728a85b6b2d37126d2178
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 2206dcfb52697af4d6c14c04a5649caeab5adeefba3728a85b6b2d37126d2178
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 2206dcfb52697af4d6c14c04a5649caeab5adeefba3728a85b6b2d37126d2178
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 2206dcfb52697af4d6c14c04a5649caeab5adeefba3728a85b6b2d37126d2178
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 2206dcfb52697af4d6c14c04a5649caeab5adeefba3728a85b6b2d37126d2178
+Job status: SUCCEEDED
+Textract job completed, blocks: 501
+Extracted text length: 2504
+First 200 chars: INVOICE P P Invoice number V01250009 Invoice date 01-08-2025 Debtor number 10386 P P De Bijenkorf Pop Trading Company Postbus 12870 Sint Annendwarsstraat 3 a 1100 AW AMSTERDAM 1012 HC AMSTERDAM info@p
+Textract async extraction complete: {
+  invoiceNumber: 'V01250009',
+  customerName: 'De Bijenkorf',
+  totalAmount: 18088,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759761795529-Bijenkorf SS25 NOS .pdf
+   ✅ Bijenkorf SS25 NOS .pdf: V01250009 - €18088 (23.7s)
+   Processing: Block 60 SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761819192-Block 60 SS25 Drop 1.pdf',
+  size: 73313
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761819192-Block 60 SS25 Drop 1.pdf'
+}
+Textract job started: b68a96f9f74cc21b7911f48f70d544393c6fbfbad0d030322159e96a9ab31f2d
+Polling Textract job (attempt 1/60): b68a96f9f74cc21b7911f48f70d544393c6fbfbad0d030322159e96a9ab31f2d
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): b68a96f9f74cc21b7911f48f70d544393c6fbfbad0d030322159e96a9ab31f2d
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): b68a96f9f74cc21b7911f48f70d544393c6fbfbad0d030322159e96a9ab31f2d
+Job status: SUCCEEDED
+Textract job completed, blocks: 522
+Extracted text length: 2610
+First 200 chars: INVOICE P P Invoice number V01250087 Invoice date 01-29-2025 Debtor number 10394 Your VAT IT03866900404 P P Save Srl (Block60) Pop Trading Company Viale Ceccarini Angolo Via Virgilio, c/o Sint Annendw
+Textract async extraction complete: {
+  invoiceNumber: 'V01250087',
+  customerName: 'Save Srl (Block60)',
+  totalAmount: 1220,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761819192-Block 60 SS25 Drop 1.pdf
+   ✅ Block 60 SS25 Drop 1.pdf: V01250087 - €1220 (13.8s)
+   Processing: Block60 SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761832961-Block60 SS25 Drop 2  .pdf',
+  size: 76438
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761832961-Block60 SS25 Drop 2  .pdf'
+}
+Textract job started: cc977eedb51b659c0d642c1178903d23797b2825a6e037330feda8de4e10cd74
+Polling Textract job (attempt 1/60): cc977eedb51b659c0d642c1178903d23797b2825a6e037330feda8de4e10cd74
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): cc977eedb51b659c0d642c1178903d23797b2825a6e037330feda8de4e10cd74
+Job status: SUCCEEDED
+Textract job completed, blocks: 844
+Extracted text length: 4205
+First 200 chars: INVOICE P P Invoice number V01250266 Invoice date 02-19-2025 Debtor number 10394 Your VAT IT03866900404 P P Save Srl (Block60) Pop Trading Company Viale Ceccarini Angolo Via Virgilio, c/o Sint Annendw
+Textract async extraction complete: {
+  invoiceNumber: 'V01250266',
+  customerName: 'Save Srl (Block60)',
+  totalAmount: 3210,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761832961-Block60 SS25 Drop 2  .pdf
+   ✅ Block60 SS25 Drop 2  .pdf: V01250266 - €3210 (9.3s)
+   Processing: Bottega Backdoor SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761842265-Bottega Backdoor SS25 Drop 1 NOS.pdf',
+  size: 75188
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761842265-Bottega Backdoor SS25 Drop 1 NOS.pdf'
+}
+Textract job started: c7c4f5bf0c9935e202478f16f5185735dc7527a74a2277f36efdc11dc2122d1d
+Polling Textract job (attempt 1/60): c7c4f5bf0c9935e202478f16f5185735dc7527a74a2277f36efdc11dc2122d1d
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): c7c4f5bf0c9935e202478f16f5185735dc7527a74a2277f36efdc11dc2122d1d
+Job status: SUCCEEDED
+Textract job completed, blocks: 700
+Extracted text length: 3476
+First 200 chars: INVOICE P P Invoice number V01250080 Invoice date 01-29-2025 Debtor number 10348 Your VAT IT02749051203 P P Bottega Backdoor Pop Trading Company 3 A Piazza Galileo Sint Annendwarsstraat 3 a BOLOGNA 40
+Textract async extraction complete: {
+  invoiceNumber: 'V01250080',
+  customerName: 'Bottega Backdoor',
+  totalAmount: 2811,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761842265-Bottega Backdoor SS25 Drop 1 NOS.pdf
+   ✅ Bottega Backdoor SS25 Drop 1 NOS.pdf: V01250080 - €2811 (8.1s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 2/14 (10 invoices)
+   Processing: Bottega Backdoor SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761855356-Bottega Backdoor SS25 Drop 2  .pdf',
+  size: 72450
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761855356-Bottega Backdoor SS25 Drop 2  .pdf'
+}
+Textract job started: efa1749581210c858f7449ce2a32bfa407c44940afbe819a6b78903b9d39eb2c
+Polling Textract job (attempt 1/60): efa1749581210c858f7449ce2a32bfa407c44940afbe819a6b78903b9d39eb2c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): efa1749581210c858f7449ce2a32bfa407c44940afbe819a6b78903b9d39eb2c
+Job status: SUCCEEDED
+Textract job completed, blocks: 524
+Extracted text length: 2634
+First 200 chars: INVOICE P P Invoice number V01250259 Invoice date 02-19-2025 Debtor number 10348 Your VAT IT02749051203 P P Bottega Backdoor Pop Trading Company 3 A Piazza Galileo Sint Annendwarsstraat 3 a BOLOGNA 40
+Textract async extraction complete: {
+  invoiceNumber: 'V01250259',
+  customerName: 'Bottega Backdoor',
+  totalAmount: 2152,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761855356-Bottega Backdoor SS25 Drop 2  .pdf
+   ✅ Bottega Backdoor SS25 Drop 2  .pdf: V01250259 - €2152 (8.7s)
+   Processing: Club 21 Malaysia SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761864024-Club 21 Malaysia SS25 Drop 1.pdf',
+  size: 76832
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761864024-Club 21 Malaysia SS25 Drop 1.pdf'
+}
+Textract job started: 0a2624b9520bb6e6a92a62084ecb64f478f1a0fb6d93f6076f78ccf96f5c0ed4
+Polling Textract job (attempt 1/60): 0a2624b9520bb6e6a92a62084ecb64f478f1a0fb6d93f6076f78ccf96f5c0ed4
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 0a2624b9520bb6e6a92a62084ecb64f478f1a0fb6d93f6076f78ccf96f5c0ed4
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 0a2624b9520bb6e6a92a62084ecb64f478f1a0fb6d93f6076f78ccf96f5c0ed4
+Job status: SUCCEEDED
+Textract job completed, blocks: 703
+Extracted text length: 3518
+First 200 chars: INVOICE P P Invoice number V01250064 Invoice date 01-29-2025 Debtor number 10426 P P Club Twenty-One Retail (Malaysia) : Pop Trading Company 17th floor Menara Hap Seng Letter Box Sint Annendwarsstraat
+Textract async extraction complete: {
+  invoiceNumber: 'V01250064',
+  customerName: 'Club Twenty-One Retail (Malaysia) :',
+  totalAmount: 4526,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761864024-Club 21 Malaysia SS25 Drop 1.pdf
+   ✅ Club 21 Malaysia SS25 Drop 1.pdf: V01250064 - €4526 (13.3s)
+   Processing: Club21 Malaysia SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761877309-Club21 Malaysia SS25 Drop 2  .pdf',
+  size: 75445
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761877309-Club21 Malaysia SS25 Drop 2  .pdf'
+}
+Textract job started: 294db7a1ee522c715c6e7e8e2b8453c30e1c948157849ae28e7a6a403cca5659
+Polling Textract job (attempt 1/60): 294db7a1ee522c715c6e7e8e2b8453c30e1c948157849ae28e7a6a403cca5659
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 294db7a1ee522c715c6e7e8e2b8453c30e1c948157849ae28e7a6a403cca5659
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 294db7a1ee522c715c6e7e8e2b8453c30e1c948157849ae28e7a6a403cca5659
+Job status: SUCCEEDED
+Textract job completed, blocks: 568
+Extracted text length: 2856
+First 200 chars: INVOICE P P Invoice number V01250243 Invoice date 02-19-2025 Debtor number 10426 P P Club Twenty-One Retail (Malaysia) : Pop Trading Company 17th floor Menara Hap Seng Letter Box Sint Annendwarsstraat
+Textract async extraction complete: {
+  invoiceNumber: 'V01250243',
+  customerName: 'Club Twenty-One Retail (Malaysia) :',
+  totalAmount: 4108,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761877309-Club21 Malaysia SS25 Drop 2  .pdf
+   ✅ Club21 Malaysia SS25 Drop 2  .pdf: V01250243 - €4108 (13.8s)
+   Processing: Club21 Malaysia SS25 NOS  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761891099-Club21 Malaysia SS25 NOS  .pdf',
+  size: 73460
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761891099-Club21 Malaysia SS25 NOS  .pdf'
+}
+Textract job started: a3a8dbc135986462543be5a90456e28259e4ba215e5f191c65c744f0043d083f
+Polling Textract job (attempt 1/60): a3a8dbc135986462543be5a90456e28259e4ba215e5f191c65c744f0043d083f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): a3a8dbc135986462543be5a90456e28259e4ba215e5f191c65c744f0043d083f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): a3a8dbc135986462543be5a90456e28259e4ba215e5f191c65c744f0043d083f
+Job status: SUCCEEDED
+Textract job completed, blocks: 380
+Extracted text length: 1909
+First 200 chars: INVOICE P P Invoice number V01250015 Invoice date 01-09-2025 Debtor number 10426 P P Club Twenty-One Retail (Malaysia) : Pop Trading Company 17th floor Menara Hap Seng Letter Box Sint Annendwarsstraat
+Textract async extraction complete: {
+  invoiceNumber: 'V01250015',
+  customerName: 'Club Twenty-One Retail (Malaysia) :',
+  totalAmount: 2228,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761891099-Club21 Malaysia SS25 NOS  .pdf
+   ✅ Club21 Malaysia SS25 NOS  .pdf: V01250015 - €2228 (13.3s)
+   Processing: Crowdless SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761904356-Crowdless SS25 Drop 1 NOS.pdf',
+  size: 144085
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761904356-Crowdless SS25 Drop 1 NOS.pdf'
+}
+Textract job started: ff89ddc79bb2642baa6f584f9fc7bd8c2b6fbc3bd863d9171f9bac8a7721bd11
+Polling Textract job (attempt 1/60): ff89ddc79bb2642baa6f584f9fc7bd8c2b6fbc3bd863d9171f9bac8a7721bd11
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): ff89ddc79bb2642baa6f584f9fc7bd8c2b6fbc3bd863d9171f9bac8a7721bd11
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): ff89ddc79bb2642baa6f584f9fc7bd8c2b6fbc3bd863d9171f9bac8a7721bd11
+Job status: SUCCEEDED
+Textract job completed, blocks: 767
+Extracted text length: 3862
+First 200 chars: INVOICE P P Invoice number V01250102 Invoice date 01-29-2025 Debtor number 10317 P P Crowdless Pop Trading Company Almohamdeya dist jondob ibn kaab st villa Sint Annendwarsstraat 3 a 93 1012 HC AMSTER
+Textract async extraction complete: {
+  invoiceNumber: 'V01250102',
+  customerName: 'Crowdless',
+  totalAmount: 1075,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761904356-Crowdless SS25 Drop 1 NOS.pdf
+   ✅ Crowdless SS25 Drop 1 NOS.pdf: V01250102 - €1075 (13.7s)
+   Processing: Crowdless SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761918024-Crowdless SS25 Drop 2  .pdf',
+  size: 70863
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761918024-Crowdless SS25 Drop 2  .pdf'
+}
+Textract job started: 04a3efc3ac9ccea0282de1779a71254ebe9be5a4e0d9f239d8485a2789a17df4
+Polling Textract job (attempt 1/60): 04a3efc3ac9ccea0282de1779a71254ebe9be5a4e0d9f239d8485a2789a17df4
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 04a3efc3ac9ccea0282de1779a71254ebe9be5a4e0d9f239d8485a2789a17df4
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 04a3efc3ac9ccea0282de1779a71254ebe9be5a4e0d9f239d8485a2789a17df4
+Job status: SUCCEEDED
+Textract job completed, blocks: 329
+Extracted text length: 1694
+First 200 chars: INVOICE P P Invoice number V01250281 Invoice date 02-19-2025 Debtor number 10317 P P Crowdless Pop Trading Company Almohamdeya dist jondob ibn kaab st villa Sint Annendwarsstraat 3 a 93 1012 HC AMSTER
+Textract async extraction complete: {
+  invoiceNumber: 'V01250281',
+  customerName: 'Crowdless',
+  totalAmount: 1940,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761918024-Crowdless SS25 Drop 2  .pdf
+   ✅ Crowdless SS25 Drop 2  .pdf: V01250281 - €1940 (13.6s)
+   Processing: Duck SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761931636-Duck SS25 Drop 1 NOS.pdf',
+  size: 74426
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761931636-Duck SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 2915c0c81f6751331daefc2c1d3bbe071691dda08ad4e6845e26e17957de9884
+Polling Textract job (attempt 1/60): 2915c0c81f6751331daefc2c1d3bbe071691dda08ad4e6845e26e17957de9884
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 2915c0c81f6751331daefc2c1d3bbe071691dda08ad4e6845e26e17957de9884
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 2915c0c81f6751331daefc2c1d3bbe071691dda08ad4e6845e26e17957de9884
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 2915c0c81f6751331daefc2c1d3bbe071691dda08ad4e6845e26e17957de9884
+Job status: SUCCEEDED
+Textract job completed, blocks: 688
+Extracted text length: 3373
+First 200 chars: INVOICE P P Invoice number V01250097 Invoice date 01-29-2025 Debtor number 10422 Your VAT BE0424180604 P P Cape Cod SA/Duck Pop Trading Company Rue Saint Adalbert 18 Sint Annendwarsstraat 3 a 4000 LIE
+Textract async extraction complete: {
+  invoiceNumber: 'V01250097',
+  customerName: 'Cape Cod SA/Duck',
+  totalAmount: 1992,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761931636-Duck SS25 Drop 1 NOS.pdf
+   ✅ Duck SS25 Drop 1 NOS.pdf: V01250097 - €1992 (18.5s)
+   Processing: Duck SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761950171-Duck SS25 Drop 2  .pdf',
+  size: 71923
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761950171-Duck SS25 Drop 2  .pdf'
+}
+Textract job started: b8aa7df3287e1d506bca0245b935731b2be2578feff280f58c5a0e15645656eb
+Polling Textract job (attempt 1/60): b8aa7df3287e1d506bca0245b935731b2be2578feff280f58c5a0e15645656eb
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): b8aa7df3287e1d506bca0245b935731b2be2578feff280f58c5a0e15645656eb
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): b8aa7df3287e1d506bca0245b935731b2be2578feff280f58c5a0e15645656eb
+Job status: SUCCEEDED
+Textract job completed, blocks: 477
+Extracted text length: 2410
+First 200 chars: INVOICE P P Invoice number V01250276 Invoice date 02-19-2025 Debtor number 10422 Your VAT BE0424180604 P P Cape Cod SA/Duck Pop Trading Company Rue Saint Adalbert 18 Sint Annendwarsstraat 3 a 4000 LIE
+Textract async extraction complete: {
+  invoiceNumber: 'V01250276',
+  customerName: 'Cape Cod SA/Duck',
+  totalAmount: 1972,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761950171-Duck SS25 Drop 2  .pdf
+   ✅ Duck SS25 Drop 2  .pdf: V01250276 - €1972 (13.9s)
+   Processing: END SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761964038-END SS25 Drop 2  .pdf',
+  size: 74976
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761964038-END SS25 Drop 2  .pdf'
+}
+Textract job started: 79a0a0763d25ddf60a4c88b76ffe0ac473ab1b53f7db33545ef5f804c322c347
+Polling Textract job (attempt 1/60): 79a0a0763d25ddf60a4c88b76ffe0ac473ab1b53f7db33545ef5f804c322c347
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 79a0a0763d25ddf60a4c88b76ffe0ac473ab1b53f7db33545ef5f804c322c347
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 79a0a0763d25ddf60a4c88b76ffe0ac473ab1b53f7db33545ef5f804c322c347
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 79a0a0763d25ddf60a4c88b76ffe0ac473ab1b53f7db33545ef5f804c322c347
+Job status: SUCCEEDED
+Textract job completed, blocks: 690
+Extracted text length: 3459
+First 200 chars: INVOICE P P Invoice number V01250235 Invoice date 02-19-2025 Debtor number 10141 P P Ashworth & Parker Ltd T/A END / El Pop Trading Company Parsons Road 1 Sint Annendwarsstraat 3 a WASHINGTON NE37 1EZ
+Textract async extraction complete: {
+  invoiceNumber: 'V01250235',
+  customerName: 'Ashworth & Parker Ltd T/A END / El',
+  totalAmount: 12424,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761964038-END SS25 Drop 2  .pdf
+   ✅ END SS25 Drop 2  .pdf: V01250235 - €12424 (18.5s)
+   Processing: END SS25 NOS  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761982541-END SS25 NOS  .pdf',
+  size: 72655
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759761982541-END SS25 NOS  .pdf'
+}
+Textract job started: 15c56d8302c3f57e791563e3426fcbc255912dd28d7628542eebe90c1a129b37
+Polling Textract job (attempt 1/60): 15c56d8302c3f57e791563e3426fcbc255912dd28d7628542eebe90c1a129b37
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 15c56d8302c3f57e791563e3426fcbc255912dd28d7628542eebe90c1a129b37
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 15c56d8302c3f57e791563e3426fcbc255912dd28d7628542eebe90c1a129b37
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 15c56d8302c3f57e791563e3426fcbc255912dd28d7628542eebe90c1a129b37
+Job status: SUCCEEDED
+Textract job completed, blocks: 378
+Extracted text length: 1889
+First 200 chars: INVOICE P P Invoice number V01250011 Invoice date 01-08-2025 Debtor number 10141 P P Ashworth & Parker Ltd T/A END / El Pop Trading Company Parsons Road 1 Sint Annendwarsstraat 3 a WASHINGTON NE37 1EZ
+Textract async extraction complete: {
+  invoiceNumber: 'V01250011',
+  customerName: 'Ashworth & Parker Ltd T/A END / El',
+  totalAmount: 3656,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759761982541-END SS25 NOS  .pdf
+   ✅ END SS25 NOS  .pdf: V01250011 - €3656 (18.9s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 3/14 (10 invoices)
+   Processing: Effetti SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762006468-Effetti SS25 Drop 1 NOS.pdf',
+  size: 75898
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762006468-Effetti SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 5196c201a7f6c613cd71b77cd0e12baf2f9f27e0f640aa4c0ac1ef2a79173a7f
+Polling Textract job (attempt 1/60): 5196c201a7f6c613cd71b77cd0e12baf2f9f27e0f640aa4c0ac1ef2a79173a7f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 5196c201a7f6c613cd71b77cd0e12baf2f9f27e0f640aa4c0ac1ef2a79173a7f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 5196c201a7f6c613cd71b77cd0e12baf2f9f27e0f640aa4c0ac1ef2a79173a7f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 5196c201a7f6c613cd71b77cd0e12baf2f9f27e0f640aa4c0ac1ef2a79173a7f
+Job status: SUCCEEDED
+Textract job completed, blocks: 894
+Extracted text length: 4427
+First 200 chars: INVOICE P P Invoice number V01250088 Invoice date 01-29-2025 Debtor number 10391 Your VAT IT01787190691 P P Effetti Di Tritapepe Riccardo Pop Trading Company 10 Via Renzetti Sint Annendwarsstraat 3 a 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250088',
+  customerName: 'Effetti Di Tritapepe Riccardo',
+  totalAmount: 2672,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762006468-Effetti SS25 Drop 1 NOS.pdf
+   ✅ Effetti SS25 Drop 1 NOS.pdf: V01250088 - €2672 (19.4s)
+   Processing: Effetti SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762025891-Effetti SS25 Drop 2  .pdf',
+  size: 74687
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762025891-Effetti SS25 Drop 2  .pdf'
+}
+Textract job started: a8c8fdf41ad8d546bd6d822fe7b50195b63911881af0417a0f670db9e8807709
+Polling Textract job (attempt 1/60): a8c8fdf41ad8d546bd6d822fe7b50195b63911881af0417a0f670db9e8807709
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): a8c8fdf41ad8d546bd6d822fe7b50195b63911881af0417a0f670db9e8807709
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): a8c8fdf41ad8d546bd6d822fe7b50195b63911881af0417a0f670db9e8807709
+Job status: SUCCEEDED
+Textract job completed, blocks: 897
+Extracted text length: 4460
+First 200 chars: INVOICE P P Invoice number V01250267 Invoice date 02-19-2025 Debtor number 10391 Your VAT IT01787190691 P P Effetti Di Tritapepe Riccardo Pop Trading Company 10 Via Renzetti Sint Annendwarsstraat 3 a 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250267',
+  customerName: 'Effetti Di Tritapepe Riccardo',
+  totalAmount: 2240,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762025891-Effetti SS25 Drop 2  .pdf
+   ✅ Effetti SS25 Drop 2  .pdf: V01250267 - €2240 (13.6s)
+   Processing: Eksikon NUW SS25 Drop 1 NOS .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762039505-Eksikon NUW SS25 Drop 1 NOS .pdf',
+  size: 83825
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762039505-Eksikon NUW SS25 Drop 1 NOS .pdf'
+}
+Textract job started: e2eeada7cbb9492ce75f35cd3ad73148954b4d6901a0b7aa67ad4f3e27949463
+Polling Textract job (attempt 1/60): e2eeada7cbb9492ce75f35cd3ad73148954b4d6901a0b7aa67ad4f3e27949463
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): e2eeada7cbb9492ce75f35cd3ad73148954b4d6901a0b7aa67ad4f3e27949463
+Job status: SUCCEEDED
+Textract job completed, blocks: 2280
+Extracted text length: 10987
+First 200 chars: INVOICE P P Invoice number V01250059 Invoice date 01-28-2025 Debtor number 10353 Your VAT 9715394818 P P Eksikon Trading Limited Pop Trading Company Lucky Centre, Wan Chai Road 701 7/F Sint Annendwars
+Textract async extraction complete: {
+  invoiceNumber: 'V01250059',
+  customerName: 'Eksikon Trading Limited',
+  totalAmount: 13361,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762039505-Eksikon NUW SS25 Drop 1 NOS .pdf
+   ✅ Eksikon NUW SS25 Drop 1 NOS .pdf: V01250059 - €13361 (9.7s)
+   Processing: Eksikon NUW SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762049201-Eksikon NUW SS25 Drop 2  .pdf',
+  size: 75708
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762049201-Eksikon NUW SS25 Drop 2  .pdf'
+}
+Textract job started: b5c8ae37ef6906ea2712ddd40d65e88bdda0447f7349e61b54bd1946c1bc64c1
+Polling Textract job (attempt 1/60): b5c8ae37ef6906ea2712ddd40d65e88bdda0447f7349e61b54bd1946c1bc64c1
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): b5c8ae37ef6906ea2712ddd40d65e88bdda0447f7349e61b54bd1946c1bc64c1
+Job status: SUCCEEDED
+Textract job completed, blocks: 1000
+Extracted text length: 4968
+First 200 chars: INVOICE P P Invoice number V01250237 Invoice date 02-19-2025 Debtor number 10353 Your VAT 9715394818 P P Eksikon Trading Limited Pop Trading Company Lucky Centre, Wan Chai Road 701 7/F Sint Annendwars
+Textract async extraction complete: {
+  invoiceNumber: 'V01250237',
+  customerName: 'Eksikon Trading Limited',
+  totalAmount: 5759,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762049201-Eksikon NUW SS25 Drop 2  .pdf
+   ✅ Eksikon NUW SS25 Drop 2  .pdf: V01250237 - €5759 (8.4s)
+   Processing: End Clothing SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762057581-End Clothing SS25 Drop 1.pdf',
+  size: 74778
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762057581-End Clothing SS25 Drop 1.pdf'
+}
+Textract job started: cdbdfea29d80e049f46a658f84c0b72df1707586fe30f793f469b7b1fb9a2213
+Polling Textract job (attempt 1/60): cdbdfea29d80e049f46a658f84c0b72df1707586fe30f793f469b7b1fb9a2213
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): cdbdfea29d80e049f46a658f84c0b72df1707586fe30f793f469b7b1fb9a2213
+Job status: SUCCEEDED
+Textract job completed, blocks: 635
+Extracted text length: 3192
+First 200 chars: INVOICE P P Invoice number V01250057 Invoice date 01-28-2025 Debtor number 10141 P P Ashworth & Parker Ltd T/A END / El Pop Trading Company Parsons Road 1 Sint Annendwarsstraat 3 a WASHINGTON NE37 1EZ
+Textract async extraction complete: {
+  invoiceNumber: 'V01250057',
+  customerName: 'Ashworth & Parker Ltd T/A END / El',
+  totalAmount: 9208,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762057581-End Clothing SS25 Drop 1.pdf
+   ✅ End Clothing SS25 Drop 1.pdf: V01250057 - €9208 (8.1s)
+   Processing: FWRD SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762065721-FWRD SS25 Drop 1.pdf',
+  size: 81925
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762065721-FWRD SS25 Drop 1.pdf'
+}
+Textract job started: 40d70c829f187dcd2c6617bd5c62dc613ec598a6c0584cce29f195cf0b74ff5f
+Polling Textract job (attempt 1/60): 40d70c829f187dcd2c6617bd5c62dc613ec598a6c0584cce29f195cf0b74ff5f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 40d70c829f187dcd2c6617bd5c62dc613ec598a6c0584cce29f195cf0b74ff5f
+Job status: SUCCEEDED
+Textract job completed, blocks: 757
+Extracted text length: 3769
+First 200 chars: INVOICE P P Invoice number V01250069 Invoice date 01-29-2025 Debtor number 10388 P P FWRD LLC FORWARD LLC ADDRESS Pop Trading Company 12889 Moore St 6901 Marlin Cir La Palma Sint Annendwarsstraat 3 a 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250069',
+  customerName: 'FWRD LLC FORWARD LLC ADDRESS',
+  totalAmount: 4060,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762065721-FWRD SS25 Drop 1.pdf
+   ✅ FWRD SS25 Drop 1.pdf: V01250069 - €4060 (8.7s)
+   Processing: FWRD SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762074418-FWRD SS25 Drop 2  .pdf',
+  size: 71735
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762074418-FWRD SS25 Drop 2  .pdf'
+}
+Textract job started: 629830524730eff57de6cf969936e0f0c83ac1b7bdec7483a805531f3b50c6ce
+Polling Textract job (attempt 1/60): 629830524730eff57de6cf969936e0f0c83ac1b7bdec7483a805531f3b50c6ce
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 629830524730eff57de6cf969936e0f0c83ac1b7bdec7483a805531f3b50c6ce
+Job status: SUCCEEDED
+Textract job completed, blocks: 771
+Extracted text length: 3833
+First 200 chars: INVOICE P P Invoice number V01250248 Invoice date 02-19-2025 Debtor number 10388 P P FWRD LLC FORWARD LLC ADDRESS Pop Trading Company 12889 Moore St 6901 Marlin Cir La Palma Sint Annendwarsstraat 3 a 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250248',
+  customerName: 'FWRD LLC FORWARD LLC ADDRESS',
+  totalAmount: 4748,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762074418-FWRD SS25 Drop 2  .pdf
+   ✅ FWRD SS25 Drop 2  .pdf: V01250248 - €4748 (8.8s)
+   Processing: Foot District SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762083190-Foot District SS25 Drop 1 NOS.pdf',
+  size: 77951
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762083190-Foot District SS25 Drop 1 NOS.pdf'
+}
+Textract job started: b9edac55d45955879273f719dc6a3e0a68a7f44bd6ef6fd069066b6161e678a4
+Polling Textract job (attempt 1/60): b9edac55d45955879273f719dc6a3e0a68a7f44bd6ef6fd069066b6161e678a4
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): b9edac55d45955879273f719dc6a3e0a68a7f44bd6ef6fd069066b6161e678a4
+Job status: SUCCEEDED
+Textract job completed, blocks: 1195
+Extracted text length: 5853
+First 200 chars: INVOICE P P Invoice number V01250068 Invoice date 01-29-2025 Debtor number 10413 Your VAT ESB24638546 P P Foot District S.L. Pop Trading Company 1 Marqués de Comillas Sint Annendwarsstraat 3 a ALMERIA
+Textract async extraction complete: {
+  invoiceNumber: 'V01250068',
+  customerName: 'Foot District S.L.',
+  totalAmount: 5323,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762083190-Foot District SS25 Drop 1 NOS.pdf
+   ✅ Foot District SS25 Drop 1 NOS.pdf: V01250068 - €5323 (10.2s)
+   Processing: Foot District SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762093375-Foot District SS25 Drop 2  .pdf',
+  size: 74582
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762093375-Foot District SS25 Drop 2  .pdf'
+}
+Textract job started: 29cbdb969558f42dcae9fbff01ee056208906d167278fc56811d517cb3e11240
+Polling Textract job (attempt 1/60): 29cbdb969558f42dcae9fbff01ee056208906d167278fc56811d517cb3e11240
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 29cbdb969558f42dcae9fbff01ee056208906d167278fc56811d517cb3e11240
+Job status: SUCCEEDED
+Textract job completed, blocks: 820
+Extracted text length: 4076
+First 200 chars: INVOICE P P Invoice number V01250247 Invoice date 02-19-2025 Debtor number 10413 Your VAT ESB24638546 P P Foot District S.L. Pop Trading Company 1 Marqués de Comillas Sint Annendwarsstraat 3 a ALMERIA
+Textract async extraction complete: {
+  invoiceNumber: 'V01250247',
+  customerName: 'Foot District S.L.',
+  totalAmount: 3564,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762093375-Foot District SS25 Drop 2  .pdf
+   ✅ Foot District SS25 Drop 2  .pdf: V01250247 - €3564 (8.9s)
+   Processing: Good Life SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762102284-Good Life SS25 Drop 1 NOS.pdf',
+  size: 74893
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762102284-Good Life SS25 Drop 1 NOS.pdf'
+}
+Textract job started: c603284abe0f46a85c380cdce60d49f71b75e300fb78844db1b9701e0aa950a2
+Polling Textract job (attempt 1/60): c603284abe0f46a85c380cdce60d49f71b75e300fb78844db1b9701e0aa950a2
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): c603284abe0f46a85c380cdce60d49f71b75e300fb78844db1b9701e0aa950a2
+Job status: SUCCEEDED
+Textract job completed, blocks: 855
+Extracted text length: 4233
+First 200 chars: INVOICE P P Invoice number V01250074 Invoice date 01-29-2025 Debtor number 10320 P P Good Life Pop Trading Company Al Serkal Avenue, Warehouse 64 Al Quoz Sint Annendwarsstraat 3 a Area 1012 HC AMSTERD
+Textract async extraction complete: {
+  invoiceNumber: 'V01250074',
+  customerName: 'Good Life',
+  totalAmount: 5021,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762102284-Good Life SS25 Drop 1 NOS.pdf
+   ✅ Good Life SS25 Drop 1 NOS.pdf: V01250074 - €5021 (9.2s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 4/14 (10 invoices)
+   Processing: Good Life SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762116512-Good Life SS25 Drop 2  .pdf',
+  size: 73434
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762116512-Good Life SS25 Drop 2  .pdf'
+}
+Textract job started: cb85c530b058c8a6c55465bd731608976f1d832361c92278bc29cb4982546ef2
+Polling Textract job (attempt 1/60): cb85c530b058c8a6c55465bd731608976f1d832361c92278bc29cb4982546ef2
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): cb85c530b058c8a6c55465bd731608976f1d832361c92278bc29cb4982546ef2
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): cb85c530b058c8a6c55465bd731608976f1d832361c92278bc29cb4982546ef2
+Job status: SUCCEEDED
+Textract job completed, blocks: 636
+Extracted text length: 3164
+First 200 chars: INVOICE P P Invoice number V01250250 Invoice date 02-19-2025 Debtor number 10320 P P Good Life Pop Trading Company Al Serkal Avenue, Warehouse 64 Al Quoz Sint Annendwarsstraat 3 a Area 1012 HC AMSTERD
+Textract async extraction complete: {
+  invoiceNumber: 'V01250250',
+  customerName: 'Good Life',
+  totalAmount: 2772,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762116512-Good Life SS25 Drop 2  .pdf
+   ✅ Good Life SS25 Drop 2  .pdf: V01250250 - €2772 (13.9s)
+   Processing: Graduate SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762130373-Graduate SS25 Drop 1.pdf',
+  size: 74094
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762130373-Graduate SS25 Drop 1.pdf'
+}
+Textract job started: ecf4826e72de3d20fee2928d674886fff239d18c66c87de348a5ba6446356b49
+Polling Textract job (attempt 1/60): ecf4826e72de3d20fee2928d674886fff239d18c66c87de348a5ba6446356b49
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): ecf4826e72de3d20fee2928d674886fff239d18c66c87de348a5ba6446356b49
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): ecf4826e72de3d20fee2928d674886fff239d18c66c87de348a5ba6446356b49
+Job status: SUCCEEDED
+Textract job completed, blocks: 567
+Extracted text length: 2814
+First 200 chars: INVOICE P P Invoice number V01250099 Invoice date 01-29-2025 Debtor number 10203 Your VAT FR39519567705 P P Graduate Pop Trading Company 63 Rue Du Pas Sain Georges Sint Annendwarsstraat 3 a BORDEAUX 3
+Textract async extraction complete: {
+  invoiceNumber: 'V01250099',
+  customerName: 'Graduate',
+  totalAmount: 1425,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762130373-Graduate SS25 Drop 1.pdf
+   ✅ Graduate SS25 Drop 1.pdf: V01250099 - €1425 (13.3s)
+   Processing: Graduate SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762143623-Graduate SS25 Drop 2  .pdf',
+  size: 73605
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762143623-Graduate SS25 Drop 2  .pdf'
+}
+Textract job started: 42683a6b1d812623777e8a9decc31cce9241455439589b767f991c35b93b94cc
+Polling Textract job (attempt 1/60): 42683a6b1d812623777e8a9decc31cce9241455439589b767f991c35b93b94cc
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 42683a6b1d812623777e8a9decc31cce9241455439589b767f991c35b93b94cc
+Job status: SUCCEEDED
+Textract job completed, blocks: 650
+Extracted text length: 3248
+First 200 chars: INVOICE P P Invoice number V01250278 Invoice date 02-19-2025 Debtor number 10203 Your VAT FR39519567705 P P Graduate Pop Trading Company 63 Rue Du Pas Sain Georges Sint Annendwarsstraat 3 a BORDEAUX 3
+Textract async extraction complete: {
+  invoiceNumber: 'V01250278',
+  customerName: 'Graduate',
+  totalAmount: 2026,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762143623-Graduate SS25 Drop 2  .pdf
+   ✅ Graduate SS25 Drop 2  .pdf: V01250278 - €2026 (8.5s)
+   Processing: HHV SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762152162-HHV SS25 Drop 1 NOS.pdf',
+  size: 75947
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762152162-HHV SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 5c99389df050b537c96166c3513c82055c38a1441ca91a1f2337de5060d38689
+Polling Textract job (attempt 1/60): 5c99389df050b537c96166c3513c82055c38a1441ca91a1f2337de5060d38689
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 5c99389df050b537c96166c3513c82055c38a1441ca91a1f2337de5060d38689
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 5c99389df050b537c96166c3513c82055c38a1441ca91a1f2337de5060d38689
+Job status: SUCCEEDED
+Textract job completed, blocks: 730
+Extracted text length: 3600
+First 200 chars: INVOICE P P Invoice number V01250082 Invoice date 01-29-2025 Debtor number 10272 Your VAT DE263440712 P P HHV Handels GmbH Pop Trading Company Zur Alten Börse 55 Sint Annendwarsstraat 3 a 12681 BERLIN
+Textract async extraction complete: {
+  invoiceNumber: 'V01250082',
+  customerName: 'HHV Handels GmbH',
+  totalAmount: 3070,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762152162-HHV SS25 Drop 1 NOS.pdf
+   ✅ HHV SS25 Drop 1 NOS.pdf: V01250082 - €3070 (13.3s)
+   Processing: HHV SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762165432-HHV SS25 Drop 2  .pdf',
+  size: 74652
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762165432-HHV SS25 Drop 2  .pdf'
+}
+Textract job started: 3159cb4193ce7d9bdb074e77294d1b5832eb9436113472c4278a3218d749875a
+Polling Textract job (attempt 1/60): 3159cb4193ce7d9bdb074e77294d1b5832eb9436113472c4278a3218d749875a
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 3159cb4193ce7d9bdb074e77294d1b5832eb9436113472c4278a3218d749875a
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 3159cb4193ce7d9bdb074e77294d1b5832eb9436113472c4278a3218d749875a
+Job status: SUCCEEDED
+Textract job completed, blocks: 635
+Extracted text length: 3195
+First 200 chars: INVOICE P P Invoice number V01250260 Invoice date 02-19-2025 Debtor number 10272 Your VAT DE263440712 P P HHV Handels GmbH Pop Trading Company Zur Alten Börse 55 Sint Annendwarsstraat 3 a 12681 BERLIN
+Textract async extraction complete: {
+  invoiceNumber: 'V01250260',
+  customerName: 'HHV Handels GmbH',
+  totalAmount: 2496,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762165432-HHV SS25 Drop 2  .pdf
+   ✅ HHV SS25 Drop 2  .pdf: V01250260 - €2496 (13.3s)
+   Processing: Homebody SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762178716-Homebody SS25 Drop 1 NOS.pdf',
+  size: 71628
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762178716-Homebody SS25 Drop 1 NOS.pdf'
+}
+Textract job started: a3cfa0edc81ab35e0fce36bfb8446df50baf2adb747cbf4c1930b0e5cc981ad1
+Polling Textract job (attempt 1/60): a3cfa0edc81ab35e0fce36bfb8446df50baf2adb747cbf4c1930b0e5cc981ad1
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): a3cfa0edc81ab35e0fce36bfb8446df50baf2adb747cbf4c1930b0e5cc981ad1
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): a3cfa0edc81ab35e0fce36bfb8446df50baf2adb747cbf4c1930b0e5cc981ad1
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): a3cfa0edc81ab35e0fce36bfb8446df50baf2adb747cbf4c1930b0e5cc981ad1
+Job status: SUCCEEDED
+Textract job completed, blocks: 454
+Extracted text length: 2287
+First 200 chars: INVOICE P P Invoice number V01250109 Invoice date 01-29-2025 Debtor number 10389 P P Homebody Pop Trading Company 801 Winthrop Dr. Sint Annendwarsstraat 3 a ALHAMBRA 91803 1012 HC AMSTERDAM United Sta
+Textract async extraction complete: {
+  invoiceNumber: 'V01250109',
+  customerName: 'Homebody',
+  totalAmount: 852,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759762178716-Homebody SS25 Drop 1 NOS.pdf
+   ✅ Homebody SS25 Drop 1 NOS.pdf: V01250109 - €852 (19.2s)
+   Processing: Homebody SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762197916-Homebody SS25 Drop 2  .pdf',
+  size: 69689
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762197916-Homebody SS25 Drop 2  .pdf'
+}
+Textract job started: 0dcd4040bea3bcf4682bb51daa0e366a8d473009a3b3a2f842bba81eebac52f0
+Polling Textract job (attempt 1/60): 0dcd4040bea3bcf4682bb51daa0e366a8d473009a3b3a2f842bba81eebac52f0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 0dcd4040bea3bcf4682bb51daa0e366a8d473009a3b3a2f842bba81eebac52f0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 0dcd4040bea3bcf4682bb51daa0e366a8d473009a3b3a2f842bba81eebac52f0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 0dcd4040bea3bcf4682bb51daa0e366a8d473009a3b3a2f842bba81eebac52f0
+Job status: SUCCEEDED
+Textract job completed, blocks: 284
+Extracted text length: 1466
+First 200 chars: INVOICE P P Invoice number V01250287 Invoice date 02-19-2025 Debtor number 10389 P P Homebody Pop Trading Company 801 Winthrop Dr. Sint Annendwarsstraat 3 a ALHAMBRA 91803 1012 HC AMSTERDAM United Sta
+Textract async extraction complete: {
+  invoiceNumber: 'V01250287',
+  customerName: 'Homebody',
+  totalAmount: 414,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759762197916-Homebody SS25 Drop 2  .pdf
+   ✅ Homebody SS25 Drop 2  .pdf: V01250287 - €414 (18.3s)
+   Processing: ITK AW25 Drop-2.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762216222-ITK AW25 Drop-2.pdf',
+  size: 166110
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762216222-ITK AW25 Drop-2.pdf'
+}
+Textract job started: cfdfb1763ef5551fde3df2ff95e4751fd1a934086381584b9f441e59b0217435
+Polling Textract job (attempt 1/60): cfdfb1763ef5551fde3df2ff95e4751fd1a934086381584b9f441e59b0217435
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): cfdfb1763ef5551fde3df2ff95e4751fd1a934086381584b9f441e59b0217435
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): cfdfb1763ef5551fde3df2ff95e4751fd1a934086381584b9f441e59b0217435
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): cfdfb1763ef5551fde3df2ff95e4751fd1a934086381584b9f441e59b0217435
+Job status: SUCCEEDED
+Textract job completed, blocks: 659
+Extracted text length: 3319
+First 200 chars: INVOICE P P Invoice number V01250845 Invoice date 08-25-2025 Debtor number 10068 Your VAT LV40103829035 P P Sia Rocket Sience - ITK Pop Trading Company Z.A. Melerovica Blvd. 18 Sint Annendwarsstraat 3
+Textract async extraction complete: {
+  invoiceNumber: 'V01250845',
+  customerName: 'Sia Rocket Sience - ITK',
+  totalAmount: 3756,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762216222-ITK AW25 Drop-2.pdf
+   ✅ ITK AW25 Drop-2.pdf: V01250845 - €3756 (19.6s)
+   Processing: ITK SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762235835-ITK SS25 Drop 1.pdf',
+  size: 71520
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762235835-ITK SS25 Drop 1.pdf'
+}
+Textract job started: 822e6c417774273fa6c0c69afa154b222f6b535fd40c528562f2c76563443590
+Polling Textract job (attempt 1/60): 822e6c417774273fa6c0c69afa154b222f6b535fd40c528562f2c76563443590
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 822e6c417774273fa6c0c69afa154b222f6b535fd40c528562f2c76563443590
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 822e6c417774273fa6c0c69afa154b222f6b535fd40c528562f2c76563443590
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 822e6c417774273fa6c0c69afa154b222f6b535fd40c528562f2c76563443590
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 822e6c417774273fa6c0c69afa154b222f6b535fd40c528562f2c76563443590
+Job status: SUCCEEDED
+Textract job completed, blocks: 344
+Extracted text length: 1749
+First 200 chars: INVOICE P P Invoice number V01250092 Invoice date 01-29-2025 Debtor number 10068 Your VAT LV40103829035 P P Sia Rocket Sience ITK Pop Trading Company Z.A. Melerovica Blvd. 18 Sint Annendwarsstraat 3 a
+Textract async extraction complete: {
+  invoiceNumber: 'V01250092',
+  customerName: 'Sia Rocket Sience ITK',
+  totalAmount: 874,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762235835-ITK SS25 Drop 1.pdf
+   ✅ ITK SS25 Drop 1.pdf: V01250092 - €874 (23.5s)
+   Processing: ITK SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762259331-ITK SS25 Drop 2  .pdf',
+  size: 72551
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762259331-ITK SS25 Drop 2  .pdf'
+}
+Textract job started: dfe244fbc0292d298c2b24d37966977324f8bec7efea093ad84a1c5d64ddbff3
+Polling Textract job (attempt 1/60): dfe244fbc0292d298c2b24d37966977324f8bec7efea093ad84a1c5d64ddbff3
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): dfe244fbc0292d298c2b24d37966977324f8bec7efea093ad84a1c5d64ddbff3
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): dfe244fbc0292d298c2b24d37966977324f8bec7efea093ad84a1c5d64ddbff3
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): dfe244fbc0292d298c2b24d37966977324f8bec7efea093ad84a1c5d64ddbff3
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): dfe244fbc0292d298c2b24d37966977324f8bec7efea093ad84a1c5d64ddbff3
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): dfe244fbc0292d298c2b24d37966977324f8bec7efea093ad84a1c5d64ddbff3
+Job status: SUCCEEDED
+Textract job completed, blocks: 478
+Extracted text length: 2431
+First 200 chars: INVOICE P P Invoice number V01250271 Invoice date 02-19-2025 Debtor number 10068 Your VAT LV40103829035 P P Sia Rocket Sience ITK Pop Trading Company Z.A. Melerovica Blvd. 18 Sint Annendwarsstraat 3 a
+Textract async extraction complete: {
+  invoiceNumber: 'V01250271',
+  customerName: 'Sia Rocket Sience ITK',
+  totalAmount: 2326,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762259331-ITK SS25 Drop 2  .pdf
+   ✅ ITK SS25 Drop 2  .pdf: V01250271 - €2326 (29.7s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 5/14 (10 invoices)
+   Processing: ITK SS25 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762294007-ITK SS25 NOS.pdf',
+  size: 72110
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762294007-ITK SS25 NOS.pdf'
+}
+Textract job started: 6c97500548f278279c4461469f282db9431b967afabb419a0b9b5147d480335a
+Polling Textract job (attempt 1/60): 6c97500548f278279c4461469f282db9431b967afabb419a0b9b5147d480335a
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 6c97500548f278279c4461469f282db9431b967afabb419a0b9b5147d480335a
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 6c97500548f278279c4461469f282db9431b967afabb419a0b9b5147d480335a
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 6c97500548f278279c4461469f282db9431b967afabb419a0b9b5147d480335a
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 6c97500548f278279c4461469f282db9431b967afabb419a0b9b5147d480335a
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): 6c97500548f278279c4461469f282db9431b967afabb419a0b9b5147d480335a
+Job status: IN_PROGRESS
+Polling Textract job (attempt 7/60): 6c97500548f278279c4461469f282db9431b967afabb419a0b9b5147d480335a
+Job status: IN_PROGRESS
+Polling Textract job (attempt 8/60): 6c97500548f278279c4461469f282db9431b967afabb419a0b9b5147d480335a
+Job status: SUCCEEDED
+Textract job completed, blocks: 445
+Extracted text length: 2219
+First 200 chars: INVOICE P P Invoice number V01241302 Invoice date 12-23-2024 Debtor number 10068 Your VAT LV40103829035 P P Sia Rocket Sience - ITK Pop Trading Company Z.A. Melerovica Blvd. 18 Sint Annendwarsstraat 3
+Textract async extraction complete: {
+  invoiceNumber: 'V01241302',
+  customerName: 'Sia Rocket Sience - ITK',
+  totalAmount: 745,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762294007-ITK SS25 NOS.pdf
+   ✅ ITK SS25 NOS.pdf: V01241302 - €745 (39.9s)
+   Processing: Illum SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762333900-Illum SS25 Drop 1 NOS.pdf',
+  size: 74959
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762333900-Illum SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 806145eb2b85ac7c69a089776037d32fd2c4b2dc9cc8e4334d4a04dcb10df951
+Polling Textract job (attempt 1/60): 806145eb2b85ac7c69a089776037d32fd2c4b2dc9cc8e4334d4a04dcb10df951
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 806145eb2b85ac7c69a089776037d32fd2c4b2dc9cc8e4334d4a04dcb10df951
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 806145eb2b85ac7c69a089776037d32fd2c4b2dc9cc8e4334d4a04dcb10df951
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 806145eb2b85ac7c69a089776037d32fd2c4b2dc9cc8e4334d4a04dcb10df951
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 806145eb2b85ac7c69a089776037d32fd2c4b2dc9cc8e4334d4a04dcb10df951
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): 806145eb2b85ac7c69a089776037d32fd2c4b2dc9cc8e4334d4a04dcb10df951
+Job status: IN_PROGRESS
+Polling Textract job (attempt 7/60): 806145eb2b85ac7c69a089776037d32fd2c4b2dc9cc8e4334d4a04dcb10df951
+Job status: SUCCEEDED
+Textract job completed, blocks: 987
+Extracted text length: 4863
+First 200 chars: INVOICE P P Invoice number V01250071 Invoice date 01-29-2025 Debtor number 10344 Your VAT DK27355943 P P Illum A/S Pop Trading Company 52 Østergade Sint Annendwarsstraat 3 a 1001 København K 1012 HC A
+Textract async extraction complete: {
+  invoiceNumber: 'V01250071',
+  customerName: 'Illum A/S',
+  totalAmount: 4577,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762333900-Illum SS25 Drop 1 NOS.pdf
+   ✅ Illum SS25 Drop 1 NOS.pdf: V01250071 - €4577 (35.1s)
+   Processing: Illum SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762369032-Illum SS25 Drop 2  .pdf',
+  size: 73942
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762369032-Illum SS25 Drop 2  .pdf'
+}
+Textract job started: e127dcac1b66aa226a4b0d936a045bc1d9d433ff3229ce81216f3f711f6097b5
+Polling Textract job (attempt 1/60): e127dcac1b66aa226a4b0d936a045bc1d9d433ff3229ce81216f3f711f6097b5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): e127dcac1b66aa226a4b0d936a045bc1d9d433ff3229ce81216f3f711f6097b5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): e127dcac1b66aa226a4b0d936a045bc1d9d433ff3229ce81216f3f711f6097b5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): e127dcac1b66aa226a4b0d936a045bc1d9d433ff3229ce81216f3f711f6097b5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): e127dcac1b66aa226a4b0d936a045bc1d9d433ff3229ce81216f3f711f6097b5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): e127dcac1b66aa226a4b0d936a045bc1d9d433ff3229ce81216f3f711f6097b5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 7/60): e127dcac1b66aa226a4b0d936a045bc1d9d433ff3229ce81216f3f711f6097b5
+Job status: SUCCEEDED
+Textract job completed, blocks: 659
+Extracted text length: 3298
+First 200 chars: INVOICE P P Invoice number V01250251 Invoice date 02-19-2025 Debtor number 10344 Your VAT DK27355943 P P Illum A/S Pop Trading Company 52 Østergade Sint Annendwarsstraat 3 a C COPENHAGEN 1012 HC AMSTE
+Textract async extraction complete: {
+  invoiceNumber: 'V01250251',
+  customerName: 'Illum A/S',
+  totalAmount: 2790,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762369032-Illum SS25 Drop 2  .pdf
+   ✅ Illum SS25 Drop 2  .pdf: V01250251 - €2790 (34.7s)
+   Processing: Incu SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762403762-Incu SS25 Drop 1 NOS.pdf',
+  size: 75687
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762403762-Incu SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 98d51e97b6b85de0988d8fd5b23828609dbf16fbd7051df5d2d46a8983287b65
+Polling Textract job (attempt 1/60): 98d51e97b6b85de0988d8fd5b23828609dbf16fbd7051df5d2d46a8983287b65
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 98d51e97b6b85de0988d8fd5b23828609dbf16fbd7051df5d2d46a8983287b65
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 98d51e97b6b85de0988d8fd5b23828609dbf16fbd7051df5d2d46a8983287b65
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 98d51e97b6b85de0988d8fd5b23828609dbf16fbd7051df5d2d46a8983287b65
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 98d51e97b6b85de0988d8fd5b23828609dbf16fbd7051df5d2d46a8983287b65
+Job status: SUCCEEDED
+Textract job completed, blocks: 900
+Extracted text length: 4432
+First 200 chars: INVOICE P P Invoice number V01250062 Invoice date 01-29-2025 Debtor number 10305 P P Incu PTY LTD Pop Trading Company 110 Dunning Avenue Sint Annendwarsstraat 3 a ROSEBERRY, NSW 1012 HC AMSTERDAM Aust
+Textract async extraction complete: {
+  invoiceNumber: 'V01250062',
+  customerName: 'Incu PTY LTD',
+  totalAmount: 10924,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762403762-Incu SS25 Drop 1 NOS.pdf
+   ✅ Incu SS25 Drop 1 NOS.pdf: V01250062 - €10924 (24.4s)
+   Processing: Incu SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762428185-Incu SS25 Drop 2  .pdf',
+  size: 70849
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762428185-Incu SS25 Drop 2  .pdf'
+}
+Textract job started: 49e7e084d65a090e86dadcf9f5b3abf11d337d80874c4f0bcefd370a4fc6f4c2
+Polling Textract job (attempt 1/60): 49e7e084d65a090e86dadcf9f5b3abf11d337d80874c4f0bcefd370a4fc6f4c2
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 49e7e084d65a090e86dadcf9f5b3abf11d337d80874c4f0bcefd370a4fc6f4c2
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 49e7e084d65a090e86dadcf9f5b3abf11d337d80874c4f0bcefd370a4fc6f4c2
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 49e7e084d65a090e86dadcf9f5b3abf11d337d80874c4f0bcefd370a4fc6f4c2
+Job status: SUCCEEDED
+Textract job completed, blocks: 324
+Extracted text length: 1672
+First 200 chars: INVOICE P P Invoice number V01250240 Invoice date 02-19-2025 Debtor number 10305 P P Incu PTY LTD Pop Trading Company 110 Dunning Avenue Sint Annendwarsstraat 3 a ROSEBERRY, NSW 1012 HC AMSTERDAM Aust
+Textract async extraction complete: {
+  invoiceNumber: 'V01250240',
+  customerName: 'Incu PTY LTD',
+  totalAmount: 2652,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762428185-Incu SS25 Drop 2  .pdf
+   ✅ Incu SS25 Drop 2  .pdf: V01250240 - €2652 (18.4s)
+   Processing: Kapok SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762446535-Kapok SS25 Drop 1.pdf',
+  size: 73526
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762446535-Kapok SS25 Drop 1.pdf'
+}
+Textract job started: 29c233474c7fb5a096eaf36bf6e6eddda7ef04033a0d7dbc64f1b5c72ab35e16
+Polling Textract job (attempt 1/60): 29c233474c7fb5a096eaf36bf6e6eddda7ef04033a0d7dbc64f1b5c72ab35e16
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 29c233474c7fb5a096eaf36bf6e6eddda7ef04033a0d7dbc64f1b5c72ab35e16
+Job status: SUCCEEDED
+Textract job completed, blocks: 510
+Extracted text length: 2553
+First 200 chars: INVOICE P P Invoice number V01250078 Invoice date 01-29-2025 Debtor number 10412 P P Kapok Hong Kong Pop Trading Company 8 sun street Sint Annendwarsstraat 3 a WAN CHAI 1012 HC AMSTERDAM Hongkong info
+Textract async extraction complete: {
+  invoiceNumber: 'V01250078',
+  customerName: 'Kapok Hong Kong',
+  totalAmount: 3884,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762446535-Kapok SS25 Drop 1.pdf
+   ✅ Kapok SS25 Drop 1.pdf: V01250078 - €3884 (8.1s)
+   Processing: Kapok SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762454650-Kapok SS25 Drop 2  .pdf',
+  size: 71458
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762454650-Kapok SS25 Drop 2  .pdf'
+}
+Textract job started: 6e454c05b50695d5a342e1f092a3d2daedcd7f0362b5baae5190b608a2152125
+Polling Textract job (attempt 1/60): 6e454c05b50695d5a342e1f092a3d2daedcd7f0362b5baae5190b608a2152125
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 6e454c05b50695d5a342e1f092a3d2daedcd7f0362b5baae5190b608a2152125
+Job status: SUCCEEDED
+Textract job completed, blocks: 371
+Extracted text length: 1877
+First 200 chars: INVOICE P P Invoice number V01250257 Invoice date 02-19-2025 Debtor number 10412 P P Kapok Limited Pop Trading Company 8 sun street Sint Annendwarsstraat 3 a WAN CHAI 1012 HC AMSTERDAM Hongkong info@p
+Textract async extraction complete: {
+  invoiceNumber: 'V01250257',
+  customerName: 'Kapok Limited',
+  totalAmount: 2572,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762454650-Kapok SS25 Drop 2  .pdf
+   ✅ Kapok SS25 Drop 2  .pdf: V01250257 - €2572 (8.4s)
+   Processing: Kixbox SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762463070-Kixbox SS25 Drop 1 NOS.pdf',
+  size: 74696
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762463070-Kixbox SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 9387333c3e0a76d22a7fb92eb4b3af23865ae933466150a0174e31c76537d6b1
+Polling Textract job (attempt 1/60): 9387333c3e0a76d22a7fb92eb4b3af23865ae933466150a0174e31c76537d6b1
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 9387333c3e0a76d22a7fb92eb4b3af23865ae933466150a0174e31c76537d6b1
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 9387333c3e0a76d22a7fb92eb4b3af23865ae933466150a0174e31c76537d6b1
+Job status: SUCCEEDED
+Textract job completed, blocks: 865
+Extracted text length: 4291
+First 200 chars: INVOICE P P Invoice number V01250066 Invoice date 01-29-2025 Debtor number 10198 Your VAT LV44103147613 P P Street Operator SIA / October Pop Trading Company Ausekla lela 53 Sint Annendwarsstraat 3 a 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250066',
+  customerName: 'Street Operator SIA / October',
+  totalAmount: 3768,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762463070-Kixbox SS25 Drop 1 NOS.pdf
+   ✅ Kixbox SS25 Drop 1 NOS.pdf: V01250066 - €3768 (13.4s)
+   Processing: Kixbox_October SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762476500-Kixbox_October SS25 Drop 2  .pdf',
+  size: 76144
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762476500-Kixbox_October SS25 Drop 2  .pdf'
+}
+Textract job started: 9fe5a9cc00b9e30c6f803450ad7c8b2820f9f4a860df1e15c7a96cf9132baafe
+Polling Textract job (attempt 1/60): 9fe5a9cc00b9e30c6f803450ad7c8b2820f9f4a860df1e15c7a96cf9132baafe
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 9fe5a9cc00b9e30c6f803450ad7c8b2820f9f4a860df1e15c7a96cf9132baafe
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 9fe5a9cc00b9e30c6f803450ad7c8b2820f9f4a860df1e15c7a96cf9132baafe
+Job status: SUCCEEDED
+Textract job completed, blocks: 1201
+Extracted text length: 5908
+First 200 chars: INVOICE P P Invoice number V01250245 Invoice date 02-19-2025 Debtor number 10198 Your VAT LV44103147613 P P Street Operator SIA / October Pop Trading Company Ausekla lela 53 Sint Annendwarsstraat 3 a 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250245',
+  customerName: 'Street Operator SIA / October',
+  totalAmount: 6297,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762476500-Kixbox_October SS25 Drop 2  .pdf
+   ✅ Kixbox_October SS25 Drop 2  .pdf: V01250245 - €6297 (14.9s)
+   Processing: Kyoto SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762491447-Kyoto SS25 Drop 1 NOS.pdf',
+  size: 73236
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762491447-Kyoto SS25 Drop 1 NOS.pdf'
+}
+Textract job started: c57f69d851fd30f4ce7c60a6356ed194f0de0884f25615a3e7f08f8648812ac5
+Polling Textract job (attempt 1/60): c57f69d851fd30f4ce7c60a6356ed194f0de0884f25615a3e7f08f8648812ac5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): c57f69d851fd30f4ce7c60a6356ed194f0de0884f25615a3e7f08f8648812ac5
+Job status: SUCCEEDED
+Textract job completed, blocks: 614
+Extracted text length: 3079
+First 200 chars: INVOICE P P Invoice number V01250090 Invoice date 01-29-2025 Debtor number 10385 Your VAT DK33759096 P P Kyoto Pop Trading Company 95 Istedgade Sint Annendwarsstraat 3 a 1650 COPENHAGEN 1012 HC AMSTER
+Textract async extraction complete: {
+  invoiceNumber: 'V01250090',
+  customerName: 'Kyoto',
+  totalAmount: 1861,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762491447-Kyoto SS25 Drop 1 NOS.pdf
+   ✅ Kyoto SS25 Drop 1 NOS.pdf: V01250090 - €1861 (8.3s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 6/14 (10 invoices)
+   Processing: Kyoto SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762504739-Kyoto SS25 Drop 2  .pdf',
+  size: 73646
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762504739-Kyoto SS25 Drop 2  .pdf'
+}
+Textract job started: 51685f0ada47ce449259680f591d82f0da8b1285380250f214f87b8619abf3fa
+Polling Textract job (attempt 1/60): 51685f0ada47ce449259680f591d82f0da8b1285380250f214f87b8619abf3fa
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 51685f0ada47ce449259680f591d82f0da8b1285380250f214f87b8619abf3fa
+Job status: SUCCEEDED
+Textract job completed, blocks: 613
+Extracted text length: 3059
+First 200 chars: INVOICE P P Invoice number V01250269 Invoice date 02-19-2025 Debtor number 10385 Your VAT DK33759096 P P Kyoto Pop Trading Company 95 Istedgade Sint Annendwarsstraat 3 a 1650 COPENHAGEN 1012 HC AMSTER
+Textract async extraction complete: {
+  invoiceNumber: 'V01250269',
+  customerName: 'Kyoto',
+  totalAmount: 2498,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762504739-Kyoto SS25 Drop 2  .pdf
+   ✅ Kyoto SS25 Drop 2  .pdf: V01250269 - €2498 (8.7s)
+   Processing: Lagune SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762513429-Lagune SS25 Drop 1 NOS.pdf',
+  size: 74632
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762513429-Lagune SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 81497937f5152637c5d052a769822421dea924cabd3c601d28823ba4baeb59bb
+Polling Textract job (attempt 1/60): 81497937f5152637c5d052a769822421dea924cabd3c601d28823ba4baeb59bb
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 81497937f5152637c5d052a769822421dea924cabd3c601d28823ba4baeb59bb
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 81497937f5152637c5d052a769822421dea924cabd3c601d28823ba4baeb59bb
+Job status: SUCCEEDED
+Textract job completed, blocks: 778
+Extracted text length: 3847
+First 200 chars: INVOICE P P Invoice number V01250065 Invoice date 01-29-2025 Debtor number 10321 Your VAT DK28679998 P P Lagune Pop Trading Company 40 A, 4. sal Vermundsgade Sint Annendwarsstraat 3 a 2100 COPENHAGEN 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250065',
+  customerName: 'Lagune',
+  totalAmount: 5574,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762513429-Lagune SS25 Drop 1 NOS.pdf
+   ✅ Lagune SS25 Drop 1 NOS.pdf: V01250065 - €5574 (13.3s)
+   Processing: Lagune SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762526771-Lagune SS25 Drop 2  .pdf',
+  size: 73552
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762526771-Lagune SS25 Drop 2  .pdf'
+}
+Textract job started: 70ba38e9f7a44087f075f2cf1882cdec7f01f3b518a98ac2812b6c7e070810be
+Polling Textract job (attempt 1/60): 70ba38e9f7a44087f075f2cf1882cdec7f01f3b518a98ac2812b6c7e070810be
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 70ba38e9f7a44087f075f2cf1882cdec7f01f3b518a98ac2812b6c7e070810be
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 70ba38e9f7a44087f075f2cf1882cdec7f01f3b518a98ac2812b6c7e070810be
+Job status: SUCCEEDED
+Textract job completed, blocks: 659
+Extracted text length: 3301
+First 200 chars: INVOICE P P Invoice number V01250244 Invoice date 02-19-2025 Debtor number 10321 Your VAT DK28679998 P P Lagune Pop Trading Company 40 A, 4. sal Vermundsgade Sint Annendwarsstraat 3 a 2100 COPENHAGEN 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250244',
+  customerName: 'Lagune',
+  totalAmount: 5086,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762526771-Lagune SS25 Drop 2  .pdf
+   ✅ Lagune SS25 Drop 2  .pdf: V01250244 - €5086 (14.0s)
+   Processing: Locus SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762540745-Locus SS25 Drop 1.pdf',
+  size: 70487
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762540745-Locus SS25 Drop 1.pdf'
+}
+Textract job started: 956c1b72d5bf7a02abcf7cfd06914c28c4338f6703e03946db6c5eb4eadceb4f
+Polling Textract job (attempt 1/60): 956c1b72d5bf7a02abcf7cfd06914c28c4338f6703e03946db6c5eb4eadceb4f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 956c1b72d5bf7a02abcf7cfd06914c28c4338f6703e03946db6c5eb4eadceb4f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 956c1b72d5bf7a02abcf7cfd06914c28c4338f6703e03946db6c5eb4eadceb4f
+Job status: SUCCEEDED
+Textract job completed, blocks: 497
+Extracted text length: 2500
+First 200 chars: INVOICE P P Invoice number V01250103 Invoice date 01-29-2025 Debtor number 10126 P P LOCUS, Blveprint Destionations Ship to: Pop Trading Company Treasury Tower 16th Floor, District 8 Speed Delivery Pt
+Textract async extraction complete: {
+  invoiceNumber: 'V01250103',
+  customerName: 'LOCUS, Blveprint Destionations Ship to:',
+  totalAmount: 694,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762540745-Locus SS25 Drop 1.pdf
+   ✅ Locus SS25 Drop 1.pdf: V01250103 - €694 (13.3s)
+   Processing: Locus SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762554055-Locus SS25 Drop 2  .pdf',
+  size: 72323
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762554055-Locus SS25 Drop 2  .pdf'
+}
+Textract job started: 46dadb6418104682702728396db20bfc5959c52abf005a30eb24583a228538ad
+Polling Textract job (attempt 1/60): 46dadb6418104682702728396db20bfc5959c52abf005a30eb24583a228538ad
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 46dadb6418104682702728396db20bfc5959c52abf005a30eb24583a228538ad
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 46dadb6418104682702728396db20bfc5959c52abf005a30eb24583a228538ad
+Job status: SUCCEEDED
+Textract job completed, blocks: 629
+Extracted text length: 3192
+First 200 chars: INVOICE P P Invoice number V01250282 Invoice date 02-19-2025 Debtor number 10126 P P LOCUS, Blveprint Destionations Ship to: Pop Trading Company Treasury Tower 16th Floor, District 8 Speed Delivery Pt
+Textract async extraction complete: {
+  invoiceNumber: 'V01250282',
+  customerName: 'LOCUS, Blveprint Destionations Ship to:',
+  totalAmount: 1946,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762554055-Locus SS25 Drop 2  .pdf
+   ✅ Locus SS25 Drop 2  .pdf: V01250282 - €1946 (13.4s)
+   Processing: Maple SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762567470-Maple SS25 Drop 2  .pdf',
+  size: 72335
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762567470-Maple SS25 Drop 2  .pdf'
+}
+Textract job started: f782116365525a62f64770a882f9a78a98358b793a0b290dfc363323bc670621
+Polling Textract job (attempt 1/60): f782116365525a62f64770a882f9a78a98358b793a0b290dfc363323bc670621
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): f782116365525a62f64770a882f9a78a98358b793a0b290dfc363323bc670621
+Job status: SUCCEEDED
+Textract job completed, blocks: 427
+Extracted text length: 2134
+First 200 chars: INVOICE P P Invoice number V01250272 Invoice date 02-19-2025 Debtor number 10343 P P Maple Store Pop Trading Company King Street 244 Sint Annendwarsstraat 3 a NEWTON SYDNEY 2042 1012 HC AMSTERDAM Aust
+Textract async extraction complete: {
+  invoiceNumber: 'V01250272',
+  customerName: 'Maple Store',
+  totalAmount: 1440,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762567470-Maple SS25 Drop 2  .pdf
+   ✅ Maple SS25 Drop 2  .pdf: V01250272 - €1440 (8.6s)
+   Processing: Maple Store SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762576068-Maple Store SS25 Drop 1 NOS.pdf',
+  size: 71505
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762576068-Maple Store SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 25af6f496379194caaedf216211e4a6a90a71a0d8004a9e4ef1e836e3ed7f4b5
+Polling Textract job (attempt 1/60): 25af6f496379194caaedf216211e4a6a90a71a0d8004a9e4ef1e836e3ed7f4b5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 25af6f496379194caaedf216211e4a6a90a71a0d8004a9e4ef1e836e3ed7f4b5
+Job status: SUCCEEDED
+Textract job completed, blocks: 414
+Extracted text length: 2069
+First 200 chars: INVOICE P P Invoice number V01250195 Invoice date 02-10-2025 Debtor number 10343 P P REFERENCE Correctional SS25 Drop 1 NOS Maple Store Pop Trading Company King Street 244 Sint Annendwarsstraat 3 a NE
+Textract async extraction complete: {
+  invoiceNumber: 'V01250195',
+  customerName: 'REFERENCE Correctional SS25 Drop 1 NOS Maple Store',
+  totalAmount: 1656,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762576068-Maple Store SS25 Drop 1 NOS.pdf
+   ✅ Maple Store SS25 Drop 1 NOS.pdf: V01250195 - €1656 (8.2s)
+   Processing: Middle of Nowhere SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762584279-Middle of Nowhere SS25 Drop 1.pdf',
+  size: 72998
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762584279-Middle of Nowhere SS25 Drop 1.pdf'
+}
+Textract job started: 484efa5a0f1e7ecb568f0c5c2de750871f3da00c6c00f0a6ea3f50165e5f02fa
+Polling Textract job (attempt 1/60): 484efa5a0f1e7ecb568f0c5c2de750871f3da00c6c00f0a6ea3f50165e5f02fa
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 484efa5a0f1e7ecb568f0c5c2de750871f3da00c6c00f0a6ea3f50165e5f02fa
+Job status: SUCCEEDED
+Textract job completed, blocks: 505
+Extracted text length: 2495
+First 200 chars: INVOICE P P Invoice number V01250104 Invoice date 01-29-2025 Debtor number 10428 P P Middle of Nowhere Pop Trading Company 125 Brooks Avenue, Unit B Sint Annendwarsstraat 3 a VENICE 90291 1012 HC AMST
+Textract async extraction complete: {
+  invoiceNumber: 'V01250104',
+  customerName: 'Middle of Nowhere',
+  totalAmount: 1126,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762584279-Middle of Nowhere SS25 Drop 1.pdf
+   ✅ Middle of Nowhere SS25 Drop 1.pdf: V01250104 - €1126 (8.9s)
+   Processing: Mr Porter DC4 SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762593199-Mr Porter DC4 SS25 Drop 2  .pdf',
+  size: 72708
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762593199-Mr Porter DC4 SS25 Drop 2  .pdf'
+}
+Textract job started: 8b1e18c74997b7afe7728e4b22e92847d19eafb0bc946cf2d070409db1c65759
+Polling Textract job (attempt 1/60): 8b1e18c74997b7afe7728e4b22e92847d19eafb0bc946cf2d070409db1c65759
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 8b1e18c74997b7afe7728e4b22e92847d19eafb0bc946cf2d070409db1c65759
+Job status: SUCCEEDED
+Textract job completed, blocks: 352
+Extracted text length: 1810
+First 200 chars: INVOICE P P Invoice number V01250241 Invoice date 02-19-2025 Debtor number 10058 Your VAT IT02050461207 P P Yoox Net-A-Porter Group Spa(DC4) Pop Trading Company 17 Via Morimondo Sint Annendwarsstraat 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250241',
+  customerName: 'Yoox Net-A-Porter Group Spa(DC4)',
+  totalAmount: 2504,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762593199-Mr Porter DC4 SS25 Drop 2  .pdf
+   ✅ Mr Porter DC4 SS25 Drop 2  .pdf: V01250241 - €2504 (8.4s)
+   Processing: Mr. Porter SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762601623-Mr. Porter SS25 Drop 1 NOS.pdf',
+  size: 74926
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762601623-Mr. Porter SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 67a093643229c1e69fbb8bae8ec5013352fc0f3b66b28bc92738b26ada687242
+Polling Textract job (attempt 1/60): 67a093643229c1e69fbb8bae8ec5013352fc0f3b66b28bc92738b26ada687242
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 67a093643229c1e69fbb8bae8ec5013352fc0f3b66b28bc92738b26ada687242
+Job status: SUCCEEDED
+Textract job completed, blocks: 772
+Extracted text length: 3861
+First 200 chars: INVOICE P P Invoice number V01250186 Invoice date 02-05-2025 Debtor number 10058 Your VAT IT02050461207 P P Yoox Net-A-Porter Group Spa(DC4) Pop Trading Company 17 Via Morimondo Sint Annendwarsstraat 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250186',
+  customerName: 'Yoox Net-A-Porter Group Spa(DC4)',
+  totalAmount: 12134,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762601623-Mr. Porter SS25 Drop 1 NOS.pdf
+   ✅ Mr. Porter SS25 Drop 1 NOS.pdf: V01250186 - €12134 (8.1s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 7/14 (10 invoices)
+   Processing: Never Never SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762614731-Never Never SS25 Drop 1.pdf',
+  size: 71569
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762614731-Never Never SS25 Drop 1.pdf'
+}
+Textract job started: 3f3f2ef123ca4797cca2be2bf52f69f9d67ee1bab45957d419eaff1277666dbe
+Polling Textract job (attempt 1/60): 3f3f2ef123ca4797cca2be2bf52f69f9d67ee1bab45957d419eaff1277666dbe
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 3f3f2ef123ca4797cca2be2bf52f69f9d67ee1bab45957d419eaff1277666dbe
+Job status: SUCCEEDED
+Textract job completed, blocks: 424
+Extracted text length: 2150
+First 200 chars: INVOICE P P Invoice number V01250081 Invoice date 01-29-2025 Debtor number 10147 P P Never Never Pop Trading Company 108 North Street Sint Annendwarsstraat 3 a BELFAST BT1 1LE 1012 HC AMSTERDAM Great 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250081',
+  customerName: 'Never Never',
+  totalAmount: 1577,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762614731-Never Never SS25 Drop 1.pdf
+   ✅ Never Never SS25 Drop 1.pdf: V01250081 - €1577 (8.7s)
+   Processing: Never Never SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762623466-Never Never SS25 Drop 2  .pdf',
+  size: 73152
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762623466-Never Never SS25 Drop 2  .pdf'
+}
+Textract job started: 360bd02cfbd1de2120bd361bf7ef6b25db3cfa19f3c6c9c8e2bdc6e1e5e73e8b
+Polling Textract job (attempt 1/60): 360bd02cfbd1de2120bd361bf7ef6b25db3cfa19f3c6c9c8e2bdc6e1e5e73e8b
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 360bd02cfbd1de2120bd361bf7ef6b25db3cfa19f3c6c9c8e2bdc6e1e5e73e8b
+Job status: SUCCEEDED
+Textract job completed, blocks: 637
+Extracted text length: 3197
+First 200 chars: INVOICE P P Invoice number V01250261 Invoice date 02-19-2025 Debtor number 10147 P P Never Never Pop Trading Company 108 North Street Sint Annendwarsstraat 3 a BELFAST BT1 1LE 1012 HC AMSTERDAM Great 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250261',
+  customerName: 'Never Never',
+  totalAmount: 2346,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762623466-Never Never SS25 Drop 2  .pdf
+   ✅ Never Never SS25 Drop 2  .pdf: V01250261 - €2346 (8.1s)
+   Processing: Never Never SS25 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762631602-Never Never SS25 NOS.pdf',
+  size: 70635
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762631602-Never Never SS25 NOS.pdf'
+}
+Textract job started: 7a83d09439ce536eba14b15660b72083c46e18bc499c7c8ec46a0041adbb6412
+Polling Textract job (attempt 1/60): 7a83d09439ce536eba14b15660b72083c46e18bc499c7c8ec46a0041adbb6412
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 7a83d09439ce536eba14b15660b72083c46e18bc499c7c8ec46a0041adbb6412
+Job status: SUCCEEDED
+Textract job completed, blocks: 327
+Extracted text length: 1638
+First 200 chars: INVOICE P P Invoice number V01241299 Invoice date 12-23-2024 Debtor number 10377 P P Urban Industry Pop Trading Company 2 Park View, Alder Close Sint Annendwarsstraat 3 a EASTBOURNE BN23 6QE 1012 HC A
+Textract async extraction complete: {
+  invoiceNumber: 'V01241299',
+  customerName: 'Urban Industry',
+  totalAmount: 698,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759762631602-Never Never SS25 NOS.pdf
+   ✅ Never Never SS25 NOS.pdf: V01241299 - €698 (7.9s)
+   Processing: Nu Yorica SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762639457-Nu Yorica SS25 Drop 1 NOS.pdf',
+  size: 72207
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762639457-Nu Yorica SS25 Drop 1 NOS.pdf'
+}
+Textract job started: af72cd012a4f7da279d1be54f9f230ef42e23c8fefbf22577cb9dde096b48cf8
+Polling Textract job (attempt 1/60): af72cd012a4f7da279d1be54f9f230ef42e23c8fefbf22577cb9dde096b48cf8
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): af72cd012a4f7da279d1be54f9f230ef42e23c8fefbf22577cb9dde096b48cf8
+Job status: SUCCEEDED
+Textract job completed, blocks: 515
+Extracted text length: 2562
+First 200 chars: INVOICE P P Invoice number V01250110 Invoice date 01-29-2025 Debtor number 10294 Your VAT IT05157990754 P P Nu Yorica Pop Trading Company 130 Corso Roma Sint Annendwarsstraat 3 a GALLIPOLI 73014 1012 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250110',
+  customerName: 'Nu Yorica',
+  totalAmount: 1225,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762639457-Nu Yorica SS25 Drop 1 NOS.pdf
+   ✅ Nu Yorica SS25 Drop 1 NOS.pdf: V01250110 - €1225 (9.4s)
+   Processing: Nu Yorica SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762648813-Nu Yorica SS25 Drop 2  .pdf',
+  size: 72924
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762648813-Nu Yorica SS25 Drop 2  .pdf'
+}
+Textract job started: 85fb734c7dc3012fad728dbe4c653297e401d6bcbe47663ad518a02bc164580e
+Polling Textract job (attempt 1/60): 85fb734c7dc3012fad728dbe4c653297e401d6bcbe47663ad518a02bc164580e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 85fb734c7dc3012fad728dbe4c653297e401d6bcbe47663ad518a02bc164580e
+Job status: SUCCEEDED
+Textract job completed, blocks: 562
+Extracted text length: 2820
+First 200 chars: INVOICE P P Invoice number V01250288 Invoice date 02-19-2025 Debtor number 10294 Your VAT IT05157990754 P P Nu Yorica Pop Trading Company 130 Corso Roma Sint Annendwarsstraat 3 a GALLIPOLI 73014 1012 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250288',
+  customerName: 'Nu Yorica',
+  totalAmount: 2120,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762648813-Nu Yorica SS25 Drop 2  .pdf
+   ✅ Nu Yorica SS25 Drop 2  .pdf: V01250288 - €2120 (8.1s)
+   Processing: Ounass SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762656897-Ounass SS25 Drop 1.pdf',
+  size: 77891
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762656897-Ounass SS25 Drop 1.pdf'
+}
+Textract job started: 21524e5eb43990026382cac8af99ae0b19f75b458316d8eb6e3e2c6f719e7dcb
+Polling Textract job (attempt 1/60): 21524e5eb43990026382cac8af99ae0b19f75b458316d8eb6e3e2c6f719e7dcb
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 21524e5eb43990026382cac8af99ae0b19f75b458316d8eb6e3e2c6f719e7dcb
+Job status: SUCCEEDED
+Textract job completed, blocks: 1001
+Extracted text length: 4917
+First 200 chars: INVOICE P P Invoice number V01250063 Invoice date 01-29-2025 Debtor number 10400 P P Billing Address Shipping Address Pop Trading Company Al Tayer Insignia LLC Al Tayer Insignia LLC Sint Annendwarsstr
+Textract async extraction complete: {
+  invoiceNumber: 'V01250063',
+  customerName: 'Billing Address Shipping Address',
+  totalAmount: 6850,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762656897-Ounass SS25 Drop 1.pdf
+   ✅ Ounass SS25 Drop 1.pdf: V01250063 - €6850 (8.5s)
+   Processing: Ounass SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762665396-Ounass SS25 Drop 2  .pdf',
+  size: 80367
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762665396-Ounass SS25 Drop 2  .pdf'
+}
+Textract job started: 0a05da75429802bcf1820169a414bf0e37e90f2177ade6e7477ad19638450036
+Polling Textract job (attempt 1/60): 0a05da75429802bcf1820169a414bf0e37e90f2177ade6e7477ad19638450036
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 0a05da75429802bcf1820169a414bf0e37e90f2177ade6e7477ad19638450036
+Job status: SUCCEEDED
+Textract job completed, blocks: 1277
+Extracted text length: 6232
+First 200 chars: INVOICE P P Invoice number V01250242 Invoice date 02-19-2025 Debtor number 10400 P P Billing Address Shipping Address AI Tayer Insignia LLC Al Tayer Insignia LLC Pop Trading Company For Ounass UAE For
+Textract async extraction complete: {
+  invoiceNumber: 'V01250242',
+  customerName: 'Billing Address Shipping Address AI Tayer Insignia LLC Al Tayer Insignia LLC',
+  totalAmount: 7504,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762665396-Ounass SS25 Drop 2  .pdf
+   ✅ Ounass SS25 Drop 2  .pdf: V01250242 - €7504 (9.3s)
+   Processing: Peak SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762674675-Peak SS25 Drop 1 NOS.pdf',
+  size: 79394
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762674675-Peak SS25 Drop 1 NOS.pdf'
+}
+Textract job started: b2e5eccd79b1fa5f682facd1b8d13187607b2d71581c1a514a9fed4ad5409720
+Polling Textract job (attempt 1/60): b2e5eccd79b1fa5f682facd1b8d13187607b2d71581c1a514a9fed4ad5409720
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): b2e5eccd79b1fa5f682facd1b8d13187607b2d71581c1a514a9fed4ad5409720
+Job status: SUCCEEDED
+Textract job completed, blocks: 1522
+Extracted text length: 7379
+First 200 chars: INVOICE P P Invoice number V01250058 Invoice date 01-28-2025 Debtor number 10205 Your VAT LT100013240218 P P Peak Store Pop Trading Company TWB Logistics Serveces g. 1 Sint Annendwarsstraat 3 a VILNIU
+Textract async extraction complete: {
+  invoiceNumber: 'V01250058',
+  customerName: 'Peak Store',
+  totalAmount: 17086,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759762674675-Peak SS25 Drop 1 NOS.pdf
+   ✅ Peak SS25 Drop 1 NOS.pdf: V01250058 - €17086 (9.7s)
+   Processing: Peak SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762684346-Peak SS25 Drop 2  .pdf',
+  size: 76234
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762684346-Peak SS25 Drop 2  .pdf'
+}
+Textract job started: 4008198268f4920f0bcdfbe7f68dc53e8e9c18d43944ae469c87f6fe29ca886e
+Polling Textract job (attempt 1/60): 4008198268f4920f0bcdfbe7f68dc53e8e9c18d43944ae469c87f6fe29ca886e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 4008198268f4920f0bcdfbe7f68dc53e8e9c18d43944ae469c87f6fe29ca886e
+Job status: SUCCEEDED
+Textract job completed, blocks: 989
+Extracted text length: 4859
+First 200 chars: INVOICE P P Invoice number V01250236 Invoice date 02-19-2025 Debtor number 10205 Your VAT LT100013240218 P P Peak Store Pop Trading Company TWB Logistics Serveces g. 1 Sint Annendwarsstraat 3 a VILNIU
+Textract async extraction complete: {
+  invoiceNumber: 'V01250236',
+  customerName: 'Peak Store',
+  totalAmount: 7216,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759762684346-Peak SS25 Drop 2  .pdf
+   ✅ Peak SS25 Drop 2  .pdf: V01250236 - €7216 (9.2s)
+   Processing: Peggs & Son SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762693506-Peggs & Son SS25 Drop 2  .pdf',
+  size: 73180
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762693506-Peggs & Son SS25 Drop 2  .pdf'
+}
+Textract job started: d8aca0a312114651d2a30e2909aeba9669da61691384423bbcb42c587c8a21b1
+Polling Textract job (attempt 1/60): d8aca0a312114651d2a30e2909aeba9669da61691384423bbcb42c587c8a21b1
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): d8aca0a312114651d2a30e2909aeba9669da61691384423bbcb42c587c8a21b1
+Job status: SUCCEEDED
+Textract job completed, blocks: 555
+Extracted text length: 2794
+First 200 chars: INVOICE P P Invoice number V01250239 Invoice date 02-19-2025 Debtor number 10107 Your VAT GB760397808 P P Peggs & Son Pop Trading Company 39 Duke Street Sint Annendwarsstraat 3 a BRIGHTON EAST SUSSEX 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250239',
+  customerName: 'Peggs & Son',
+  totalAmount: 8168,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762693506-Peggs & Son SS25 Drop 2  .pdf
+   ✅ Peggs & Son SS25 Drop 2  .pdf: V01250239 - €8168 (8.7s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 8/14 (10 invoices)
+   Processing: Peggs & Son SS25 NOS  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762707245-Peggs & Son SS25 NOS  .pdf',
+  size: 71408
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762707245-Peggs & Son SS25 NOS  .pdf'
+}
+Textract job started: 67182fb2a4e4ba83de9603c90ff99cbe89b8b8eaa6c948123a250b56759d12c6
+Polling Textract job (attempt 1/60): 67182fb2a4e4ba83de9603c90ff99cbe89b8b8eaa6c948123a250b56759d12c6
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 67182fb2a4e4ba83de9603c90ff99cbe89b8b8eaa6c948123a250b56759d12c6
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 67182fb2a4e4ba83de9603c90ff99cbe89b8b8eaa6c948123a250b56759d12c6
+Job status: SUCCEEDED
+Textract job completed, blocks: 392
+Extracted text length: 1927
+First 200 chars: INVOICE P P Invoice number V01241293 Invoice date 12-20-2024 Debtor number 10107 Your VAT GB760397808 P P Peggs & Son Pop Trading Company 39 Duke Street Sint Annendwarsstraat 3 a BRIGHTON - EAST SUSSE
+Textract async extraction complete: {
+  invoiceNumber: 'V01241293',
+  customerName: 'Peggs & Son',
+  totalAmount: 1868,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762707245-Peggs & Son SS25 NOS  .pdf
+   ✅ Peggs & Son SS25 NOS  .pdf: V01241293 - €1868 (13.8s)
+   Processing: Peggs and Son SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762721060-Peggs and Son SS25 Drop 1.pdf',
+  size: 73446
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762721060-Peggs and Son SS25 Drop 1.pdf'
+}
+Textract job started: dfd2cc136f8752bd6e7a2d2ca2b02dfef695df09f20349bf99f032ed5cb7c46f
+Polling Textract job (attempt 1/60): dfd2cc136f8752bd6e7a2d2ca2b02dfef695df09f20349bf99f032ed5cb7c46f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): dfd2cc136f8752bd6e7a2d2ca2b02dfef695df09f20349bf99f032ed5cb7c46f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): dfd2cc136f8752bd6e7a2d2ca2b02dfef695df09f20349bf99f032ed5cb7c46f
+Job status: SUCCEEDED
+Textract job completed, blocks: 599
+Extracted text length: 2971
+First 200 chars: INVOICE P P Invoice number V01250061 Invoice date 01-29-2025 Debtor number 10107 Your VAT GB760397808 P P Peggs & Son Pop Trading Company 39 Duke Street Sint Annendwarsstraat 3 a BRIGHTON EAST SUSSEX 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250061',
+  customerName: 'Peggs & Son',
+  totalAmount: 7200,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762721060-Peggs and Son SS25 Drop 1.pdf
+   ✅ Peggs and Son SS25 Drop 1.pdf: V01250061 - €7200 (13.4s)
+   Processing: Picture International SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762734456-Picture International SS25 Drop 1 NOS.pdf',
+  size: 79101
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762734456-Picture International SS25 Drop 1 NOS.pdf'
+}
+Textract job started: ea387a4dfac62147b92e116010535f4361365d533832b2a0fa2b23251827448e
+Polling Textract job (attempt 1/60): ea387a4dfac62147b92e116010535f4361365d533832b2a0fa2b23251827448e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): ea387a4dfac62147b92e116010535f4361365d533832b2a0fa2b23251827448e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): ea387a4dfac62147b92e116010535f4361365d533832b2a0fa2b23251827448e
+Job status: SUCCEEDED
+Textract job completed, blocks: 1482
+Extracted text length: 7203
+First 200 chars: INVOICE P P Invoice number V01250171 Invoice date 02-04-2025 Debtor number 10399 Your VAT NL854629683B01 P P REFERENCE Correctional SS25 Drop 1 HTS Europe B.V. Pop Trading Company Herenweg 276 R9 Sint
+Textract async extraction complete: {
+  invoiceNumber: 'V01250171',
+  customerName: 'REFERENCE Correctional SS25 Drop 1 HTS Europe B.V.',
+  totalAmount: 11172,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762734456-Picture International SS25 Drop 1 NOS.pdf
+   ✅ Picture International SS25 Drop 1 NOS.pdf: V01250171 - €11172 (14.4s)
+   Processing: Picture International SS25 Drop 2.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762748846-Picture International SS25 Drop 2.pdf',
+  size: 74515
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762748846-Picture International SS25 Drop 2.pdf'
+}
+Textract job started: 39b315247cc8ee946308504746537371f5df604950bd2242948a2e79839a34c8
+Polling Textract job (attempt 1/60): 39b315247cc8ee946308504746537371f5df604950bd2242948a2e79839a34c8
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 39b315247cc8ee946308504746537371f5df604950bd2242948a2e79839a34c8
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 39b315247cc8ee946308504746537371f5df604950bd2242948a2e79839a34c8
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 39b315247cc8ee946308504746537371f5df604950bd2242948a2e79839a34c8
+Job status: SUCCEEDED
+Textract job completed, blocks: 844
+Extracted text length: 4181
+First 200 chars: INVOICE P P Invoice number V01250238 Invoice date 02-19-2025 Debtor number 10399 Your VAT NL854629683B01 P P HTS Europe B.V. Pop Trading Company Herenweg 276 R9 Sint Annendwarsstraat 3 a 3645 DX VINKE
+Textract async extraction complete: {
+  invoiceNumber: 'V01250238',
+  customerName: 'HTS Europe B.V.',
+  totalAmount: 6966,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762748846-Picture International SS25 Drop 2.pdf
+   ✅ Picture International SS25 Drop 2.pdf: V01250238 - €6966 (18.6s)
+   Processing: Pronto United Lasting SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762767461-Pronto United Lasting SS25 Drop 1.pdf',
+  size: 71397
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762767461-Pronto United Lasting SS25 Drop 1.pdf'
+}
+Textract job started: c63b1898ee0b869de13355f467f3058b3cdb4d91d4fd40d3fac2b3caa2034f5c
+Polling Textract job (attempt 1/60): c63b1898ee0b869de13355f467f3058b3cdb4d91d4fd40d3fac2b3caa2034f5c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): c63b1898ee0b869de13355f467f3058b3cdb4d91d4fd40d3fac2b3caa2034f5c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): c63b1898ee0b869de13355f467f3058b3cdb4d91d4fd40d3fac2b3caa2034f5c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): c63b1898ee0b869de13355f467f3058b3cdb4d91d4fd40d3fac2b3caa2034f5c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): c63b1898ee0b869de13355f467f3058b3cdb4d91d4fd40d3fac2b3caa2034f5c
+Job status: SUCCEEDED
+Textract job completed, blocks: 433
+Extracted text length: 2174
+First 200 chars: INVOICE P P Invoice number V01250070 Invoice date 01-29-2025 Debtor number 10330 P P United Lasting Co. Ltd. Pop Trading Company 29 Soi Meesuwan 3, Sukhumvit 71 Rd. Sint Annendwarsstraat 3 a Prakanong
+Textract async extraction complete: {
+  invoiceNumber: 'V01250070',
+  customerName: 'United Lasting Co. Ltd.',
+  totalAmount: 3372,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762767461-Pronto United Lasting SS25 Drop 1.pdf
+   ✅ Pronto United Lasting SS25 Drop 1.pdf: V01250070 - €3372 (24.5s)
+   Processing: Pronto United Lasting SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762791939-Pronto United Lasting SS25 Drop 2  .pdf',
+  size: 72642
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762791939-Pronto United Lasting SS25 Drop 2  .pdf'
+}
+Textract job started: 7efedc3853f8646dc7d455119c84b202f1600a05c186135b54fdcb9cab19289c
+Polling Textract job (attempt 1/60): 7efedc3853f8646dc7d455119c84b202f1600a05c186135b54fdcb9cab19289c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 7efedc3853f8646dc7d455119c84b202f1600a05c186135b54fdcb9cab19289c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 7efedc3853f8646dc7d455119c84b202f1600a05c186135b54fdcb9cab19289c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 7efedc3853f8646dc7d455119c84b202f1600a05c186135b54fdcb9cab19289c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 7efedc3853f8646dc7d455119c84b202f1600a05c186135b54fdcb9cab19289c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): 7efedc3853f8646dc7d455119c84b202f1600a05c186135b54fdcb9cab19289c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 7/60): 7efedc3853f8646dc7d455119c84b202f1600a05c186135b54fdcb9cab19289c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 8/60): 7efedc3853f8646dc7d455119c84b202f1600a05c186135b54fdcb9cab19289c
+Job status: SUCCEEDED
+Textract job completed, blocks: 532
+Extracted text length: 2677
+First 200 chars: INVOICE P P Invoice number V01250249 Invoice date 02-19-2025 Debtor number 10330 P P United Lasting Co. Ltd. Pop Trading Company 29 Soi Meesuwan 3, Sukhumvit 71 Rd. Sint Annendwarsstraat 3 a Prakanong
+Textract async extraction complete: {
+  invoiceNumber: 'V01250249',
+  customerName: 'United Lasting Co. Ltd.',
+  totalAmount: 5028,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762791939-Pronto United Lasting SS25 Drop 2  .pdf
+   ✅ Pronto United Lasting SS25 Drop 2  .pdf: V01250249 - €5028 (39.9s)
+   Processing: Refresh SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762831888-Refresh SS25 Drop 1.pdf',
+  size: 73427
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762831888-Refresh SS25 Drop 1.pdf'
+}
+Textract job started: 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Polling Textract job (attempt 1/60): 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 7/60): 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 8/60): 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 9/60): 23968f7897aca6274799c6cbcb555742d020298c21841366346fc66ad1ee27d5
+Job status: SUCCEEDED
+Textract job completed, blocks: 476
+Extracted text length: 2363
+First 200 chars: INVOICE P P Invoice number V01250108 Invoice date 01-29-2025 Debtor number 10255 Your VAT IT03214330122 P P Porrini Moda SRL Unipersonale (Re Pop Trading Company 4 B Via XXV Aprile Sint Annendwarsstra
+Textract async extraction complete: {
+  invoiceNumber: 'V01250108',
+  customerName: 'Porrini Moda SRL Unipersonale (Re',
+  totalAmount: 774,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759762831888-Refresh SS25 Drop 1.pdf
+   ✅ Refresh SS25 Drop 1.pdf: V01250108 - €774 (45.2s)
+   Processing: Refresh SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762877114-Refresh SS25 Drop 2  .pdf',
+  size: 73414
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762877114-Refresh SS25 Drop 2  .pdf'
+}
+Textract job started: 8aa7d4e83e3bcea82d426aeec1b238f6d6a9e79dc09502deed34c316e701c15f
+Polling Textract job (attempt 1/60): 8aa7d4e83e3bcea82d426aeec1b238f6d6a9e79dc09502deed34c316e701c15f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 8aa7d4e83e3bcea82d426aeec1b238f6d6a9e79dc09502deed34c316e701c15f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 8aa7d4e83e3bcea82d426aeec1b238f6d6a9e79dc09502deed34c316e701c15f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 8aa7d4e83e3bcea82d426aeec1b238f6d6a9e79dc09502deed34c316e701c15f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 8aa7d4e83e3bcea82d426aeec1b238f6d6a9e79dc09502deed34c316e701c15f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): 8aa7d4e83e3bcea82d426aeec1b238f6d6a9e79dc09502deed34c316e701c15f
+Job status: IN_PROGRESS
+Polling Textract job (attempt 7/60): 8aa7d4e83e3bcea82d426aeec1b238f6d6a9e79dc09502deed34c316e701c15f
+Job status: SUCCEEDED
+Textract job completed, blocks: 476
+Extracted text length: 2410
+First 200 chars: INVOICE P P Invoice number V01250286 Invoice date 02-19-2025 Debtor number 10255 Your VAT IT03214330122 P P Porrini Moda SRL Unipersonale (Re Pop Trading Company 4 B Via XXV Aprile Sint Annendwarsstra
+Textract async extraction complete: {
+  invoiceNumber: 'V01250286',
+  customerName: 'Porrini Moda SRL Unipersonale (Re',
+  totalAmount: 1082,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759762877114-Refresh SS25 Drop 2  .pdf
+   ✅ Refresh SS25 Drop 2  .pdf: V01250286 - €1082 (34.7s)
+   Processing: Room SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762911770-Room SS25 Drop 1.pdf',
+  size: 74112
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762911770-Room SS25 Drop 1.pdf'
+}
+Textract job started: 4d42a4bfae477536f407d4cb7936bdc89516e34de1f93cfe6604636dfcbbd959
+Polling Textract job (attempt 1/60): 4d42a4bfae477536f407d4cb7936bdc89516e34de1f93cfe6604636dfcbbd959
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 4d42a4bfae477536f407d4cb7936bdc89516e34de1f93cfe6604636dfcbbd959
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 4d42a4bfae477536f407d4cb7936bdc89516e34de1f93cfe6604636dfcbbd959
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 4d42a4bfae477536f407d4cb7936bdc89516e34de1f93cfe6604636dfcbbd959
+Job status: SUCCEEDED
+Textract job completed, blocks: 610
+Extracted text length: 3081
+First 200 chars: INVOICE P P Invoice number V01250083 Invoice date 01-29-2025 Debtor number 10410 P P Room - concept store Pop Trading Company 13 Bahnhofstrasse Sint Annendwarsstraat 3 a 7250 KLOSTERS 1012 HC AMSTERDA
+Textract async extraction complete: {
+  invoiceNumber: 'V01250083',
+  customerName: 'Room - concept store',
+  totalAmount: 4177,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762911770-Room SS25 Drop 1.pdf
+   ✅ Room SS25 Drop 1.pdf: V01250083 - €4177 (18.4s)
+   Processing: Room SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762930219-Room SS25 Drop 2  .pdf',
+  size: 71367
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762930219-Room SS25 Drop 2  .pdf'
+}
+Textract job started: 306c144973184e8b6cc5cb79c43e47fa7db533d38c3fe02a606f3f9c6e1b2753
+Polling Textract job (attempt 1/60): 306c144973184e8b6cc5cb79c43e47fa7db533d38c3fe02a606f3f9c6e1b2753
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 306c144973184e8b6cc5cb79c43e47fa7db533d38c3fe02a606f3f9c6e1b2753
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 306c144973184e8b6cc5cb79c43e47fa7db533d38c3fe02a606f3f9c6e1b2753
+Job status: SUCCEEDED
+Textract job completed, blocks: 329
+Extracted text length: 1681
+First 200 chars: INVOICE P P Invoice number V01250262 Invoice date 02-19-2025 Debtor number 10410 P P Room - concept store Pop Trading Company 13 Bahnhofstrasse Sint Annendwarsstraat 3 a 7250 KLOSTERS 1012 HC AMSTERDA
+Textract async extraction complete: {
+  invoiceNumber: 'V01250262',
+  customerName: 'Room - concept store',
+  totalAmount: 1308,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762930219-Room SS25 Drop 2  .pdf
+   ✅ Room SS25 Drop 2  .pdf: V01250262 - €1308 (13.0s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 9/14 (10 invoices)
+   Processing: SKP Beijing SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762948227-SKP Beijing SS25 Drop 1 NOS.pdf',
+  size: 138249
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762948227-SKP Beijing SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 5b3252d49d0505806f92c31a657f5a1745eb22b28b73a11167d0a2d8be87c320
+Polling Textract job (attempt 1/60): 5b3252d49d0505806f92c31a657f5a1745eb22b28b73a11167d0a2d8be87c320
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 5b3252d49d0505806f92c31a657f5a1745eb22b28b73a11167d0a2d8be87c320
+Job status: SUCCEEDED
+Textract job completed, blocks: 689
+Extracted text length: 3449
+First 200 chars: INVOICE P P Invoice number V01250075 Invoice date 01-29-2025 Debtor number 10131 P P Beijing Hualian ( SKP Department Pop Trading Company NO. 87 Jianguo Road, Chaoyang district Sint Annendwarsstraat 3
+Textract async extraction complete: {
+  invoiceNumber: 'V01250075',
+  customerName: 'Beijing Hualian ( SKP Department',
+  totalAmount: 4191,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762948227-SKP Beijing SS25 Drop 1 NOS.pdf
+   ✅ SKP Beijing SS25 Drop 1 NOS.pdf: V01250075 - €4191 (8.9s)
+   Processing: SKP Beijing SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762957145-SKP Beijing SS25 Drop 2  .pdf',
+  size: 72017
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762957145-SKP Beijing SS25 Drop 2  .pdf'
+}
+Textract job started: 4eb321c534b7baa93ba8b70a16711346c96494cb23210449bc05abe30c451323
+Polling Textract job (attempt 1/60): 4eb321c534b7baa93ba8b70a16711346c96494cb23210449bc05abe30c451323
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 4eb321c534b7baa93ba8b70a16711346c96494cb23210449bc05abe30c451323
+Job status: SUCCEEDED
+Textract job completed, blocks: 378
+Extracted text length: 1912
+First 200 chars: INVOICE P P Invoice number V01250254 Invoice date 02-19-2025 Debtor number 10131 P P Beijing Hualian ( SKP Department Pop Trading Company NO. 87 Jianguo Road, Chaoyang district Sint Annendwarsstraat 3
+Textract async extraction complete: {
+  invoiceNumber: 'V01250254',
+  customerName: 'Beijing Hualian ( SKP Department',
+  totalAmount: 1213,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762957145-SKP Beijing SS25 Drop 2  .pdf
+   ✅ SKP Beijing SS25 Drop 2  .pdf: V01250254 - €1213 (7.9s)
+   Processing: SKP Chengdu SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762965025-SKP Chengdu SS25 Drop 2  .pdf',
+  size: 71558
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762965025-SKP Chengdu SS25 Drop 2  .pdf'
+}
+Textract job started: 061939bdce27c30f4ddd46e4840a3dc8e0d81c74b1d2b233c3dd408a298b94e5
+Polling Textract job (attempt 1/60): 061939bdce27c30f4ddd46e4840a3dc8e0d81c74b1d2b233c3dd408a298b94e5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 061939bdce27c30f4ddd46e4840a3dc8e0d81c74b1d2b233c3dd408a298b94e5
+Job status: SUCCEEDED
+Textract job completed, blocks: 380
+Extracted text length: 1931
+First 200 chars: INVOICE P P Invoice number V01250255 Invoice date 02-19-2025 Debtor number 10259 P P SKP Chengdu Pop Trading Company NO. 87 Jianguo Road, Chaoyang district Sint Annendwarsstraat 3 a HONG KONG 100025 1
+Textract async extraction complete: {
+  invoiceNumber: 'V01250255',
+  customerName: 'SKP Chengdu',
+  totalAmount: 1604,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762965025-SKP Chengdu SS25 Drop 2  .pdf
+   ✅ SKP Chengdu SS25 Drop 2  .pdf: V01250255 - €1604 (7.9s)
+   Processing: SKP Shengdu SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762972965-SKP Shengdu SS25 Drop 1 NOS.pdf',
+  size: 136532
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762972965-SKP Shengdu SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 3245f1e30f4557678fafde3141e5ac589098fba11c2cb740acaa5ed2e762e2ff
+Polling Textract job (attempt 1/60): 3245f1e30f4557678fafde3141e5ac589098fba11c2cb740acaa5ed2e762e2ff
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 3245f1e30f4557678fafde3141e5ac589098fba11c2cb740acaa5ed2e762e2ff
+Job status: SUCCEEDED
+Textract job completed, blocks: 637
+Extracted text length: 3181
+First 200 chars: INVOICE P P Invoice number V01250076 Invoice date 01-29-2025 Debtor number 10259 P P SKP Chengdu Pop Trading Company NO. 87 Jianguo Road, Chaoyang district Sint Annendwarsstraat 3 a HONG KONG 100025 1
+Textract async extraction complete: {
+  invoiceNumber: 'V01250076',
+  customerName: 'SKP Chengdu',
+  totalAmount: 3156,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762972965-SKP Shengdu SS25 Drop 1 NOS.pdf
+   ✅ SKP Shengdu SS25 Drop 1 NOS.pdf: V01250076 - €3156 (8.9s)
+   Processing: SKP Wuhan SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762981850-SKP Wuhan SS25 Drop 1 NOS.pdf',
+  size: 84498
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762981850-SKP Wuhan SS25 Drop 1 NOS.pdf'
+}
+Textract job started: e0865f4f681ed49b9cc8250a20782a621f28fb54f5391337c1d0bbcbb65c8a83
+Polling Textract job (attempt 1/60): e0865f4f681ed49b9cc8250a20782a621f28fb54f5391337c1d0bbcbb65c8a83
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): e0865f4f681ed49b9cc8250a20782a621f28fb54f5391337c1d0bbcbb65c8a83
+Job status: SUCCEEDED
+Textract job completed, blocks: 816
+Extracted text length: 4066
+First 200 chars: INVOICE P P Invoice number V01250072 Invoice date 01-29-2025 Debtor number 10354 P P SKP Wuhan Pop Trading Company No. 87 Jianguo Road, Chaoyang distric Sint Annendwarsstraat 3 a HONG KONG 100025 1012
+Textract async extraction complete: {
+  invoiceNumber: 'V01250072',
+  customerName: 'SKP Wuhan',
+  totalAmount: 4849,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762981850-SKP Wuhan SS25 Drop 1 NOS.pdf
+   ✅ SKP Wuhan SS25 Drop 1 NOS.pdf: V01250072 - €4849 (8.3s)
+   Processing: SKP Wuhan SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762990176-SKP Wuhan SS25 Drop 2  .pdf',
+  size: 71818
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762990176-SKP Wuhan SS25 Drop 2  .pdf'
+}
+Textract job started: 8cb56a6a0d62234a4dfe91c909cd9c8a360c1912702cf9bd1c2361392debd349
+Polling Textract job (attempt 1/60): 8cb56a6a0d62234a4dfe91c909cd9c8a360c1912702cf9bd1c2361392debd349
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 8cb56a6a0d62234a4dfe91c909cd9c8a360c1912702cf9bd1c2361392debd349
+Job status: SUCCEEDED
+Textract job completed, blocks: 457
+Extracted text length: 2282
+First 200 chars: INVOICE P P Invoice number V01250252 Invoice date 02-19-2025 Debtor number 10354 P P SKP Wuhan Pop Trading Company No. 87 Jianguo Road, Chaoyang distric Sint Annendwarsstraat 3 a HONG KONG 100025 1012
+Textract async extraction complete: {
+  invoiceNumber: 'V01250252',
+  customerName: 'SKP Wuhan',
+  totalAmount: 1812,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762990176-SKP Wuhan SS25 Drop 2  .pdf
+   ✅ SKP Wuhan SS25 Drop 2  .pdf: V01250252 - €1812 (8.0s)
+   Processing: SKP XIAN SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762998170-SKP XIAN SS25 Drop 1 NOS.pdf',
+  size: 138630
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759762998170-SKP XIAN SS25 Drop 1 NOS.pdf'
+}
+Textract job started: d45aed86706f13932a9a29fc3cae2bb35257ffc031b27c2e8a6a0d1201a57cd8
+Polling Textract job (attempt 1/60): d45aed86706f13932a9a29fc3cae2bb35257ffc031b27c2e8a6a0d1201a57cd8
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): d45aed86706f13932a9a29fc3cae2bb35257ffc031b27c2e8a6a0d1201a57cd8
+Job status: SUCCEEDED
+Textract job completed, blocks: 773
+Extracted text length: 3849
+First 200 chars: INVOICE P P Invoice number V01250073 Invoice date 01-29-2025 Debtor number 10206 P P SKP XI"AN Pop Trading Company No. 87 Jianguo Road, Chaoyang District Sint Annendwarsstraat 3 a BEIJING 10025 1012 H
+Textract async extraction complete: {
+  invoiceNumber: 'V01250073',
+  customerName: 'SKP XI"AN',
+  totalAmount: 5183,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759762998170-SKP XIAN SS25 Drop 1 NOS.pdf
+   ✅ SKP XIAN SS25 Drop 1 NOS.pdf: V01250073 - €5183 (8.9s)
+   Processing: SKP XIan SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763007082-SKP XIan SS25 Drop 2  .pdf',
+  size: 71137
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763007082-SKP XIan SS25 Drop 2  .pdf'
+}
+Textract job started: adf71d87fbdf00503009bce1022f5bb695edb1dd22f3107a82b61f95e43f9fcd
+Polling Textract job (attempt 1/60): adf71d87fbdf00503009bce1022f5bb695edb1dd22f3107a82b61f95e43f9fcd
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): adf71d87fbdf00503009bce1022f5bb695edb1dd22f3107a82b61f95e43f9fcd
+Job status: SUCCEEDED
+Textract job completed, blocks: 371
+Extracted text length: 1865
+First 200 chars: INVOICE P P Invoice number V01250253 Invoice date 02-19-2025 Debtor number 10206 P P SKP XI"AN Pop Trading Company No. 87 Jianguo Road, Chaoyang District Sint Annendwarsstraat 3 a BEIJING 10025 1012 H
+Textract async extraction complete: {
+  invoiceNumber: 'V01250253',
+  customerName: 'SKP XI"AN',
+  totalAmount: 1122,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763007082-SKP XIan SS25 Drop 2  .pdf
+   ✅ SKP XIan SS25 Drop 2  .pdf: V01250253 - €1122 (7.8s)
+   Processing: SRL 049 SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763014920-SRL 049 SS25 Drop 1 NOS.pdf',
+  size: 74786
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763014920-SRL 049 SS25 Drop 1 NOS.pdf'
+}
+Textract job started: f667b2f2658ac50210d05b59812a63161cd9daa7bd125d70cfae67a535c85142
+Polling Textract job (attempt 1/60): f667b2f2658ac50210d05b59812a63161cd9daa7bd125d70cfae67a535c85142
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): f667b2f2658ac50210d05b59812a63161cd9daa7bd125d70cfae67a535c85142
+Job status: SUCCEEDED
+Textract job completed, blocks: 772
+Extracted text length: 3783
+First 200 chars: INVOICE P P Invoice number V01250086 Invoice date 01-29-2025 Debtor number 10392 Your VAT IT05517750286 P P 049 srl Pop Trading Company 80 Via Santa Lucia Sint Annendwarsstraat 3 a PADOVA 35139 1012 H
+Textract async extraction complete: {
+  invoiceNumber: 'V01250086',
+  customerName: '049 srl',
+  totalAmount: 3080,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763014920-SRL 049 SS25 Drop 1 NOS.pdf
+   ✅ SRL 049 SS25 Drop 1 NOS.pdf: V01250086 - €3080 (8.1s)
+   Processing: SVD BCN AW25 Drop-2.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763023035-SVD BCN AW25 Drop-2.pdf',
+  size: 150820
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763023035-SVD BCN AW25 Drop-2.pdf'
+}
+Textract job started: d76ef64ba42d320e7e0c84c30f2062a41a31d5b04e914ff9448c9e41282939d3
+Polling Textract job (attempt 1/60): d76ef64ba42d320e7e0c84c30f2062a41a31d5b04e914ff9448c9e41282939d3
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): d76ef64ba42d320e7e0c84c30f2062a41a31d5b04e914ff9448c9e41282939d3
+Job status: SUCCEEDED
+Textract job completed, blocks: 596
+Extracted text length: 2969
+First 200 chars: INVOICE P P Invoice number V01250855 Invoice date 08-25-2025 Debtor number 10088 Your VAT ESB65386963 P P Sivas des Calzo - Proudlaces SI Pop Trading Company Maracaibo 5, Nave 7 Sint Annendwarsstraat 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250855',
+  customerName: 'Sivas des Calzo - Proudlaces SI',
+  totalAmount: 1756,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763023035-SVD BCN AW25 Drop-2.pdf
+   ✅ SVD BCN AW25 Drop-2.pdf: V01250855 - €1756 (8.4s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 10/14 (10 invoices)
+   Processing: SVD BCN SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763036447-SVD BCN SS25 Drop 2  .pdf',
+  size: 71789
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763036447-SVD BCN SS25 Drop 2  .pdf'
+}
+Textract job started: a16f0f2a5d09938b23c6377d2d5122923b90a4421ad2df6db33ec54b6cfc73a9
+Polling Textract job (attempt 1/60): a16f0f2a5d09938b23c6377d2d5122923b90a4421ad2df6db33ec54b6cfc73a9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): a16f0f2a5d09938b23c6377d2d5122923b90a4421ad2df6db33ec54b6cfc73a9
+Job status: SUCCEEDED
+Textract job completed, blocks: 427
+Extracted text length: 2136
+First 200 chars: INVOICE P P Invoice number V01250279 Invoice date 02-19-2025 Debtor number 10088 Your VAT ESB65386963 P P Sivas des Calzo - Proudlaces SI Pop Trading Company Maracaibo 5, Nave 7 Sint Annendwarsstraat 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250279',
+  customerName: 'Sivas des Calzo - Proudlaces SI',
+  totalAmount: 856,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763036447-SVD BCN SS25 Drop 2  .pdf
+   ✅ SVD BCN SS25 Drop 2  .pdf: V01250279 - €856 (8.8s)
+   Processing: SVD Dubai AW25 Drop-1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763045222-SVD Dubai AW25 Drop-1.pdf',
+  size: 292622
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763045222-SVD Dubai AW25 Drop-1.pdf'
+}
+Textract job started: 6f40b520fe2dc80e33cc363f672c0cb7943f6ebc6399469eaa4ed00e61f14982
+Polling Textract job (attempt 1/60): 6f40b520fe2dc80e33cc363f672c0cb7943f6ebc6399469eaa4ed00e61f14982
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 6f40b520fe2dc80e33cc363f672c0cb7943f6ebc6399469eaa4ed00e61f14982
+Job status: SUCCEEDED
+Textract job completed, blocks: 475
+Extracted text length: 2399
+First 200 chars: INVOICE P P Invoice number V01250733 Invoice date 07-16-2025 Debtor number 10262 Your VAT ESB65386963 P P SVD Middle East FZ LLC. Pop Trading Company R09, Ground Floor, Building 7 Dubai Sint Annendwar
+Textract async extraction complete: {
+  invoiceNumber: 'V01250733',
+  customerName: 'SVD Middle East FZ LLC.',
+  totalAmount: 728,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763045222-SVD Dubai AW25 Drop-1.pdf
+   ✅ SVD Dubai AW25 Drop-1.pdf: V01250733 - €728 (8.5s)
+   Processing: SVD Dubai AW25 Drop-2.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763053727-SVD Dubai AW25 Drop-2.pdf',
+  size: 149986
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763053727-SVD Dubai AW25 Drop-2.pdf'
+}
+Textract job started: 69ffefa44ba8bc5f5556dca550c155c88502bf8d4e5b75e1f03ffda6b152d609
+Polling Textract job (attempt 1/60): 69ffefa44ba8bc5f5556dca550c155c88502bf8d4e5b75e1f03ffda6b152d609
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 69ffefa44ba8bc5f5556dca550c155c88502bf8d4e5b75e1f03ffda6b152d609
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 69ffefa44ba8bc5f5556dca550c155c88502bf8d4e5b75e1f03ffda6b152d609
+Job status: SUCCEEDED
+Textract job completed, blocks: 435
+Extracted text length: 2178
+First 200 chars: INVOICE P P Invoice number V01250856 Invoice date 08-25-2025 Debtor number 10262 Your VAT ESB65386963 P P SVD Middle East FZ LLC. Pop Trading Company R09, Ground Floor, Building 7 Dubai Sint Annendwar
+Textract async extraction complete: {
+  invoiceNumber: 'V01250856',
+  customerName: 'SVD Middle East FZ LLC.',
+  totalAmount: 972,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763053727-SVD Dubai AW25 Drop-2.pdf
+   ✅ SVD Dubai AW25 Drop-2.pdf: V01250856 - €972 (13.5s)
+   Processing: Seven Stones AW25 Drop-2.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763067192-Seven Stones AW25 Drop-2.pdf',
+  size: 84857
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763067192-Seven Stones AW25 Drop-2.pdf'
+}
+Textract job started: 93e9dbf7b7141086e179acb03e6e2685b6824dba7ac7a7ab380792715ab6a000
+Polling Textract job (attempt 1/60): 93e9dbf7b7141086e179acb03e6e2685b6824dba7ac7a7ab380792715ab6a000
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 93e9dbf7b7141086e179acb03e6e2685b6824dba7ac7a7ab380792715ab6a000
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 93e9dbf7b7141086e179acb03e6e2685b6824dba7ac7a7ab380792715ab6a000
+Job status: SUCCEEDED
+Textract job completed, blocks: 340
+Extracted text length: 1778
+First 200 chars: INVOICE P P Invoice number V01250850 Invoice date 08-25-2025 Debtor number 10411 P P Seven Stones Pop Trading Company 54-55 Causewayhead Sint Annendwarsstraat 3 a PENZANCE TR182SS 1012 HC AMSTERDAM Gr
+Textract async extraction complete: {
+  invoiceNumber: 'V01250850',
+  customerName: 'Seven Stones',
+  totalAmount: 808,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763067192-Seven Stones AW25 Drop-2.pdf
+   ✅ Seven Stones AW25 Drop-2.pdf: V01250850 - €808 (13.9s)
+   Processing: Seven Stones SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763081047-Seven Stones SS25 Drop 1 NOS.pdf',
+  size: 73332
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763081047-Seven Stones SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 4caa3ecd8c9aadd865f08494ef9f9c257fc22a711cab19a634144d063a1bcb4d
+Polling Textract job (attempt 1/60): 4caa3ecd8c9aadd865f08494ef9f9c257fc22a711cab19a634144d063a1bcb4d
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 4caa3ecd8c9aadd865f08494ef9f9c257fc22a711cab19a634144d063a1bcb4d
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 4caa3ecd8c9aadd865f08494ef9f9c257fc22a711cab19a634144d063a1bcb4d
+Job status: SUCCEEDED
+Textract job completed, blocks: 629
+Extracted text length: 3138
+First 200 chars: INVOICE P P Invoice number V01250106 Invoice date 01-29-2025 Debtor number 10411 P P Seven Stones Pop Trading Company 54-55 Causewayhead Sint Annendwarsstraat 3 a PENZANCE TR182SS 1012 HC AMSTERDAM Gr
+Textract async extraction complete: {
+  invoiceNumber: 'V01250106',
+  customerName: 'Seven Stones',
+  totalAmount: 1972,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763081047-Seven Stones SS25 Drop 1 NOS.pdf
+   ✅ Seven Stones SS25 Drop 1 NOS.pdf: V01250106 - €1972 (13.3s)
+   Processing: Seven Stones SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763094364-Seven Stones SS25 Drop 2  .pdf',
+  size: 70444
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763094364-Seven Stones SS25 Drop 2  .pdf'
+}
+Textract job started: d4200e050c657cc8c1923917abd8906fa2ef732930b596199fada62b12aee053
+Polling Textract job (attempt 1/60): d4200e050c657cc8c1923917abd8906fa2ef732930b596199fada62b12aee053
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): d4200e050c657cc8c1923917abd8906fa2ef732930b596199fada62b12aee053
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): d4200e050c657cc8c1923917abd8906fa2ef732930b596199fada62b12aee053
+Job status: SUCCEEDED
+Textract job completed, blocks: 333
+Extracted text length: 1705
+First 200 chars: INVOICE P P Invoice number V01250284 Invoice date 02-19-2025 Debtor number 10411 P P Seven Stones Pop Trading Company 54-55 Causewayhead Sint Annendwarsstraat 3 a PENZANCE TR182SS 1012 HC AMSTERDAM Gr
+Textract async extraction complete: {
+  invoiceNumber: 'V01250284',
+  customerName: 'Seven Stones',
+  totalAmount: 544,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763094364-Seven Stones SS25 Drop 2  .pdf
+   ✅ Seven Stones SS25 Drop 2  .pdf: V01250284 - €544 (14.7s)
+   Processing: Sivas des Calzo SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763109048-Sivas des Calzo SS25 Drop 1 NOS.pdf',
+  size: 74349
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763109048-Sivas des Calzo SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 737254b99ec23669f67749cc81ad2915540f5de0c694451b179aac1578837d96
+Polling Textract job (attempt 1/60): 737254b99ec23669f67749cc81ad2915540f5de0c694451b179aac1578837d96
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 737254b99ec23669f67749cc81ad2915540f5de0c694451b179aac1578837d96
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 737254b99ec23669f67749cc81ad2915540f5de0c694451b179aac1578837d96
+Job status: SUCCEEDED
+Textract job completed, blocks: 823
+Extracted text length: 4081
+First 200 chars: INVOICE P P Invoice number V01250177 Invoice date 02-04-2025 Debtor number 10088 Your VAT ESB65386963 P P REFERENCE Correctional SS25 Drop 1 Sivas des Calzo Proudlaces SI Pop Trading Company Maracaibo
+Textract async extraction complete: {
+  invoiceNumber: 'V01250177',
+  customerName: 'REFERENCE Correctional SS25 Drop 1 Sivas des Calzo Proudlaces SI',
+  totalAmount: 2520,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763109048-Sivas des Calzo SS25 Drop 1 NOS.pdf
+   ✅ Sivas des Calzo SS25 Drop 1 NOS.pdf: V01250177 - €2520 (13.6s)
+   Processing: Sneaker Box SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763122634-Sneaker Box SS25 Drop 1.pdf',
+  size: 77872
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763122634-Sneaker Box SS25 Drop 1.pdf'
+}
+Textract job started: e03cae0857ce305a46d72f356dbd9e2011b9e94b874683a56d6aa3942f5296e5
+Polling Textract job (attempt 1/60): e03cae0857ce305a46d72f356dbd9e2011b9e94b874683a56d6aa3942f5296e5
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): e03cae0857ce305a46d72f356dbd9e2011b9e94b874683a56d6aa3942f5296e5
+Job status: SUCCEEDED
+Textract job completed, blocks: 1176
+Extracted text length: 5722
+First 200 chars: INVOICE P P Invoice number V01250067 Invoice date 01-29-2025 Debtor number 10342 P P Sneaker Box Pop Trading Company Beilinson 1 Sint Annendwarsstraat 3 a TEL AVIV 6356701 1012 HC AMSTERDAM Israël inf
+Textract async extraction complete: {
+  invoiceNumber: 'V01250067',
+  customerName: 'Sneaker Box',
+  totalAmount: 3772,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763122634-Sneaker Box SS25 Drop 1.pdf
+   ✅ Sneaker Box SS25 Drop 1.pdf: V01250067 - €3772 (8.6s)
+   Processing: Sneaker Box SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763131251-Sneaker Box SS25 Drop 2  .pdf',
+  size: 77774
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763131251-Sneaker Box SS25 Drop 2  .pdf'
+}
+Textract job started: 33cdc7b765b34abe07e82ff81f6f79ffce6a0809aefb668480fb840021ff9318
+Polling Textract job (attempt 1/60): 33cdc7b765b34abe07e82ff81f6f79ffce6a0809aefb668480fb840021ff9318
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 33cdc7b765b34abe07e82ff81f6f79ffce6a0809aefb668480fb840021ff9318
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 33cdc7b765b34abe07e82ff81f6f79ffce6a0809aefb668480fb840021ff9318
+Job status: SUCCEEDED
+Textract job completed, blocks: 1354
+Extracted text length: 6626
+First 200 chars: INVOICE P P Invoice number V01250246 Invoice date 02-19-2025 Debtor number 10342 P P Sneaker Box Pop Trading Company Beilinson 1 Sint Annendwarsstraat 3 a TEL AVIV 6356701 1012 HC AMSTERDAM Israël inf
+Textract async extraction complete: {
+  invoiceNumber: 'V01250246',
+  customerName: 'Sneaker Box',
+  totalAmount: 4386,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763131251-Sneaker Box SS25 Drop 2  .pdf
+   ✅ Sneaker Box SS25 Drop 2  .pdf: V01250246 - €4386 (14.5s)
+   Processing: Sneakerbox SS25 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763145772-Sneakerbox SS25 NOS.pdf',
+  size: 73782
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763145772-Sneakerbox SS25 NOS.pdf'
+}
+Textract job started: a08a3bd4fd1877dc1155b059a0067da76e6826393d88566bcfcb20e2f1fe7c4e
+Polling Textract job (attempt 1/60): a08a3bd4fd1877dc1155b059a0067da76e6826393d88566bcfcb20e2f1fe7c4e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): a08a3bd4fd1877dc1155b059a0067da76e6826393d88566bcfcb20e2f1fe7c4e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): a08a3bd4fd1877dc1155b059a0067da76e6826393d88566bcfcb20e2f1fe7c4e
+Job status: SUCCEEDED
+Textract job completed, blocks: 593
+Extracted text length: 2912
+First 200 chars: INVOICE P P Invoice number V01241296 Invoice date 12-23-2024 Debtor number 10342 P P Sneaker Box Pop Trading Company Beilinson 1 Sint Annendwarsstraat 3 a TEL AVIV 6356701 1012 HC AMSTERDAM Israël inf
+Textract async extraction complete: {
+  invoiceNumber: 'V01241296',
+  customerName: 'Sneaker Box',
+  totalAmount: 1423,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763145772-Sneakerbox SS25 NOS.pdf
+   ✅ Sneakerbox SS25 NOS.pdf: V01241296 - €1423 (13.4s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 11/14 (10 invoices)
+   Processing: Spazio (Gruppo Pritelli) SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763164211-Spazio (Gruppo Pritelli) SS25 Drop 1.pdf',
+  size: 73390
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763164211-Spazio (Gruppo Pritelli) SS25 Drop 1.pdf'
+}
+Textract job started: 7241f13c38a27d245d113ba614764a3852ca80904f56e797280abd38167999b1
+Polling Textract job (attempt 1/60): 7241f13c38a27d245d113ba614764a3852ca80904f56e797280abd38167999b1
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 7241f13c38a27d245d113ba614764a3852ca80904f56e797280abd38167999b1
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 7241f13c38a27d245d113ba614764a3852ca80904f56e797280abd38167999b1
+Job status: SUCCEEDED
+Textract job completed, blocks: 635
+Extracted text length: 3177
+First 200 chars: INVOICE P P Invoice number V01250095 Invoice date 01-29-2025 Debtor number 10347 Your VAT IT02600380402 P P Spazio (Gruppo Pritelli) Pop Trading Company Via Respighi 54/4 Sint Annendwarsstraat 3 a CAT
+Textract async extraction complete: {
+  invoiceNumber: 'V01250095',
+  customerName: 'Spazio (Gruppo Pritelli)',
+  totalAmount: 2112,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763164211-Spazio (Gruppo Pritelli) SS25 Drop 1.pdf
+   ✅ Spazio (Gruppo Pritelli) SS25 Drop 1.pdf: V01250095 - €2112 (14.2s)
+   Processing: Spazio Gruppo Priteli SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763178374-Spazio Gruppo Priteli SS25 Drop 2  .pdf',
+  size: 73494
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763178374-Spazio Gruppo Priteli SS25 Drop 2  .pdf'
+}
+Textract job started: ae50007d86bcafd457556e6be57eb971261f84062437bd7f65447a9b2bf7bc24
+Polling Textract job (attempt 1/60): ae50007d86bcafd457556e6be57eb971261f84062437bd7f65447a9b2bf7bc24
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): ae50007d86bcafd457556e6be57eb971261f84062437bd7f65447a9b2bf7bc24
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): ae50007d86bcafd457556e6be57eb971261f84062437bd7f65447a9b2bf7bc24
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): ae50007d86bcafd457556e6be57eb971261f84062437bd7f65447a9b2bf7bc24
+Job status: SUCCEEDED
+Textract job completed, blocks: 603
+Extracted text length: 2995
+First 200 chars: INVOICE P P Invoice number V01250274 Invoice date 02-19-2025 Debtor number 10347 Your VAT IT02600380402 P P Spazio (Gruppo Pritelli) Pop Trading Company Via Respighi 54/4 Sint Annendwarsstraat 3 a CAT
+Textract async extraction complete: {
+  invoiceNumber: 'V01250274',
+  customerName: 'Spazio (Gruppo Pritelli)',
+  totalAmount: 1578,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763178374-Spazio Gruppo Priteli SS25 Drop 2  .pdf
+   ✅ Spazio Gruppo Priteli SS25 Drop 2  .pdf: V01250274 - €1578 (18.7s)
+   Processing: Stimm SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763197100-Stimm SS25 Drop 1.pdf',
+  size: 74568
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763197100-Stimm SS25 Drop 1.pdf'
+}
+Textract job started: 0088991e4a56df36552791af8f53c1cc2892261787b4e275c96fd006e2ced097
+Polling Textract job (attempt 1/60): 0088991e4a56df36552791af8f53c1cc2892261787b4e275c96fd006e2ced097
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 0088991e4a56df36552791af8f53c1cc2892261787b4e275c96fd006e2ced097
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 0088991e4a56df36552791af8f53c1cc2892261787b4e275c96fd006e2ced097
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 0088991e4a56df36552791af8f53c1cc2892261787b4e275c96fd006e2ced097
+Job status: SUCCEEDED
+Textract job completed, blocks: 652
+Extracted text length: 3234
+First 200 chars: INVOICE P P Invoice number V01250089 Invoice date 01-29-2025 Debtor number 10341 Your VAT IT00625170261 P P Stimm Shop Pop Trading Company Via Conegliano 35/3 Sint Annendwarsstraat 3 a PIEVE DI SOLIGO
+Textract async extraction complete: {
+  invoiceNumber: 'V01250089',
+  customerName: 'Stimm Shop',
+  totalAmount: 1972,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763197100-Stimm SS25 Drop 1.pdf
+   ✅ Stimm SS25 Drop 1.pdf: V01250089 - €1972 (19.1s)
+   Processing: Stimm SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763216226-Stimm SS25 Drop 2  .pdf',
+  size: 73522
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763216226-Stimm SS25 Drop 2  .pdf'
+}
+Textract job started: 2854cea3a2050be19b9bc7f06f4cd89f3ca358de5c5d028d5b9642f889bf6caa
+Polling Textract job (attempt 1/60): 2854cea3a2050be19b9bc7f06f4cd89f3ca358de5c5d028d5b9642f889bf6caa
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 2854cea3a2050be19b9bc7f06f4cd89f3ca358de5c5d028d5b9642f889bf6caa
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 2854cea3a2050be19b9bc7f06f4cd89f3ca358de5c5d028d5b9642f889bf6caa
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 2854cea3a2050be19b9bc7f06f4cd89f3ca358de5c5d028d5b9642f889bf6caa
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 2854cea3a2050be19b9bc7f06f4cd89f3ca358de5c5d028d5b9642f889bf6caa
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): 2854cea3a2050be19b9bc7f06f4cd89f3ca358de5c5d028d5b9642f889bf6caa
+Job status: SUCCEEDED
+Textract job completed, blocks: 656
+Extracted text length: 3271
+First 200 chars: INVOICE P P Invoice number V01250268 Invoice date 02-19-2025 Debtor number 10341 Your VAT IT00625170261 P P Stimm Shop Pop Trading Company Via Conegliano 35/3 Sint Annendwarsstraat 3 a PIEVE DI SOLIGO
+Textract async extraction complete: {
+  invoiceNumber: 'V01250268',
+  customerName: 'Stimm Shop',
+  totalAmount: 2726,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763216226-Stimm SS25 Drop 2  .pdf
+   ✅ Stimm SS25 Drop 2  .pdf: V01250268 - €2726 (29.5s)
+   Processing: Superstylin_ SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763245757-Superstylin_ SS25 Drop 1.pdf',
+  size: 71450
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763245757-Superstylin_ SS25 Drop 1.pdf'
+}
+Textract job started: 22a215b76ead108b5bb9c42e77a2065464acbc95218c1794c3585c1674aa75c9
+Polling Textract job (attempt 1/60): 22a215b76ead108b5bb9c42e77a2065464acbc95218c1794c3585c1674aa75c9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 22a215b76ead108b5bb9c42e77a2065464acbc95218c1794c3585c1674aa75c9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 22a215b76ead108b5bb9c42e77a2065464acbc95218c1794c3585c1674aa75c9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 22a215b76ead108b5bb9c42e77a2065464acbc95218c1794c3585c1674aa75c9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 22a215b76ead108b5bb9c42e77a2065464acbc95218c1794c3585c1674aa75c9
+Job status: SUCCEEDED
+Textract job completed, blocks: 385
+Extracted text length: 1970
+First 200 chars: INVOICE P P Invoice number V01250105 Invoice date 01-29-2025 Debtor number 10340 Your VAT IT17730821000 P P Superstylin S.R.L. Pop Trading Company Via S. Maria Ausiliatrice 130-131-132 Sint Annendwars
+Textract async extraction complete: {
+  invoiceNumber: 'V01250105',
+  customerName: 'Superstylin S.R.L.',
+  totalAmount: 798,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763245757-Superstylin_ SS25 Drop 1.pdf
+   ✅ Superstylin_ SS25 Drop 1.pdf: V01250105 - €798 (23.7s)
+   Processing: Superstylin_ SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763269456-Superstylin_ SS25 Drop 2  .pdf',
+  size: 72342
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763269456-Superstylin_ SS25 Drop 2  .pdf'
+}
+Textract job started: 4b2b259488222a516379a531b97dc8f9d371437e5e539445a0816fbe627f8505
+Polling Textract job (attempt 1/60): 4b2b259488222a516379a531b97dc8f9d371437e5e539445a0816fbe627f8505
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 4b2b259488222a516379a531b97dc8f9d371437e5e539445a0816fbe627f8505
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 4b2b259488222a516379a531b97dc8f9d371437e5e539445a0816fbe627f8505
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 4b2b259488222a516379a531b97dc8f9d371437e5e539445a0816fbe627f8505
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 4b2b259488222a516379a531b97dc8f9d371437e5e539445a0816fbe627f8505
+Job status: SUCCEEDED
+Textract job completed, blocks: 543
+Extracted text length: 2753
+First 200 chars: INVOICE P P Invoice number V01250283 Invoice date 02-19-2025 Debtor number 10340 Your VAT IT17730821000 P P Superstylin S.R.L. Pop Trading Company Via S. Maria Ausiliatrice 130-131-132 Sint Annendwars
+Textract async extraction complete: {
+  invoiceNumber: 'V01250283',
+  customerName: 'Superstylin S.R.L.',
+  totalAmount: 1712,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763269456-Superstylin_ SS25 Drop 2  .pdf
+   ✅ Superstylin_ SS25 Drop 2  .pdf: V01250283 - €1712 (24.6s)
+   Processing: Switch SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763294036-Switch SS25 Drop 1 NOS.pdf',
+  size: 75534
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763294036-Switch SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 127ad678cf4bc7fd91ac85936b76a3fde51446fbe51d8aaac77f89fd4b00c0e0
+Polling Textract job (attempt 1/60): 127ad678cf4bc7fd91ac85936b76a3fde51446fbe51d8aaac77f89fd4b00c0e0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 127ad678cf4bc7fd91ac85936b76a3fde51446fbe51d8aaac77f89fd4b00c0e0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 127ad678cf4bc7fd91ac85936b76a3fde51446fbe51d8aaac77f89fd4b00c0e0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): 127ad678cf4bc7fd91ac85936b76a3fde51446fbe51d8aaac77f89fd4b00c0e0
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): 127ad678cf4bc7fd91ac85936b76a3fde51446fbe51d8aaac77f89fd4b00c0e0
+Job status: SUCCEEDED
+Textract job completed, blocks: 738
+Extracted text length: 3664
+First 200 chars: INVOICE P P Invoice number V01250101 Invoice date 01-29-2025 Debtor number 10406 Your VAT IT07334260481 P P Switch S.R.L. Pop Trading Company Via dei Serragli 12r Sint Annendwarsstraat 3 a FIRENZE 501
+Textract async extraction complete: {
+  invoiceNumber: 'V01250101',
+  customerName: 'Switch S.R.L.',
+  totalAmount: 1758,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763294036-Switch SS25 Drop 1 NOS.pdf
+   ✅ Switch SS25 Drop 1 NOS.pdf: V01250101 - €1758 (24.0s)
+   Processing: Switch SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763318018-Switch SS25 Drop 2  .pdf',
+  size: 73746
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763318018-Switch SS25 Drop 2  .pdf'
+}
+Textract job started: a79cba2522ba569bcd7a3767e52ba9c5cfdfac79f5cb0fac6395256c45cfef6d
+Polling Textract job (attempt 1/60): a79cba2522ba569bcd7a3767e52ba9c5cfdfac79f5cb0fac6395256c45cfef6d
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): a79cba2522ba569bcd7a3767e52ba9c5cfdfac79f5cb0fac6395256c45cfef6d
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): a79cba2522ba569bcd7a3767e52ba9c5cfdfac79f5cb0fac6395256c45cfef6d
+Job status: SUCCEEDED
+Textract job completed, blocks: 538
+Extracted text length: 2700
+First 200 chars: INVOICE P P Invoice number V01250280 Invoice date 02-19-2025 Debtor number 10406 Your VAT IT07334260481 P P Switch S.R.L. Pop Trading Company Via dei Serragli 12r Sint Annendwarsstraat 3 a FIRENZE 501
+Textract async extraction complete: {
+  invoiceNumber: 'V01250280',
+  customerName: 'Switch S.R.L.',
+  totalAmount: 1598,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763318018-Switch SS25 Drop 2  .pdf
+   ✅ Switch SS25 Drop 2  .pdf: V01250280 - €1598 (14.0s)
+   Processing: Ultimate BXL SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763331995-Ultimate BXL SS25 Drop 1 NOS.pdf',
+  size: 79670
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763331995-Ultimate BXL SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 8932c9a62efd689ad29eaaa58c3339dc0740186dca1f14579b2b6c9dc8c30447
+Polling Textract job (attempt 1/60): 8932c9a62efd689ad29eaaa58c3339dc0740186dca1f14579b2b6c9dc8c30447
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 8932c9a62efd689ad29eaaa58c3339dc0740186dca1f14579b2b6c9dc8c30447
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 8932c9a62efd689ad29eaaa58c3339dc0740186dca1f14579b2b6c9dc8c30447
+Job status: SUCCEEDED
+Textract job completed, blocks: 1432
+Extracted text length: 6883
+First 200 chars: INVOICE P P Invoice number V01250079 Invoice date 01-29-2025 Debtor number 10424 Your VAT BE0648888923 P P Ultimate BXL Pop Trading Company Lakenmakerstraat 20 Sint Annendwarsstraat 3 a 2400 MOL 1012 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250079',
+  customerName: 'Ultimate BXL',
+  totalAmount: 3613,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763331995-Ultimate BXL SS25 Drop 1 NOS.pdf
+   ✅ Ultimate BXL SS25 Drop 1 NOS.pdf: V01250079 - €3613 (13.9s)
+   Processing: Ultimate BXL SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763345866-Ultimate BXL SS25 Drop 2  .pdf',
+  size: 73611
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763345866-Ultimate BXL SS25 Drop 2  .pdf'
+}
+Textract job started: 57c8a6282d17c2809e7b423781d56fe45e28976007eab5315282f679e09a2304
+Polling Textract job (attempt 1/60): 57c8a6282d17c2809e7b423781d56fe45e28976007eab5315282f679e09a2304
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 57c8a6282d17c2809e7b423781d56fe45e28976007eab5315282f679e09a2304
+Job status: SUCCEEDED
+Textract job completed, blocks: 769
+Extracted text length: 3839
+First 200 chars: INVOICE P P Invoice number V01250258 Invoice date 02-19-2025 Debtor number 10424 Your VAT BE0648888923 P P Ultimate BXL Pop Trading Company Lakenmakerstraat 20 Sint Annendwarsstraat 3 a 2400 MOL 1012 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250258',
+  customerName: 'Ultimate BXL',
+  totalAmount: 2305,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763345866-Ultimate BXL SS25 Drop 2  .pdf
+   ✅ Ultimate BXL SS25 Drop 2  .pdf: V01250258 - €2305 (8.8s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 12/14 (10 invoices)
+   Processing: Ultimate Mol SS25 Drop 1 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763359638-Ultimate Mol SS25 Drop 1 NOS.pdf',
+  size: 79545
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763359638-Ultimate Mol SS25 Drop 1 NOS.pdf'
+}
+Textract job started: 48476265d1573b714b11eeb98de8ad38eccdad5e52759baaa7246d406b935e36
+Polling Textract job (attempt 1/60): 48476265d1573b714b11eeb98de8ad38eccdad5e52759baaa7246d406b935e36
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 48476265d1573b714b11eeb98de8ad38eccdad5e52759baaa7246d406b935e36
+Job status: SUCCEEDED
+Textract job completed, blocks: 1389
+Extracted text length: 6674
+First 200 chars: INVOICE P P Invoice number V01250084 Invoice date 01-29-2025 Debtor number 10423 Your VAT BE0648888923 P P Ultimate Mol Pop Trading Company Lakenmakerstraat 20 Sint Annendwarsstraat 3 a 2400 MOL 1012 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250084',
+  customerName: 'Ultimate Mol',
+  totalAmount: 3213,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763359638-Ultimate Mol SS25 Drop 1 NOS.pdf
+   ✅ Ultimate Mol SS25 Drop 1 NOS.pdf: V01250084 - €3213 (10.2s)
+   Processing: Ultimate Mol SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763369879-Ultimate Mol SS25 Drop 2  .pdf',
+  size: 73699
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763369879-Ultimate Mol SS25 Drop 2  .pdf'
+}
+Textract job started: 9a592fd5b6cffbca45ded5f791f4cec537656319dfd5a1272e78eb7c15a66963
+Polling Textract job (attempt 1/60): 9a592fd5b6cffbca45ded5f791f4cec537656319dfd5a1272e78eb7c15a66963
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 9a592fd5b6cffbca45ded5f791f4cec537656319dfd5a1272e78eb7c15a66963
+Job status: SUCCEEDED
+Textract job completed, blocks: 769
+Extracted text length: 3839
+First 200 chars: INVOICE P P Invoice number V01250263 Invoice date 02-19-2025 Debtor number 10423 Your VAT BE0648888923 P P Ultimate Mol Pop Trading Company Lakenmakerstraat 20 Sint Annendwarsstraat 3 a 2400 MOL 1012 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250263',
+  customerName: 'Ultimate Mol',
+  totalAmount: 2185,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763369879-Ultimate Mol SS25 Drop 2  .pdf
+   ✅ Ultimate Mol SS25 Drop 2  .pdf: V01250263 - €2185 (8.2s)
+   Processing: Undergarden SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763378052-Undergarden SS25 Drop 1.pdf',
+  size: 75256
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763378052-Undergarden SS25 Drop 1.pdf'
+}
+Textract job started: 1e2bd83989de46fab2b84cc6511bc2770afa2c67d7d24e02bb40360ce47c139c
+Polling Textract job (attempt 1/60): 1e2bd83989de46fab2b84cc6511bc2770afa2c67d7d24e02bb40360ce47c139c
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 1e2bd83989de46fab2b84cc6511bc2770afa2c67d7d24e02bb40360ce47c139c
+Job status: SUCCEEDED
+Textract job completed, blocks: 854
+Extracted text length: 4204
+First 200 chars: INVOICE P P Invoice number V01250085 Invoice date 01-29-2025 Debtor number 10425 P P Undergarden Pop Trading Company Sintian Road, Quanjin District 297 Sint Annendwarsstraat 3 a KAOHSIUNG 80145 1012 H
+Textract async extraction complete: {
+  invoiceNumber: 'V01250085',
+  customerName: 'Undergarden',
+  totalAmount: 1929,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763378052-Undergarden SS25 Drop 1.pdf
+   ✅ Undergarden SS25 Drop 1.pdf: V01250085 - €1929 (8.4s)
+   Processing: Undergarden SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763386442-Undergarden SS25 Drop 2  .pdf',
+  size: 73999
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763386442-Undergarden SS25 Drop 2  .pdf'
+}
+Textract job started: 2bcc8d4a37b43bbe1baad1fc4d660347ba6cf3f8aee75324fb28ef62d34dae38
+Polling Textract job (attempt 1/60): 2bcc8d4a37b43bbe1baad1fc4d660347ba6cf3f8aee75324fb28ef62d34dae38
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 2bcc8d4a37b43bbe1baad1fc4d660347ba6cf3f8aee75324fb28ef62d34dae38
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 2bcc8d4a37b43bbe1baad1fc4d660347ba6cf3f8aee75324fb28ef62d34dae38
+Job status: SUCCEEDED
+Textract job completed, blocks: 853
+Extracted text length: 4213
+First 200 chars: INVOICE P P Invoice number V01250264 Invoice date 02-19-2025 Debtor number 10425 P P Undergarden Pop Trading Company Sintian Road, Quanjin District 297 Sint Annendwarsstraat 3 a KAOHSIUNG 80145 1012 H
+Textract async extraction complete: {
+  invoiceNumber: 'V01250264',
+  customerName: 'Undergarden',
+  totalAmount: 1646,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763386442-Undergarden SS25 Drop 2  .pdf
+   ✅ Undergarden SS25 Drop 2  .pdf: V01250264 - €1646 (14.0s)
+   Processing: Undergarden SS25 NOS  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763400466-Undergarden SS25 NOS  .pdf',
+  size: 74640
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763400466-Undergarden SS25 NOS  .pdf'
+}
+Textract job started: cf23d3b2020e3ebffb03bb15386078621ddae0ea69a6a6a5a47eb01ff1da2b15
+Polling Textract job (attempt 1/60): cf23d3b2020e3ebffb03bb15386078621ddae0ea69a6a6a5a47eb01ff1da2b15
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): cf23d3b2020e3ebffb03bb15386078621ddae0ea69a6a6a5a47eb01ff1da2b15
+Job status: SUCCEEDED
+Textract job completed, blocks: 752
+Extracted text length: 3656
+First 200 chars: INVOICE P P Invoice number V01241295 Invoice date 12-23-2024 Debtor number 10425 P P Undergarden Pop Trading Company Sintian Road, Quanjin District 297 Sint Annendwarsstraat 3 a KAOHSIUNG 80145 1012 H
+Textract async extraction complete: {
+  invoiceNumber: 'V01241295',
+  customerName: 'Undergarden',
+  totalAmount: 1611,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763400466-Undergarden SS25 NOS  .pdf
+   ✅ Undergarden SS25 NOS  .pdf: V01241295 - €1611 (8.1s)
+   Processing: Urban Industry SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763408598-Urban Industry SS25 Drop 1.pdf',
+  size: 72234
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763408598-Urban Industry SS25 Drop 1.pdf'
+}
+Textract job started: 07721b8312a0ee1ff27337b978560b6a6085044308a725ed15b2d9a932ecee8e
+Polling Textract job (attempt 1/60): 07721b8312a0ee1ff27337b978560b6a6085044308a725ed15b2d9a932ecee8e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 07721b8312a0ee1ff27337b978560b6a6085044308a725ed15b2d9a932ecee8e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 07721b8312a0ee1ff27337b978560b6a6085044308a725ed15b2d9a932ecee8e
+Job status: SUCCEEDED
+Textract job completed, blocks: 502
+Extracted text length: 2509
+First 200 chars: INVOICE P P Invoice number V01250098 Invoice date 01-29-2025 Debtor number 10377 P P Urban Industry Pop Trading Company 2 Park View, Alder Close Sint Annendwarsstraat 3 a EASTBOURNE BN23 6QE 1012 HC A
+Textract async extraction complete: {
+  invoiceNumber: 'V01250098',
+  customerName: 'Urban Industry',
+  totalAmount: 1884,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759763408598-Urban Industry SS25 Drop 1.pdf
+   ✅ Urban Industry SS25 Drop 1.pdf: V01250098 - €1884 (13.7s)
+   Processing: Urban Industry SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763422339-Urban Industry SS25 Drop 2  .pdf',
+  size: 71809
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763422339-Urban Industry SS25 Drop 2  .pdf'
+}
+Textract job started: b6a761946f952ae406900894d3141cd760f13fe06547c8bf761443943ffe2782
+Polling Textract job (attempt 1/60): b6a761946f952ae406900894d3141cd760f13fe06547c8bf761443943ffe2782
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): b6a761946f952ae406900894d3141cd760f13fe06547c8bf761443943ffe2782
+Job status: SUCCEEDED
+Textract job completed, blocks: 463
+Extracted text length: 2324
+First 200 chars: INVOICE P P Invoice number V01250277 Invoice date 02-19-2025 Debtor number 10377 P P Urban Industry Pop Trading Company 2 Park View, Alder Close Sint Annendwarsstraat 3 a EASTBOURNE BN23 6QE 1012 HC A
+Textract async extraction complete: {
+  invoiceNumber: 'V01250277',
+  customerName: 'Urban Industry',
+  totalAmount: 1360,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759763422339-Urban Industry SS25 Drop 2  .pdf
+   ✅ Urban Industry SS25 Drop 2  .pdf: V01250277 - €1360 (8.8s)
+   Processing: Urban Industry SS25 NOS  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763431174-Urban Industry SS25 NOS  .pdf',
+  size: 70635
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763431174-Urban Industry SS25 NOS  .pdf'
+}
+Textract job started: 3f386ecb12954b8e1c3809c30e9ebe2c50f3de662f6ca62efdc07111935af731
+Polling Textract job (attempt 1/60): 3f386ecb12954b8e1c3809c30e9ebe2c50f3de662f6ca62efdc07111935af731
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 3f386ecb12954b8e1c3809c30e9ebe2c50f3de662f6ca62efdc07111935af731
+Job status: SUCCEEDED
+Textract job completed, blocks: 327
+Extracted text length: 1638
+First 200 chars: INVOICE P P Invoice number V01241299 Invoice date 12-23-2024 Debtor number 10377 P P Urban Industry Pop Trading Company 2 Park View, Alder Close Sint Annendwarsstraat 3 a EASTBOURNE BN23 6QE 1012 HC A
+Textract async extraction complete: {
+  invoiceNumber: 'V01241299',
+  customerName: 'Urban Industry',
+  totalAmount: 698,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759763431174-Urban Industry SS25 NOS  .pdf
+   ✅ Urban Industry SS25 NOS  .pdf: V01241299 - €698 (7.8s)
+   Processing: V01250724 Seven Stones AW25 Drop-1 (1).pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763438999-V01250724 Seven Stones AW25 Drop-1 (1).pdf',
+  size: 295200
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763438999-V01250724 Seven Stones AW25 Drop-1 (1).pdf'
+}
+Textract job started: ca2243afe1a7706f9ca1c6674d678072f433ed69669ba585543f4227eb8ddc16
+Polling Textract job (attempt 1/60): ca2243afe1a7706f9ca1c6674d678072f433ed69669ba585543f4227eb8ddc16
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): ca2243afe1a7706f9ca1c6674d678072f433ed69669ba585543f4227eb8ddc16
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): ca2243afe1a7706f9ca1c6674d678072f433ed69669ba585543f4227eb8ddc16
+Job status: SUCCEEDED
+Textract job completed, blocks: 677
+Extracted text length: 3420
+First 200 chars: INVOICE P P Invoice number V01250724 Invoice date 07-16-2025 Debtor number 10411 P P Seven Stones Pop Trading Company 54-55 Causewayhead Sint Annendwarsstraat 3 a PENZANCE TR182SS 1012 HC AMSTERDAM Gr
+Textract async extraction complete: {
+  invoiceNumber: 'V01250724',
+  customerName: 'Seven Stones',
+  totalAmount: 2462,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763438999-V01250724 Seven Stones AW25 Drop-1 (1).pdf
+   ✅ V01250724 Seven Stones AW25 Drop-1 (1).pdf: V01250724 - €2462 (14.2s)
+   Processing: V01250732 SVD BCN AW25 Drop-1 (1).pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763453158-V01250732 SVD BCN AW25 Drop-1 (1).pdf',
+  size: 296437
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763453158-V01250732 SVD BCN AW25 Drop-1 (1).pdf'
+}
+Textract job started: 6acce9dd7cba187c3de07d9b2c01289b6b833de27a5e0150f6457dec946a58ed
+Polling Textract job (attempt 1/60): 6acce9dd7cba187c3de07d9b2c01289b6b833de27a5e0150f6457dec946a58ed
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 6acce9dd7cba187c3de07d9b2c01289b6b833de27a5e0150f6457dec946a58ed
+Job status: SUCCEEDED
+Textract job completed, blocks: 765
+Extracted text length: 3824
+First 200 chars: INVOICE P P Invoice number V01250732 Invoice date 07-16-2025 Debtor number 10088 Your VAT ESB65386963 P P Sivas des Calzo Proudlaces SI Pop Trading Company Maracaibo 5, Nave 7 Sint Annendwarsstraat 3 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250732',
+  customerName: 'Sivas des Calzo Proudlaces SI',
+  totalAmount: 1785,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763453158-V01250732 SVD BCN AW25 Drop-1 (1).pdf
+   ✅ V01250732 SVD BCN AW25 Drop-1 (1).pdf: V01250732 - €1785 (8.6s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 13/14 (10 invoices)
+   Processing: Vicious SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763466714-Vicious SS25 Drop 1.pdf',
+  size: 74923
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763466714-Vicious SS25 Drop 1.pdf'
+}
+Textract job started: 9e20fde8abd30fd8c225bab6ab681e0a294c1a03369d73e29b8387526145e243
+Polling Textract job (attempt 1/60): 9e20fde8abd30fd8c225bab6ab681e0a294c1a03369d73e29b8387526145e243
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 9e20fde8abd30fd8c225bab6ab681e0a294c1a03369d73e29b8387526145e243
+Job status: SUCCEEDED
+Textract job completed, blocks: 780
+Extracted text length: 3885
+First 200 chars: INVOICE P P Invoice number V01250096 Invoice date 01-29-2025 Debtor number 10420 Your VAT IT07394910728 P P Vicious Pop Trading Company 29 Corso XX Settembre Sint Annendwarsstraat 3 a LOCOROTONDO 7001
+Textract async extraction complete: {
+  invoiceNumber: 'V01250096',
+  customerName: 'Vicious',
+  totalAmount: 1744,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763466714-Vicious SS25 Drop 1.pdf
+   ✅ Vicious SS25 Drop 1.pdf: V01250096 - €1744 (8.7s)
+   Processing: Vicious SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763475399-Vicious SS25 Drop 2  .pdf',
+  size: 73405
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763475399-Vicious SS25 Drop 2  .pdf'
+}
+Textract job started: 3b149b956ced71390ba1a4d04b4492c66c0749a7d2d6858768a73549954d6ff9
+Polling Textract job (attempt 1/60): 3b149b956ced71390ba1a4d04b4492c66c0749a7d2d6858768a73549954d6ff9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 3b149b956ced71390ba1a4d04b4492c66c0749a7d2d6858768a73549954d6ff9
+Job status: SUCCEEDED
+Textract job completed, blocks: 781
+Extracted text length: 3906
+First 200 chars: INVOICE P P Invoice number V01250275 Invoice date 02-19-2025 Debtor number 10420 Your VAT IT07394910728 P P Vicious Pop Trading Company 29 Corso XX Settembre Sint Annendwarsstraat 3 a LOCOROTONDO 7001
+Textract async extraction complete: {
+  invoiceNumber: 'V01250275',
+  customerName: 'Vicious',
+  totalAmount: 1876,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763475399-Vicious SS25 Drop 2  .pdf
+   ✅ Vicious SS25 Drop 2  .pdf: V01250275 - €1876 (8.2s)
+   Processing: Warsaw Sneakerstore SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763483592-Warsaw Sneakerstore SS25 Drop 1.pdf',
+  size: 73967
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763483592-Warsaw Sneakerstore SS25 Drop 1.pdf'
+}
+Textract job started: fdb69f768c36b75ff1e6c2f16ea9b9999dc27142fb76e11abe45415dccef3cc7
+Polling Textract job (attempt 1/60): fdb69f768c36b75ff1e6c2f16ea9b9999dc27142fb76e11abe45415dccef3cc7
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): fdb69f768c36b75ff1e6c2f16ea9b9999dc27142fb76e11abe45415dccef3cc7
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): fdb69f768c36b75ff1e6c2f16ea9b9999dc27142fb76e11abe45415dccef3cc7
+Job status: IN_PROGRESS
+Polling Textract job (attempt 4/60): fdb69f768c36b75ff1e6c2f16ea9b9999dc27142fb76e11abe45415dccef3cc7
+Job status: IN_PROGRESS
+Polling Textract job (attempt 5/60): fdb69f768c36b75ff1e6c2f16ea9b9999dc27142fb76e11abe45415dccef3cc7
+Job status: IN_PROGRESS
+Polling Textract job (attempt 6/60): fdb69f768c36b75ff1e6c2f16ea9b9999dc27142fb76e11abe45415dccef3cc7
+Job status: SUCCEEDED
+Textract job completed, blocks: 560
+Extracted text length: 2825
+First 200 chars: INVOICE P P Invoice number V01250094 Invoice date 01-29-2025 Debtor number 10312 Your VAT PL7390202240 P P Szopex-Dutkiewicz Sp. Z o.o.sp. k. Pop Trading Company Kotanskiego 6 Sint Annendwarsstraat 3 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250094',
+  customerName: 'Szopex-Dutkiewicz Sp. Z o.o.sp. k.',
+  totalAmount: 1587,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763483592-Warsaw Sneakerstore SS25 Drop 1.pdf
+   ✅ Warsaw Sneakerstore SS25 Drop 1.pdf: V01250094 - €1587 (29.6s)
+   Processing: Warsaw Sneakerstore SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763513186-Warsaw Sneakerstore SS25 Drop 2  .pdf',
+  size: 75356
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763513186-Warsaw Sneakerstore SS25 Drop 2  .pdf'
+}
+Textract job started: f63837fc79bb9724972e85f3717d3cdd6f3500908f328271746f0702f47528d3
+Polling Textract job (attempt 1/60): f63837fc79bb9724972e85f3717d3cdd6f3500908f328271746f0702f47528d3
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): f63837fc79bb9724972e85f3717d3cdd6f3500908f328271746f0702f47528d3
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): f63837fc79bb9724972e85f3717d3cdd6f3500908f328271746f0702f47528d3
+Job status: SUCCEEDED
+Textract job completed, blocks: 700
+Extracted text length: 3534
+First 200 chars: INVOICE P P Invoice number V01250273 Invoice date 02-19-2025 Debtor number 10312 Your VAT PL7390202240 P P Szopex-Dutkiewicz Sp. Z o.o.sp. k. Pop Trading Company Kotanskiego 6 Sint Annendwarsstraat 3 
+Textract async extraction complete: {
+  invoiceNumber: 'V01250273',
+  customerName: 'Szopex-Dutkiewicz Sp. Z o.o.sp. k.',
+  totalAmount: 2659,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763513186-Warsaw Sneakerstore SS25 Drop 2  .pdf
+   ✅ Warsaw Sneakerstore SS25 Drop 2  .pdf: V01250273 - €2659 (13.4s)
+   Processing: Working Title AW25 Drop-1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763526553-Working Title AW25 Drop-1.pdf',
+  size: 73062
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763526553-Working Title AW25 Drop-1.pdf'
+}
+Textract job started: 49842e623824ce18503f311121f8c4e8609891c8b739cabbe376c289c575174e
+Polling Textract job (attempt 1/60): 49842e623824ce18503f311121f8c4e8609891c8b739cabbe376c289c575174e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 49842e623824ce18503f311121f8c4e8609891c8b739cabbe376c289c575174e
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 49842e623824ce18503f311121f8c4e8609891c8b739cabbe376c289c575174e
+Job status: SUCCEEDED
+Textract job completed, blocks: 422
+Extracted text length: 2108
+First 200 chars: INVOICE P P Invoice number V01250914 Invoice date 08-25-2025 Debtor number 10427 P P Working Title Pop Trading Company 1966 R. Bela Cintra, Jardim Paulista Sint Annendwarsstraat 3 a SAO PAULO 01415-00
+Textract async extraction complete: {
+  invoiceNumber: 'V01250914',
+  customerName: 'Working Title',
+  totalAmount: 982,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763526553-Working Title AW25 Drop-1.pdf
+   ✅ Working Title AW25 Drop-1.pdf: V01250914 - €982 (14.6s)
+   Processing: Working Title AW25 Drop-2.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763541114-Working Title AW25 Drop-2.pdf',
+  size: 149827
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763541114-Working Title AW25 Drop-2.pdf'
+}
+Textract job started: df8b1924d6e77d2d78420183fdbb3d33a84ab4a7cb87494357490ed232d579a4
+Polling Textract job (attempt 1/60): df8b1924d6e77d2d78420183fdbb3d33a84ab4a7cb87494357490ed232d579a4
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): df8b1924d6e77d2d78420183fdbb3d33a84ab4a7cb87494357490ed232d579a4
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): df8b1924d6e77d2d78420183fdbb3d33a84ab4a7cb87494357490ed232d579a4
+Job status: SUCCEEDED
+Textract job completed, blocks: 421
+Extracted text length: 2102
+First 200 chars: INVOICE P P Invoice number V01250851 Invoice date 08-25-2025 Debtor number 10427 P P Working Title Pop Trading Company 1966 R. Bela Cintra, Jardim Paulista Sint Annendwarsstraat 3 a SAO PAULO 01415-00
+Textract async extraction complete: {
+  invoiceNumber: 'V01250851',
+  customerName: 'Working Title',
+  totalAmount: 960,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763541114-Working Title AW25 Drop-2.pdf
+   ✅ Working Title AW25 Drop-2.pdf: V01250851 - €960 (13.5s)
+   Processing: Working Title SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763554631-Working Title SS25 Drop 1.pdf',
+  size: 73269
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763554631-Working Title SS25 Drop 1.pdf'
+}
+Textract job started: 105ee1f189332c2ab0cadd7665260acc9975a470c8e9c484b9693be72ace3a8d
+Polling Textract job (attempt 1/60): 105ee1f189332c2ab0cadd7665260acc9975a470c8e9c484b9693be72ace3a8d
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 105ee1f189332c2ab0cadd7665260acc9975a470c8e9c484b9693be72ace3a8d
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 105ee1f189332c2ab0cadd7665260acc9975a470c8e9c484b9693be72ace3a8d
+Job status: SUCCEEDED
+Textract job completed, blocks: 423
+Extracted text length: 2115
+First 200 chars: INVOICE P P Invoice number V01250107 Invoice date 01-29-2025 Debtor number 10427 P P Working Title Pop Trading Company 1966 R. Bela Cintra, Jardim Paulista Sint Annendwarsstraat 3 a SAO PAULO 01415-00
+Textract async extraction complete: {
+  invoiceNumber: 'V01250107',
+  customerName: 'Working Title',
+  totalAmount: 941,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763554631-Working Title SS25 Drop 1.pdf
+   ✅ Working Title SS25 Drop 1.pdf: V01250107 - €941 (13.4s)
+   Processing: Working Title SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763568066-Working Title SS25 Drop 2  .pdf',
+  size: 72160
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763568066-Working Title SS25 Drop 2  .pdf'
+}
+Textract job started: fd782a1792ab2185063688f1645974cd45688b37859af57422b96d9b2eea3a69
+Polling Textract job (attempt 1/60): fd782a1792ab2185063688f1645974cd45688b37859af57422b96d9b2eea3a69
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): fd782a1792ab2185063688f1645974cd45688b37859af57422b96d9b2eea3a69
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): fd782a1792ab2185063688f1645974cd45688b37859af57422b96d9b2eea3a69
+Job status: SUCCEEDED
+Textract job completed, blocks: 431
+Extracted text length: 2199
+First 200 chars: INVOICE P P Invoice number V01250285 Invoice date 02-19-2025 Debtor number 10427 P P Working Title Pop Trading Company 1966 R. Bela Cintra, Jardim Paulista Sint Annendwarsstraat 3 a SAO PAULO 01415-00
+Textract async extraction complete: {
+  invoiceNumber: 'V01250285',
+  customerName: 'Working Title',
+  totalAmount: 1050,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763568066-Working Title SS25 Drop 2  .pdf
+   ✅ Working Title SS25 Drop 2  .pdf: V01250285 - €1050 (14.4s)
+   Processing: Worksout SS25 Drop 1 .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763582409-Worksout SS25 Drop 1 .pdf',
+  size: 81844
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763582409-Worksout SS25 Drop 1 .pdf'
+}
+Textract job started: 38d0d7f21005dda4e1c3501bffbce3789b909cf0d07c8becbc31fa9a1f9d14f9
+Polling Textract job (attempt 1/60): 38d0d7f21005dda4e1c3501bffbce3789b909cf0d07c8becbc31fa9a1f9d14f9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 38d0d7f21005dda4e1c3501bffbce3789b909cf0d07c8becbc31fa9a1f9d14f9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 38d0d7f21005dda4e1c3501bffbce3789b909cf0d07c8becbc31fa9a1f9d14f9
+Job status: SUCCEEDED
+Textract job completed, blocks: 1884
+Extracted text length: 9204
+First 200 chars: INVOICE P P Invoice number V01250055 Invoice date 01-28-2025 Debtor number 10092 P P WORKSOUT Inc. / HQ Pop Trading Company 24, World Cup buk-ro 23-gil, Mapo-gu Sint Annendwarsstraat 3 a SEOUL 03966 1
+Textract async extraction complete: {
+  invoiceNumber: 'V01250055',
+  customerName: 'WORKSOUT Inc. / HQ',
+  totalAmount: 31433.6,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759763582409-Worksout SS25 Drop 1 .pdf
+   ✅ Worksout SS25 Drop 1 .pdf: V01250055 - €31433.6 (14.7s)
+   Processing: Worksout SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763597118-Worksout SS25 Drop 2  .pdf',
+  size: 81744
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763597118-Worksout SS25 Drop 2  .pdf'
+}
+Textract job started: d0ca08201bca258b18db5611f9860847c894b119d5d224e9122f059c6f4ee6bf
+Polling Textract job (attempt 1/60): d0ca08201bca258b18db5611f9860847c894b119d5d224e9122f059c6f4ee6bf
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): d0ca08201bca258b18db5611f9860847c894b119d5d224e9122f059c6f4ee6bf
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): d0ca08201bca258b18db5611f9860847c894b119d5d224e9122f059c6f4ee6bf
+Job status: SUCCEEDED
+Textract job completed, blocks: 1848
+Extracted text length: 9034
+First 200 chars: INVOICE P P Invoice number V01250231 Invoice date 02-19-2025 Debtor number 10092 P P WORKSOUT Inc. / HQ Pop Trading Company 24, World Cup buk-ro 23-gil, Mapo-gu Sint Annendwarsstraat 3 a SEOUL 03966 1
+Textract async extraction complete: {
+  invoiceNumber: 'V01250231',
+  customerName: 'WORKSOUT Inc. / HQ',
+  totalAmount: 29861.6,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763597118-Worksout SS25 Drop 2  .pdf
+   ✅ Worksout SS25 Drop 2  .pdf: V01250231 - €29861.6 (14.5s)
+   ⏸️  Pausing 5s between batches...
+
+📋 Processing batch 14/14 (3 invoices)
+   Processing: Worksout SS25 NOS.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763616665-Worksout SS25 NOS.pdf',
+  size: 75874
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763616665-Worksout SS25 NOS.pdf'
+}
+Textract job started: a489a90e764aab33a05d2310aa14d5bb528f26c0bcb0136661444ba933efd117
+Polling Textract job (attempt 1/60): a489a90e764aab33a05d2310aa14d5bb528f26c0bcb0136661444ba933efd117
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): a489a90e764aab33a05d2310aa14d5bb528f26c0bcb0136661444ba933efd117
+Job status: SUCCEEDED
+Textract job completed, blocks: 1029
+Extracted text length: 5032
+First 200 chars: INVOICE P P Invoice number V01250010 Invoice date 01-08-2025 Debtor number 10092 P P WORKSOUT Inc. / HQ Pop Trading Company 24, World Cup buk-ro 23-gil, Mapo-gu Sint Annendwarsstraat 3 a SEOUL 03966 1
+Textract async extraction complete: {
+  invoiceNumber: 'V01250010',
+  customerName: 'WORKSOUT Inc. / HQ',
+  totalAmount: 23582,
+  confidence: 95
+}
+S3 cleanup successful: invoices/1759763616665-Worksout SS25 NOS.pdf
+   ✅ Worksout SS25 NOS.pdf: V01250010 - €23582 (9.3s)
+   Processing: Wunder SS25 Drop 1.pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763625926-Wunder SS25 Drop 1.pdf',
+  size: 75598
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763625926-Wunder SS25 Drop 1.pdf'
+}
+Textract job started: ed25863807eeae4e7e7c612e7277463a29ae9410feeac3c969fa865e98b12505
+Polling Textract job (attempt 1/60): ed25863807eeae4e7e7c612e7277463a29ae9410feeac3c969fa865e98b12505
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): ed25863807eeae4e7e7c612e7277463a29ae9410feeac3c969fa865e98b12505
+Job status: SUCCEEDED
+Textract job completed, blocks: 720
+Extracted text length: 3571
+First 200 chars: INVOICE P P Invoice number V01250173 Invoice date 02-04-2025 Debtor number 10408 P P REFERENCE Correctional SS25 Drop 1 Wunder Mağazacılık ve Tekstil Tic. I Pop Trading Company Zühtüpasa Mah. Sefik Be
+Textract async extraction complete: {
+  invoiceNumber: 'V01250173',
+  customerName: 'REFERENCE Correctional SS25 Drop 1 Wunder Mağazacılık ve Tekstil Tic. I',
+  totalAmount: 1927,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763625926-Wunder SS25 Drop 1.pdf
+   ✅ Wunder SS25 Drop 1.pdf: V01250173 - €1927 (8.1s)
+   Processing: Wunder SS25 Drop 2  .pdf
+Uploading PDF to S3: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763633979-Wunder SS25 Drop 2  .pdf',
+  size: 77115
+}
+S3 upload successful
+Starting Textract async job: {
+  bucket: 'reminder-mvp-textract-pdfs',
+  key: 'invoices/1759763633979-Wunder SS25 Drop 2  .pdf'
+}
+Textract job started: 69a88fccdaa4a06b8d2a2d3265c878888eac187c69387bed03013b5ae82fc1c9
+Polling Textract job (attempt 1/60): 69a88fccdaa4a06b8d2a2d3265c878888eac187c69387bed03013b5ae82fc1c9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 2/60): 69a88fccdaa4a06b8d2a2d3265c878888eac187c69387bed03013b5ae82fc1c9
+Job status: IN_PROGRESS
+Polling Textract job (attempt 3/60): 69a88fccdaa4a06b8d2a2d3265c878888eac187c69387bed03013b5ae82fc1c9
+Job status: SUCCEEDED
+Textract job completed, blocks: 863
+Extracted text length: 4260
+First 200 chars: INVOICE P P Invoice number V01250270 Invoice date 02-19-2025 Debtor number 10408 P P Wunder Mağazacılık ve Tekstil Tic. I Pop Trading Company Zühtüpasa Mah. Sefik Bey sk. No: 15-17 Sint Annendwarsstra
+Textract async extraction complete: {
+  invoiceNumber: 'V01250270',
+  customerName: 'Wunder Mağazacılık ve Tekstil Tic. I',
+  totalAmount: 2562,
+  confidence: 100
+}
+S3 cleanup successful: invoices/1759763633979-Wunder SS25 Drop 2  .pdf
+   ✅ Wunder SS25 Drop 2  .pdf: V01250270 - €2562 (14.0s)
+
+💾 Importing to database...
+
+✅ Test company created: load_test_company_1759763647959
+
+✅ Database import complete (1.38s)
+
+📊 Testing dashboard query performance...
+
+✅ Dashboard queries completed
+   Query time: 524ms
+   Total Outstanding: €0.00
+   Overdue Amount: €0.00
+   Invoice Count: 0
+
+═══════════════════════════════════════════════════════════════
+📊 LOAD TEST RESULTS - 120 INVOICES
+═══════════════════════════════════════════════════════════════
+
+📈 Extraction Performance:
+   Total Invoices: 133
+   Successful: 133
+   Failed: 0
+   Success Rate: 100.0%
+
+⏱️  Processing Times:
+   Total Time: 2027.0s
+   Average per Invoice: 15.2s
+   Throughput: 3.9 invoices/minute
+
+💾 Database Performance:
+   Insert Time: 1.38s
+   Query Time: 524ms
+
+✅ Quality Gate Criteria:
+   ✅ Extraction Success Rate: 100.0% >= 95%
+   ✅ Avg Processing Time: 15.2s <= 60s
+   ❌ Dashboard Query Time: 524ms >= 500ms (FAILED)
+
+═══════════════════════════════════════════════════════════════
+❌ LOAD TEST FAILED: Performance optimization needed
+═══════════════════════════════════════════════════════════════
+
+🧹 Cleaning up test data...
+✅ Cleanup complete
+

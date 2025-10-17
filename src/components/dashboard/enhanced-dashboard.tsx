@@ -18,6 +18,7 @@ import { UnifiedUploadHub } from '@/components/invoices/unified-upload-hub'
 import { useInvoiceStore } from '@/lib/stores/invoice-store'
 import { ConsolidationDashboard } from './consolidation-dashboard'
 import { ConsolidationAnalyticsCharts } from '../charts/consolidation-analytics-charts'
+import { InvoiceBucketDashboard } from '../invoices/invoice-bucket-dashboard'
 // import { useImportBatchStore } from '@/lib/stores/import-batch-store' // Temporarily disabled
 // import { useEmailDeliveryStore } from '@/lib/stores/email-delivery-store' // Temporarily disabled
 import { cn } from '@/lib/utils'
@@ -62,6 +63,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
   const [recentImports, setRecentImports] = useState<any[]>([])
   const [emailAnalytics, setEmailAnalytics] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('consolidation')
 
   const { invoices, fetchInvoices, bulkUpdateStatus } = useInvoiceStore()
   // const { batches, fetchBatches } = useImportBatchStore() // Temporarily disabled
@@ -82,9 +84,6 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
           // fetchDeliveries(companyId), // Temporarily disabled
           // fetchAnalytics(companyId, selectedPeriod) // Temporarily disabled
         ])
-        
-        // Calculate metrics from loaded data
-        calculateMetrics()
       } catch (error) {
         console.error('Failed to load dashboard data:', error)
       } finally {
@@ -95,6 +94,13 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
     loadDashboardData()
   }, [companyId, selectedPeriod, fetchInvoices]) // Removed store dependencies
 
+  // Calculate metrics whenever invoices change
+  useEffect(() => {
+    if (invoices.length > 0) {
+      calculateMetrics()
+    }
+  }, [invoices])
+
   const calculateMetrics = () => {
     const now = new Date()
     const thisMonth = now.getMonth()
@@ -103,12 +109,12 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
     const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear
 
     const totalOutstanding = invoices
-      .filter(inv => ['PENDING', 'OVERDUE'].includes(inv.status))
-      .reduce((sum, inv) => sum + inv.totalAmount, 0)
+      .filter(inv => ['PENDING', 'SENT', 'OVERDUE'].includes(inv.status))
+      .reduce((sum, inv) => sum + Number(inv.total_amount || inv.totalAmount || 0), 0)
 
     const overdueAmount = invoices
       .filter(inv => inv.status === 'OVERDUE')
-      .reduce((sum, inv) => sum + inv.totalAmount, 0)
+      .reduce((sum, inv) => sum + Number(inv.total_amount || inv.totalAmount || 0), 0)
 
     const paidInvoices = invoices.filter(inv => inv.status === 'PAID')
     const overdueInvoices = invoices.filter(inv => inv.status === 'OVERDUE')
@@ -116,20 +122,20 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
     const thisMonthCollections = invoices
       .filter(inv => {
         const paidDate = inv.paidDate ? new Date(inv.paidDate) : null
-        return paidDate && 
-               paidDate.getMonth() === thisMonth && 
+        return paidDate &&
+               paidDate.getMonth() === thisMonth &&
                paidDate.getFullYear() === thisYear
       })
-      .reduce((sum, inv) => sum + inv.totalAmount, 0)
+      .reduce((sum, inv) => sum + Number(inv.total_amount || inv.totalAmount || 0), 0)
 
     const lastMonthCollections = invoices
       .filter(inv => {
         const paidDate = inv.paidDate ? new Date(inv.paidDate) : null
-        return paidDate && 
-               paidDate.getMonth() === lastMonth && 
+        return paidDate &&
+               paidDate.getMonth() === lastMonth &&
                paidDate.getFullYear() === lastMonthYear
       })
-      .reduce((sum, inv) => sum + inv.totalAmount, 0)
+      .reduce((sum, inv) => sum + Number(inv.total_amount || inv.totalAmount || 0), 0)
 
     // Calculate average days to collection
     const avgDaysToCollection = paidInvoices.length > 0 
@@ -217,18 +223,18 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
   const paymentRate = getPaymentRate()
 
   return (
-    <div className={cn("space-y-6", locale === 'ar' && "text-right")}>
+    <div className={cn("space-y-5 max-w-[1600px] mx-auto px-4", locale === 'ar' && "text-right")}>
       {/* Professional Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/5 via-accent/5 to-primary/10 dark:from-primary/10 dark:via-accent/10 dark:to-primary/20 rounded-2xl border border-border/50 shadow-sm">
-        <div className="relative px-8 py-12">
+        <div className="relative px-6 py-8">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <h1 className="text-4xl lg:text-5xl font-bold text-primary">
-                  {t('enhancedDashboard') || 'Dashboard'}
+                <h1 className="text-3xl lg:text-4xl font-bold text-primary">
+                  {t('enhancedDashboard') || 'Enhanced Dashboard'}
                 </h1>
-                <p className="text-lg text-muted-foreground font-medium max-w-2xl">
-                  {t('dashboardDescription')}
+                <p className="text-base text-muted-foreground font-medium max-w-2xl">
+                  {t('dashboardDescription') || 'Comprehensive analytics and bulk operations for UAE invoice management'}
                 </p>
               </div>
 
@@ -291,7 +297,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
       </div>
 
       {/* Enhanced Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-primary/10 bg-gradient-to-br from-primary/5 to-background hover:shadow-md transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-muted-foreground">{t('totalOutstanding')}</CardTitle>
@@ -300,11 +306,11 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary mb-1">
+            <div className="text-2xl font-bold text-primary mb-1">
               <AEDAmount amount={metrics.totalOutstanding} />
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
-              {t('fromInvoices', { count: metrics.totalInvoices - metrics.paidInvoices })}
+            <p className="text-xs text-muted-foreground font-medium">
+              {t('fromInvoices', { count: metrics.totalInvoices - metrics.paidInvoices }) || `From ${metrics.totalInvoices - metrics.paidInvoices} invoices`}
             </p>
           </CardContent>
         </Card>
@@ -317,11 +323,11 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-destructive mb-1">
+            <div className="text-2xl font-bold text-destructive mb-1">
               <AEDAmount amount={metrics.overdueAmount} />
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
-              {t('fromInvoices', { count: metrics.overdueInvoices })}
+            <p className="text-xs text-muted-foreground font-medium">
+              {t('fromInvoices', { count: metrics.overdueInvoices }) || `From ${metrics.overdueInvoices} invoices`}
             </p>
           </CardContent>
         </Card>
@@ -334,31 +340,31 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-accent-foreground mb-1">
-              {Math.round(metrics.avgDaysToCollection)} {t('days')}
+            <div className="text-2xl font-bold text-accent-foreground mb-1">
+              {Math.round(metrics.avgDaysToCollection)} {t('days') || 'days'}
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
-              {t('averageTimeToPayment')}
+            <p className="text-xs text-muted-foreground font-medium">
+              {t('averageTimeToPayment') || 'Average time to payment'}
             </p>
           </CardContent>
         </Card>
 
         <Card className="border-[oklch(0.55_0.15_155)]/10 bg-gradient-to-br from-[oklch(0.55_0.15_155)]/5 to-background hover:shadow-md transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-muted-foreground">{t('paymentRate')}</CardTitle>
+            <CardTitle className="text-sm font-semibold text-muted-foreground">{t('paymentRate') || 'Payment Rate'}</CardTitle>
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[oklch(0.55_0.15_155)]/10">
               <TrendingUp className="h-5 w-5 text-[oklch(0.55_0.15_155)]" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-[oklch(0.55_0.15_155)] mb-2">{paymentRate.toFixed(1)}%</div>
+            <div className="text-2xl font-bold text-[oklch(0.55_0.15_155)] mb-2">{paymentRate.toFixed(1)}%</div>
             <Progress value={paymentRate} className="h-2" />
           </CardContent>
         </Card>
       </div>
 
       {/* Collection Trends */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -432,23 +438,29 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
       </div>
 
       {/* Detailed Analytics Tabs */}
-      <Tabs defaultValue="consolidation" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full max-w-2xl">
-          <TabsTrigger value="consolidation">{t('consolidation')}</TabsTrigger>
-          <TabsTrigger value="imports">{t('recentImports')}</TabsTrigger>
-          <TabsTrigger value="emails">{t('emailActivity')}</TabsTrigger>
-          <TabsTrigger value="analytics">{t('analytics')}</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-full overflow-x-auto">
+          <TabsTrigger value="consolidation" className="whitespace-nowrap">{t('consolidation') || 'Consolidation Dashboard'}</TabsTrigger>
+          <TabsTrigger value="buckets" className="whitespace-nowrap">Invoice Management</TabsTrigger>
+          <TabsTrigger value="imports" className="whitespace-nowrap">{t('recentImports') || 'Recent Imports'}</TabsTrigger>
+          <TabsTrigger value="emails" className="whitespace-nowrap">{t('emailActivity') || 'Email Activity'}</TabsTrigger>
+          <TabsTrigger value="analytics" className="whitespace-nowrap">{t('analytics') || 'Analytics'}</TabsTrigger>
         </TabsList>
 
         {/* Sprint 3: Consolidation Dashboard Tab */}
-        <TabsContent value="consolidation" className="space-y-6">
+        <TabsContent value="consolidation" className="space-y-4">
           <ConsolidationDashboard
             companyId={companyId}
             locale={locale}
           />
         </TabsContent>
 
-        <TabsContent value="imports" className="space-y-6">
+        {/* Invoice Bucket Management Tab */}
+        <TabsContent value="buckets" className="space-y-4">
+          {activeTab === 'buckets' && <InvoiceBucketDashboard />}
+        </TabsContent>
+
+        <TabsContent value="imports" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -500,7 +512,7 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
           </Card>
         </TabsContent>
 
-        <TabsContent value="emails" className="space-y-6">
+        <TabsContent value="emails" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -543,8 +555,8 @@ export function EnhancedDashboard({ companyId, locale = 'en' }: EnhancedDashboar
           </Card>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

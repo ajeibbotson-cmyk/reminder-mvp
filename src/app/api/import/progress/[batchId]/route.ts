@@ -47,7 +47,7 @@ export async function GET(
     }
 
     // Verify user can access this batch
-    if (importBatch.companyId !== authContext.user.companiesId) {
+    if (importBatch.companyId !== authContext.user.companyId) {
       throw new Error('Access denied to import batch')
     }
 
@@ -153,7 +153,7 @@ export async function DELETE(
     }
 
     // Verify user can access this batch
-    if (importBatch.companyId !== authContext.user.companiesId) {
+    if (importBatch.companyId !== authContext.user.companyId) {
       throw new Error('Access denied to import batch')
     }
 
@@ -179,7 +179,7 @@ export async function DELETE(
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         userId: authContext.user.id,
         type: 'import_cancelled',
         description: `Import batch cancelled: ${importBatch.originalFilename}`,

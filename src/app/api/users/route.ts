@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const result = await userService.getUsers(
       queryData,
-      authContext.user.companiesId,
+      authContext.user.companyId,
       authContext.user.role
     )
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const user = await userService.createUser(
       userData,
-      authContext.user.companiesId,
+      authContext.user.companyId,
       authContext.user.role
     )
 
@@ -74,7 +74,7 @@ export async function DELETE(request: NextRequest) {
 
     const result = await userService.bulkDeleteUsers(
       deleteData,
-      authContext.user.companiesId,
+      authContext.user.companyId,
       authContext.user.role,
       authContext.user.id
     )
@@ -98,7 +98,7 @@ export async function PATCH(request: NextRequest) {
 
     const result = await userService.bulkUpdateUsers(
       updateData,
-      authContext.user.companiesId,
+      authContext.user.companyId,
       authContext.user.role,
       authContext.user.id
     )

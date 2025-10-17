@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { PDFInvoiceParser } from '@/lib/services/pdf-invoice-parser'
+import { TextractAsyncParser } from '@/lib/services/textract-async-parser'
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,13 +51,22 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // Parse PDF and extract invoice data
-    console.log('Starting PDF parsing...')
-    const extractedData = await PDFInvoiceParser.parseInvoicePDF(buffer)
+    // Parse PDF and extract invoice data using async Textract
+    console.log('Starting PDF parsing with Textract async...')
+    const extractedData = await TextractAsyncParser.parseInvoicePDF(buffer, file.name)
     console.log('PDF parsing completed:', extractedData)
 
-    // Validate extracted data
-    const validation = PDFInvoiceParser.validateExtractedData(extractedData)
+    // Validate extracted data (basic validation)
+    const validation = {
+      isValid: extractedData.confidence >= 60,
+      errors: [] as string[],
+      warnings: [] as string[]
+    }
+
+    if (!extractedData.invoiceNumber) validation.warnings.push('Invoice number not found')
+    if (!extractedData.customerName) validation.warnings.push('Customer name not found')
+    if (!extractedData.totalAmount) validation.warnings.push('Total amount not found')
+    if (extractedData.confidence < 60) validation.errors.push('Low confidence extraction')
 
     // Return extracted data with validation results
     return NextResponse.json({

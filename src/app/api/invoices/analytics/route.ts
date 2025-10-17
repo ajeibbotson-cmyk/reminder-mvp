@@ -136,19 +136,19 @@ export async function GET(request: NextRequest) {
       overdueData,
       comparisonData
     ] = await Promise.all([
-      getOverviewMetrics(authContext.user.companiesId, startDate, endDate, query.currency),
-      getStatusBreakdown(authContext.user.companiesId, startDate, endDate, query.currency),
-      getTimeSeriesData(authContext.user.companiesId, startDate, endDate, query.groupBy, query.currency),
-      getTopCustomers(authContext.user.companiesId, startDate, endDate, query.currency),
-      getPaymentMethodBreakdown(authContext.user.companiesId, startDate, endDate, query.currency),
-      getOverdueAnalysis(authContext.user.companiesId, query.currency),
-      query.includeComparisons ? getComparisonData(authContext.user.companiesId, startDate, endDate, query.currency) : null
+      getOverviewMetrics(authContext.user.companyId, startDate, endDate, query.currency),
+      getStatusBreakdown(authContext.user.companyId, startDate, endDate, query.currency),
+      getTimeSeriesData(authContext.user.companyId, startDate, endDate, query.groupBy, query.currency),
+      getTopCustomers(authContext.user.companyId, startDate, endDate, query.currency),
+      getPaymentMethodBreakdown(authContext.user.companyId, startDate, endDate, query.currency),
+      getOverdueAnalysis(authContext.user.companyId, query.currency),
+      query.includeComparisons ? getComparisonData(authContext.user.companyId, startDate, endDate, query.currency) : null
     ])
 
     // Generate forecasting data if requested
     let forecastingData = null
     if (query.includeForecasting) {
-      forecastingData = await generateForecastingData(authContext.user.companiesId, startDate, endDate, query.currency)
+      forecastingData = await generateForecastingData(authContext.user.companyId, startDate, endDate, query.currency)
     }
 
     // Generate business insights
@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
     return successResponse({
       analytics,
       metadata: {
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         period: query.period,
         dateRange: {
           startDate: startDate.toISOString(),

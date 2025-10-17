@@ -1,5 +1,10 @@
 require('@testing-library/jest-dom')
 
+// Polyfill TextEncoder/TextDecoder for Node.js environment
+const { TextEncoder, TextDecoder } = require('util')
+global.TextEncoder = TextEncoder
+global.TextDecoder = TextDecoder
+
 // Mock Next.js web globals
 global.Request = global.Request || class Request {
   constructor(input, init) {

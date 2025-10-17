@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, FileText } from 'lucide-react'
 
 export default function PDFUploadPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [isCreating, setIsCreating] = useState(false)
 
@@ -52,6 +52,16 @@ export default function PDFUploadPage() {
     } finally {
       setIsCreating(false)
     }
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!session) {

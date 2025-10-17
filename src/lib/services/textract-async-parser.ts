@@ -30,6 +30,8 @@ export interface ExtractedInvoiceData {
   trn?: string
   confidence: number
   rawText: string
+  s3Bucket?: string
+  s3Key?: string
 }
 
 export class TextractAsyncParser {
@@ -461,7 +463,9 @@ export class TextractAsyncParser {
         dueDate,
         trn,
         confidence: 0,
-        rawText: text.substring(0, 5000)
+        rawText: text.substring(0, 5000),
+        s3Bucket,
+        s3Key
       }
 
       extractedData.confidence = this.calculateConfidence(extractedData)
@@ -470,19 +474,19 @@ export class TextractAsyncParser {
         invoiceNumber: extractedData.invoiceNumber,
         customerName: extractedData.customerName,
         totalAmount: extractedData.totalAmount,
-        confidence: extractedData.confidence
+        confidence: extractedData.confidence,
+        s3Location: `s3://${s3Bucket}/${s3Key}`
       })
 
       return extractedData
 
     } catch (error) {
       console.error('Textract async parsing error:', error)
-      throw new Error(`Failed to parse PDF with Textract async: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    } finally {
-      // Cleanup: Delete from S3
+      // On error, cleanup: Delete from S3
       if (s3Bucket && s3Key) {
         await this.deleteFromS3(s3Bucket, s3Key)
       }
+      throw new Error(`Failed to parse PDF with Textract async: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 }

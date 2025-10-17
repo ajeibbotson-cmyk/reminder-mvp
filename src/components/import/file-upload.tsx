@@ -281,6 +281,7 @@ export function FileUpload({
           >
             <input
               ref={fileInputRef}
+              id="file-upload-input"
               type="file"
               accept={
                 acceptedFileTypes === 'pdf' ? '.pdf' :
@@ -288,10 +289,7 @@ export function FileUpload({
                 '.csv,.xlsx,.xls,.pdf'
               }
               onChange={handleFileSelect}
-              className={cn(
-                "absolute inset-0 w-full h-full opacity-0",
-                uploadedFile ? "pointer-events-none" : "cursor-pointer"
-              )}
+              className="hidden"
               disabled={isLoading}
             />
             
@@ -341,10 +339,18 @@ export function FileUpload({
                   </p>
                 </div>
                 
-                <Button variant="outline" className="mt-4">
+                <label
+                  htmlFor="file-upload-input"
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+                    "h-10 px-4 py-2 mt-4 cursor-pointer"
+                  )}
+                >
                   <FileText className="h-4 w-4 mr-2" />
                   {t('fileUpload.browseFiles')}
-                </Button>
+                </label>
               </div>
             ) : (
               <div className="space-y-4">

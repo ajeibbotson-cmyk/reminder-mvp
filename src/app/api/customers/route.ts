@@ -19,19 +19,17 @@ export async function GET(request: NextRequest) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.VIEWER])
     const searchParams = request.nextUrl.searchParams
-    
+
     // Parse and validate all filter parameters
+    console.log('Query params:', Object.fromEntries(searchParams.entries()))
     const filters = validateQueryParams(searchParams, customerFiltersSchema)
-    
-    // Ensure user can only access their company's customers
-    if (filters.companyId !== authContext.user.companiesId) {
-      throw new Error('Access denied to company data')
-    }
+    console.log('Parsed filters:', filters)
 
     // Build dynamic where clause for advanced filtering
-    const whereClause: Prisma.CustomerWhereInput = {
-      companyId: authContext.user.companiesId,
-      isActive: filters.isActive
+    // Always use the authenticated user's company ID for security
+    const whereClause: Prisma.customersWhereInput = {
+      company_id: authContext.user.companyId,
+      is_active: filters.isActive
     }
 
     // Advanced search functionality
@@ -39,14 +37,14 @@ export async function GET(request: NextRequest) {
       const searchTerm = filters.search.toLowerCase()
       whereClause.OR = [
         { name: { contains: searchTerm, mode: 'insensitive' } },
-        { nameAr: { contains: searchTerm, mode: 'insensitive' } },
+        { name_ar: { contains: searchTerm, mode: 'insensitive' } },
         { email: { contains: searchTerm, mode: 'insensitive' } },
         { phone: { contains: searchTerm, mode: 'insensitive' } },
         // TRN search - strip formatting and search
-        { 
+        {
           invoices: {
             some: {
-              trnNumber: { contains: searchTerm.replace(/\D/g, ''), mode: 'insensitive' }
+              trn_number: { contains: searchTerm.replace(/\D/g, ''), mode: 'insensitive' }
             }
           }
         }
@@ -61,23 +59,23 @@ export async function GET(request: NextRequest) {
 
     // Credit limit range filtering
     if (filters.minCreditLimit !== undefined || filters.maxCreditLimit !== undefined) {
-      whereClause.creditLimit = {}
+      whereClause.credit_limit = {}
       if (filters.minCreditLimit !== undefined) {
-        whereClause.creditLimit.gte = filters.minCreditLimit
+        whereClause.credit_limit.gte = filters.minCreditLimit
       }
       if (filters.maxCreditLimit !== undefined) {
-        whereClause.creditLimit.lte = filters.maxCreditLimit
+        whereClause.credit_limit.lte = filters.maxCreditLimit
       }
     }
 
     // Payment terms filtering
     if (filters.paymentTermsMin !== undefined || filters.paymentTermsMax !== undefined) {
-      whereClause.paymentTerms = {}
+      whereClause.payment_terms = {}
       if (filters.paymentTermsMin !== undefined) {
-        whereClause.paymentTerms.gte = filters.paymentTermsMin
+        whereClause.payment_terms.gte = filters.paymentTermsMin
       }
       if (filters.paymentTermsMax !== undefined) {
-        whereClause.paymentTerms.lte = filters.paymentTermsMax
+        whereClause.payment_terms.lte = filters.paymentTermsMax
       }
     }
 
@@ -105,7 +103,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build sorting
-    const orderBy: Prisma.CustomerOrderByWithRelationInput = {}
+    const orderBy: Prisma.customersOrderByWithRelationInput = {}
     switch (filters.sortBy) {
       case 'name':
         orderBy.name = filters.sortOrder
@@ -117,10 +115,10 @@ export async function GET(request: NextRequest) {
         orderBy.created_at = filters.sortOrder
         break
       case 'creditLimit':
-        orderBy.creditLimit = filters.sortOrder
+        orderBy.credit_limit = filters.sortOrder
         break
       case 'paymentTerms':
-        orderBy.paymentTerms = filters.sortOrder
+        orderBy.payment_terms = filters.sortOrder
         break
       default:
         orderBy.name = 'asc'
@@ -141,14 +139,14 @@ export async function GET(request: NextRequest) {
               id: true,
               number: true,
               amount: true,
-              totalAmount: true,
+              total_amount: true,
               status: true,
-              dueDate: true,
+              due_date: true,
               created_at: true,
               payments: {
                 select: {
                   amount: true,
-                  paymentDate: true
+                  payment_date: true
                 }
               }
             }
@@ -177,8 +175,8 @@ export async function GET(request: NextRequest) {
         invoice.payments.length === 0
       )
       
-      const outstandingBalance = outstandingInvoices.reduce((sum, invoice) => 
-        sum + (invoice.totalAmount || invoice.amount), 0
+      const outstandingBalance = outstandingInvoices.reduce((sum, invoice) =>
+        sum + (invoice.total_amount || invoice.amount), 0
       )
 
       const totalPaid = customer.invoices.reduce((sum, invoice) => 
@@ -242,8 +240,8 @@ export async function POST(request: NextRequest) {
     const customerData = await validateRequestBody(request, createCustomerSchema)
     
     // Ensure user can only create customers for their company
-    if (customerData.companyId !== authContext.user.companiesId) {
-      customerData.companyId = authContext.user.companiesId
+    if (customerData.companyId !== authContext.user.companyId) {
+      customerData.companyId = authContext.user.companyId
     }
 
     // UAE-specific business validations
@@ -255,13 +253,13 @@ export async function POST(request: NextRequest) {
     if (customerData.trn) {
       const existingTrnCustomer = await prisma.customers.findFirst({
         where: {
-          companyId: authContext.user.companiesId,
+          company_id: authContext.user.companyId,
           // Note: TRN field needs to be added to customer schema
           // trn: customerData.trn,
-          isActive: true
+          is_active: true
         }
       })
-      
+
       if (existingTrnCustomer) {
         throw new Error('A customer with this TRN already exists in your company.')
       }
@@ -270,9 +268,9 @@ export async function POST(request: NextRequest) {
     // Check for duplicate email within the company
     const existingEmailCustomer = await prisma.customers.findFirst({
       where: {
-        companyId: authContext.user.companiesId,
+        company_id: authContext.user.companyId,
         email: customerData.email,
-        isActive: true
+        is_active: true
       }
     })
     
@@ -284,15 +282,15 @@ export async function POST(request: NextRequest) {
       // Create customer with UAE-specific fields
       const newCustomer = await tx.customers.create({
         data: {
-          companyId: customerData.companyId,
+          company_id: customerData.companyId,
           name: customerData.name,
-          nameAr: customerData.nameAr,
+          name_ar: customerData.nameAr,
           email: customerData.email,
           phone: customerData.phone,
-          paymentTerms: customerData.paymentTerms || 30, // UAE default
-          creditLimit: customerData.creditLimit,
+          payment_terms: customerData.paymentTerms || 30, // UAE default
+          credit_limit: customerData.creditLimit,
           notes: customerData.notes,
-          notesAr: customerData.notesAr,
+          notes_ar: customerData.notesAr,
           // Note: These fields need to be added to customer schema
           // trn: customerData.trn,
           // businessType: customerData.businessType,
@@ -309,8 +307,8 @@ export async function POST(request: NextRequest) {
       // Log activity with detailed metadata
       await tx.activities.create({
         data: {
-          companyId: authContext.user.companiesId,
-          userId: authContext.user.id,
+          company_id: authContext.user.companyId,
+          user_id: authContext.user.id,
           type: 'customer_created',
           description: `Created customer ${customerData.name}${customerData.nameAr ? ` (${customerData.nameAr})` : ''}`,
           metadata: {

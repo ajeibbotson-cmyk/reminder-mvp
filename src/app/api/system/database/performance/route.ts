@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     
     // Get overall database health metrics
     const healthMetrics = await getDatabaseHealthMetrics(
-      authContext.user.companiesId,
+      authContext.user.companyId,
       query.period
     )
 
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const responseData: any = {
       healthMetrics,
       metadata: {
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         periodDays: query.period,
         generatedAt: new Date().toISOString(),
         requestedBy: authContext.user.id,
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     // Include invoice performance stats if requested
     if (query.includeInvoices) {
       responseData.invoicePerformance = await getInvoicePerformanceStats(
-        authContext.user.companiesId,
+        authContext.user.companyId,
         query.period
       )
     }
@@ -55,14 +55,14 @@ export async function GET(request: NextRequest) {
     // Include payment reconciliation stats if requested
     if (query.includePayments) {
       responseData.paymentReconciliation = await getPaymentReconciliationStats(
-        authContext.user.companiesId
+        authContext.user.companyId
       )
     }
 
     // Include compliance report if requested
     if (query.includeCompliance) {
       responseData.complianceReport = await generateComplianceReport(
-        authContext.user.companiesId,
+        authContext.user.companyId,
         query.period
       )
     }

@@ -592,6 +592,9 @@ model invoices {
   last_reminder_sent DateTime?
   payment_link       String?
   payment_intent_id  String?
+  pdf_s3_key         String?
+  pdf_s3_bucket      String?
+  pdf_uploaded_at    DateTime?
   email_logs         email_logs[]
   follow_up_logs     follow_up_logs[]
   invoice_items      invoice_items[]

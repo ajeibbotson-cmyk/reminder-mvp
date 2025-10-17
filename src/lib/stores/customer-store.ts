@@ -23,16 +23,26 @@ export const useCustomerStore = create<CustomerState>()(
 
       fetchCustomers: async (companyId: string, filters?: any) => {
         set({ loading: true, error: null })
-        
+
         try {
           const currentFilters = filters || get().filters
-          const queryParams = new URLSearchParams({
-            companyId,
-            ...currentFilters,
-            page: currentFilters.page?.toString() || '1',
-            limit: currentFilters.limit?.toString() || '20'
-          })
-          
+          // Don't send companyId as query param - API gets it from session
+          const queryParams = new URLSearchParams()
+
+          // Explicitly add each parameter with proper string conversion
+          if (currentFilters.search) queryParams.set('search', currentFilters.search)
+          if (currentFilters.businessType) queryParams.set('businessType', currentFilters.businessType)
+          if (currentFilters.hasOutstandingBalance !== undefined) queryParams.set('hasOutstandingBalance', String(currentFilters.hasOutstandingBalance))
+          if (currentFilters.minCreditLimit) queryParams.set('minCreditLimit', String(currentFilters.minCreditLimit))
+          if (currentFilters.maxCreditLimit) queryParams.set('maxCreditLimit', String(currentFilters.maxCreditLimit))
+          if (currentFilters.paymentTermsMin) queryParams.set('paymentTermsMin', String(currentFilters.paymentTermsMin))
+          if (currentFilters.paymentTermsMax) queryParams.set('paymentTermsMax', String(currentFilters.paymentTermsMax))
+          if (currentFilters.isActive !== undefined) queryParams.set('isActive', String(currentFilters.isActive))
+          if (currentFilters.sortBy) queryParams.set('sortBy', currentFilters.sortBy)
+          if (currentFilters.sortOrder) queryParams.set('sortOrder', currentFilters.sortOrder)
+          queryParams.set('page', String(currentFilters.page || 1))
+          queryParams.set('limit', String(currentFilters.limit || 20))
+
           const response = await fetch(`/api/customers?${queryParams}`)
           
           if (!response.ok) {
@@ -183,16 +193,16 @@ export const useCustomerStore = create<CustomerState>()(
       // Advanced search functionality
       searchCustomers: async (companyId: string, searchQuery: string, options?: any) => {
         set({ loading: true, error: null })
-        
+
         try {
+          // Don't send companyId as query param - API gets it from session
           const queryParams = new URLSearchParams({
-            companyId,
             q: searchQuery,
             searchType: options?.searchType || 'fuzzy',
             fields: options?.fields?.join(',') || 'name,email',
             limit: options?.limit?.toString() || '20'
           })
-          
+
           const response = await fetch(`/api/customers/search?${queryParams}`, {
             method: 'POST'
           })
@@ -228,13 +238,13 @@ export const useCustomerStore = create<CustomerState>()(
       // Fetch customer analytics
       fetchAnalytics: async (companyId: string, options?: any) => {
         set({ loading: true, error: null })
-        
+
         try {
+          // Don't send companyId as query param - API gets it from session
           const queryParams = new URLSearchParams({
-            companyId,
             ...(options || {})
           })
-          
+
           const response = await fetch(`/api/customers/analytics?${queryParams}`)
           
           if (!response.ok) {

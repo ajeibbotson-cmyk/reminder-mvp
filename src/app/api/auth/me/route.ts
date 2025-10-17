@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       email: authContext.user.email,
       name: authContext.user.name,
       role: authContext.user.role,
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       company: authContext.company
     }
 

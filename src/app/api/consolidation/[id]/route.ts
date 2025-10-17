@@ -36,7 +36,7 @@ export async function GET(
     const consolidation = await prisma.customerConsolidatedReminders.findFirst({
       where: {
         id,
-        companyId: session.user.companiesId // Ensure company isolation
+        companyId: session.user.companyId // Ensure company isolation
       },
       include: {
         customer: {
@@ -116,7 +116,7 @@ export async function GET(
     const invoices = await prisma.invoices.findMany({
       where: {
         id: { in: consolidation.invoiceIds },
-        companyId: session.user.companiesId
+        companyId: session.user.companyId
       },
       select: {
         id: true,
@@ -250,7 +250,7 @@ export async function PUT(
     const existingConsolidation = await prisma.customerConsolidatedReminders.findFirst({
       where: {
         id,
-        companyId: session.user.companiesId
+        companyId: session.user.companyId
       }
     })
 
@@ -310,7 +310,7 @@ export async function PUT(
       const template = await prisma.emailTemplate.findFirst({
         where: {
           id: updates.templateId,
-          companyId: session.user.companiesId,
+          companyId: session.user.companyId,
           isActive: true,
           supportsConsolidation: true
         }
@@ -361,7 +361,7 @@ export async function PUT(
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: session.user.companiesId,
+        companyId: session.user.companyId,
         userId: session.user.id,
         type: 'CONSOLIDATION_UPDATED',
         description: `Consolidation ${id} updated for customer ${updatedConsolidation.customer.name}`,
@@ -424,7 +424,7 @@ export async function DELETE(
     const consolidation = await prisma.customerConsolidatedReminders.findFirst({
       where: {
         id,
-        companyId: session.user.companiesId
+        companyId: session.user.companyId
       },
       include: {
         customer: {
@@ -486,7 +486,7 @@ export async function DELETE(
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: session.user.companiesId,
+        companyId: session.user.companyId,
         userId: session.user.id,
         type: 'CONSOLIDATION_DELETED',
         description: `Consolidation ${id} deleted for customer ${consolidation.customer.name}`,

@@ -15,9 +15,9 @@ export default function DashboardPage() {
   // Redirect if not authenticated
   useEffect(() => {
     if (status === "unauthenticated") {
-      redirect("/auth/signin");
+      router.push("/en/auth/signin");
     }
-  }, [status]);
+  }, [status, router]);
 
   if (status === "loading") {
     return (

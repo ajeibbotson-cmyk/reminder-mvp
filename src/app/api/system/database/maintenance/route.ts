@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     // Log maintenance start
     await createAuditLog({
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       userId: authContext.user.id,
       entityType: 'system',
       entityId: 'maintenance',
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
           case 'archive_invoices':
             if (!maintenanceRequest.dryRun) {
               const dbMaintenanceResult = await executeDatabaseMaintenance(
-                authContext.user.companiesId
+                authContext.user.companyId
               )
               operationResult = {
                 overdueInvoicesUpdated: dbMaintenanceResult.overdueInvoicesUpdated,
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
 
         // Log operation failure
         await createAuditLog({
-          companyId: authContext.user.companiesId,
+          companyId: authContext.user.companyId,
           userId: authContext.user.id,
           entityType: 'system',
           entityId: 'maintenance',
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
 
     // Log maintenance completion
     await createAuditLog({
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       userId: authContext.user.id,
       entityType: 'system',
       entityId: 'maintenance',
@@ -230,10 +230,10 @@ export async function GET(request: NextRequest) {
     const authContext = await requireRole(request, [UserRole.ADMIN])
 
     // Get maintenance recommendations
-    const recommendations = await getMaintenanceRecommendations(authContext.user.companiesId)
+    const recommendations = await getMaintenanceRecommendations(authContext.user.companyId)
 
     // Get last maintenance activity
-    const lastMaintenance = await getLastMaintenanceActivity(authContext.user.companiesId)
+    const lastMaintenance = await getLastMaintenanceActivity(authContext.user.companyId)
 
     const response = {
       recommendations,

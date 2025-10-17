@@ -73,7 +73,7 @@ export async function GET(
     }
 
     // Verify company access
-    if (payment.invoices.companies.id !== authContext.user.companiesId) {
+    if (payment.invoices.companies.id !== authContext.user.companyId) {
       throw new NotFoundError('Payment')
     }
 
@@ -175,7 +175,7 @@ export async function PATCH(
       }
 
       // Verify company access
-      if (currentPayment.invoices.companies.id !== authContext.user.companiesId) {
+      if (currentPayment.invoices.companies.id !== authContext.user.companyId) {
         throw new NotFoundError('Payment')
       }
 
@@ -229,7 +229,7 @@ export async function PATCH(
           {
             userId: authContext.user.id,
             userRole: authContext.user.role,
-            companyId: authContext.user.companiesId,
+            companyId: authContext.user.companyId,
             reason: `Payment updated - total now ${formatUAECurrency(totalPaid, invoice.currency)}`,
             notes: `Payment ${id} updated, invoice now fully paid`
           }
@@ -243,7 +243,7 @@ export async function PATCH(
           {
             userId: authContext.user.id,
             userRole: authContext.user.role,
-            companyId: authContext.user.companiesId,
+            companyId: authContext.user.companyId,
             reason: `Payment updated - amount reduced, invoice no longer fully paid`,
             notes: `Payment ${id} updated, remaining balance: ${formatUAECurrency(remainingAmount, invoice.currency)}`
           }
@@ -254,7 +254,7 @@ export async function PATCH(
       await tx.activities.create({
         data: {
           id: crypto.randomUUID(),
-          companyId: authContext.user.companiesId,
+          companyId: authContext.user.companyId,
           userId: authContext.user.id,
           type: 'payment_updated',
           description: `Payment ${id} updated for invoice ${invoice.number}`,
@@ -360,7 +360,7 @@ export async function DELETE(
       }
 
       // Verify company access
-      if (payment.invoices.companies.id !== authContext.user.companiesId) {
+      if (payment.invoices.companies.id !== authContext.user.companyId) {
         throw new NotFoundError('Payment')
       }
 
@@ -387,7 +387,7 @@ export async function DELETE(
           {
             userId: authContext.user.id,
             userRole: authContext.user.role,
-            companyId: authContext.user.companiesId,
+            companyId: authContext.user.companyId,
             reason: `Payment deleted - invoice no longer fully paid`,
             notes: `Payment ${id} (${formatUAECurrency(new Decimal(payment.amount), invoice.currency)}) deleted. Outstanding: ${formatUAECurrency(newRemainingAmount, invoice.currency)}`
           }
@@ -398,7 +398,7 @@ export async function DELETE(
       await tx.activities.create({
         data: {
           id: crypto.randomUUID(),
-          companyId: authContext.user.companiesId,
+          companyId: authContext.user.companyId,
           userId: authContext.user.id,
           type: 'payment_deleted',
           description: `Payment deleted from invoice ${invoice.number}`,

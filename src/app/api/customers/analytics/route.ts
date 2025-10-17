@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const filters = validateQueryParams(searchParams, analyticsSchema)
     
     // Ensure user can only access their company's data
-    if (filters.companyId !== authContext.user.companiesId) {
+    if (filters.companyId !== authContext.user.companyId) {
       throw new Error('Access denied to company data')
     }
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const startDate = filters.startDate || new Date(endDate.getFullYear(), endDate.getMonth() - 12, 1)
 
     const baseWhereClause: Prisma.CustomerWhereInput = {
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       ...(filters.includeInactive ? {} : { isActive: true })
     }
 
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       queries.push(
         prisma.invoices.aggregate({
           where: {
-            companyId: authContext.user.companiesId,
+            companyId: authContext.user.companyId,
             isActive: true,
             status: { in: ['SENT', 'OVERDUE', 'DISPUTED'] },
             payments: { none: {} }
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
       queries.push(
         prisma.invoices.aggregate({
           where: {
-            companyId: authContext.user.companiesId,
+            companyId: authContext.user.companyId,
             isActive: true,
             createdAt: {
               gte: startDate,
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
           FROM customers c
           JOIN invoices i ON i.customer_email = c.email AND i.company_id = c.company_id
           JOIN payments p ON p.invoice_id = i.id
-          WHERE c.company_id = ${authContext.user.companiesId}
+          WHERE c.company_id = ${authContext.user.companyId}
             AND c.is_active = ${!filters.includeInactive ? true : undefined}
             AND i.is_active = true
             AND i.status = 'PAID'
@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
     let timeSeriesData = []
     if (filters.groupBy === 'month') {
       timeSeriesData = await generateMonthlyCustomerMetrics(
-        authContext.user.companiesId, 
+        authContext.user.companyId, 
         startDate, 
         endDate, 
         filters.includeInactive
@@ -214,19 +214,19 @@ export async function GET(request: NextRequest) {
     } else if (filters.groupBy === 'businessType') {
       // Business type analysis would require schema updates
       timeSeriesData = await generateBusinessTypeMetrics(
-        authContext.user.companiesId, 
+        authContext.user.companyId, 
         filters.includeInactive
       )
     } else if (filters.groupBy === 'paymentTerms') {
       timeSeriesData = await generatePaymentTermsMetrics(
-        authContext.user.companiesId, 
+        authContext.user.companyId, 
         filters.includeInactive
       )
     }
 
     // Customer growth metrics
     const customerGrowthData = await generateCustomerGrowthMetrics(
-      authContext.user.companiesId,
+      authContext.user.companyId,
       startDate,
       endDate,
       filters.includeInactive

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     // Base query conditions
     const baseWhere = {
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       consolidatedReminderId: { not: null },
       createdAt: {
         gte: startDate,
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     const comparisonWhere = comparisonPeriod ? {
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       consolidatedReminderId: { not: null },
       createdAt: {
         gte: comparisonStartDate,
@@ -129,19 +129,19 @@ export async function GET(request: NextRequest) {
       }),
 
       // Time series data for trends
-      getTimeSeriesData(authContext.user.companiesId, startDate, endDate, granularity),
+      getTimeSeriesData(authContext.user.companyId, startDate, endDate, granularity),
 
       // Escalation level analysis
-      getEscalationAnalysis(authContext.user.companiesId, startDate, endDate),
+      getEscalationAnalysis(authContext.user.companyId, startDate, endDate),
 
       // Delivery and performance metrics
-      getDeliveryMetrics(authContext.user.companiesId, startDate, endDate),
+      getDeliveryMetrics(authContext.user.companyId, startDate, endDate),
 
       // Engagement metrics (opens, clicks, responses)
-      getEngagementMetrics(authContext.user.companiesId, startDate, endDate),
+      getEngagementMetrics(authContext.user.companyId, startDate, endDate),
 
       // Cost and efficiency savings analysis
-      getSavingsAnalysis(authContext.user.companiesId, startDate, endDate)
+      getSavingsAnalysis(authContext.user.companyId, startDate, endDate)
     ])
 
     // Process results and calculate insights

@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { CustomerTable } from "@/components/customers/customer-table";
@@ -9,12 +9,13 @@ import UAEErrorBoundaryWrapper from "@/components/error-boundaries/uae-error-bou
 
 export default function CustomersPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      redirect("/auth/signin");
+      router.push("/en/auth/signin");
     }
-  }, [status]);
+  }, [status, router]);
 
   if (status === "loading") {
     return <DashboardLayout><div>Loading...</div></DashboardLayout>;

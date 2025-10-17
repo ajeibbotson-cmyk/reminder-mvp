@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user can access this batch
-    if (importBatch.companyId !== authContext.user.companiesId) {
+    if (importBatch.companyId !== authContext.user.companyId) {
       throw new Error('Access denied to import batch')
     }
 
@@ -266,7 +266,7 @@ export async function GET(request: NextRequest) {
     const [batches, totalCount] = await Promise.all([
       prisma.importBatches.findMany({
         where: {
-          companyId: authContext.user.companiesId
+          companyId: authContext.user.companyId
         },
         include: {
           user: {
@@ -283,7 +283,7 @@ export async function GET(request: NextRequest) {
         take: limit
       }),
       prisma.importBatches.count({
-        where: { companyId: authContext.user.companiesId }
+        where: { companyId: authContext.user.companyId }
       })
     ])
 

@@ -116,7 +116,7 @@ export function UAEDateDisplay({
 }
 
 interface StatusBadgeProps {
-  status: 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELLED' | 'DRAFT'
+  status: 'PENDING' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED' | 'DRAFT'
   className?: string
   locale?: string
 }
@@ -131,6 +131,11 @@ export function InvoiceStatusBadge({
       en: 'Pending',
       ar: 'معلقة',
       className: 'bg-accent/10 text-accent-foreground border-accent/20 dark:bg-accent/20'
+    },
+    SENT: {
+      en: 'Sent',
+      ar: 'مُرسلة',
+      className: 'bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400'
     },
     PAID: {
       en: 'Paid',

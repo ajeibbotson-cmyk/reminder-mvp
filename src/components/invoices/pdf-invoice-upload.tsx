@@ -107,21 +107,18 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
 
     // Combine extracted data with any user edits
     const invoiceData = {
-      number: editableData.invoiceNumber || '',
-      customer_name: editableData.customerName || '',
-      customer_email: editableData.customerEmail || '',
-      amount: editableData.totalAmount || editableData.amount || 0,
-      subtotal: editableData.amount,
-      vat_amount: editableData.vatAmount,
-      total_amount: editableData.totalAmount,
-      currency: editableData.currency || 'AED',
-      due_date: editableData.dueDate || '',
-      invoice_date: editableData.invoiceDate || '',
+      invoiceNumber: editableData.invoiceNumber || '',
+      customerName: editableData.customerName || '',
+      customerEmail: editableData.customerEmail || '',
+      amount: editableData.amount || editableData.totalAmount || 0,
+      vatAmount: editableData.vatAmount,
+      totalAmount: editableData.totalAmount,
+      currency: editableData.currency || 'EUR',
+      dueDate: editableData.dueDate || '',
       description: editableData.description || '',
-      trn_number: editableData.trn || '',
-      source: 'PDF_UPLOAD',
-      original_file: parseResult.fileName,
-      confidence_score: parseResult.extractedData.confidence
+      pdf_s3_key: parseResult.extractedData.s3Key,
+      pdf_s3_bucket: parseResult.extractedData.s3Bucket,
+      pdf_uploaded_at: new Date().toISOString()
     }
 
     onInvoiceCreate(invoiceData)
@@ -379,10 +376,10 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
             </div>
             <div className="text-center">
               <Badge
-                variant={parseResult.validation.isValid ? "default" : "destructive"}
+                variant={parseResult.validation?.isValid ? "default" : "destructive"}
                 className="text-sm"
               >
-                {parseResult.validation.isValid ? "Valid" : "Review"}
+                {parseResult.validation?.isValid ? "Valid" : "Review"}
               </Badge>
             </div>
             <div className="text-center">
@@ -396,7 +393,7 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
       </Card>
 
       {/* Validation Alerts */}
-      {parseResult.validation.errors.length > 0 && (
+      {parseResult.validation?.errors && parseResult.validation.errors.length > 0 && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Errors Found</AlertTitle>
@@ -410,7 +407,7 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         </Alert>
       )}
 
-      {parseResult.validation.warnings.length > 0 && (
+      {parseResult.validation?.warnings && parseResult.validation.warnings.length > 0 && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Warnings</AlertTitle>

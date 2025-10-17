@@ -74,14 +74,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    if (!session.user.companiesId) {
+    if (!session.user.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized - Company association required' },
         { status: 401 }
       )
     }
 
-    const companyId = session.user.companiesId
+    const companyId = session.user.companyId
 
     // 2. Parse and validate query parameters
     const { searchParams } = new URL(request.url)

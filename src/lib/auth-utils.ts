@@ -81,7 +81,7 @@ export async function requireCompanyAccess(
 ): Promise<AuthContext> {
   const authContext = await getAuthContext(request)
   
-  if (authContext.user.companiesId !== companyId) {
+  if (authContext.user.companyId !== companyId) {
     throw new ForbiddenError('Access denied to this company data')
   }
   
@@ -94,7 +94,7 @@ export async function requireResourceAccess(
 ): Promise<AuthContext> {
   const authContext = await getAuthContext(request)
   
-  if (authContext.user.companiesId !== resourceCompanyId) {
+  if (authContext.user.companyId !== resourceCompanyId) {
     throw new ForbiddenError('Access denied to this resource')
   }
   

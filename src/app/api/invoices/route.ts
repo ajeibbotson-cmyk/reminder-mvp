@@ -225,7 +225,7 @@ export async function GET(request: NextRequest) {
     ])
 
     // Calculate additional insights for UAE business needs
-    const insights = await calculateInvoiceInsights(invoices, authContext.user.companiesId)
+    const insights = await calculateInvoiceInsights(invoices, authContext.user.companyId)
 
     // Enhanced response with UAE business insights
     return successResponse({
@@ -351,7 +351,10 @@ export async function POST(request: NextRequest) {
       totalAmount,
       currency = 'AED',
       dueDate,
-      description
+      description,
+      pdf_s3_key,
+      pdf_s3_bucket,
+      pdf_uploaded_at
     } = body
 
     // Validate required fields
@@ -415,6 +418,9 @@ export async function POST(request: NextRequest) {
           due_date: parsedDueDate,
           status: 'SENT',
           description: description || `Invoice ${invoiceNumber}`,
+          pdf_s3_key: pdf_s3_key || null,
+          pdf_s3_bucket: pdf_s3_bucket || null,
+          pdf_uploaded_at: pdf_uploaded_at ? new Date(pdf_uploaded_at) : null,
           created_at: new Date(),
           updated_at: new Date()
         }

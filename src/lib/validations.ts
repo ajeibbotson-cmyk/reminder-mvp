@@ -123,7 +123,7 @@ export const invoiceFiltersSchema = z.object({
   dueDateEnd: z.coerce.date().optional(),
   minAmount: z.coerce.number().positive().optional(),
   maxAmount: z.coerce.number().positive().optional(),
-  currency: currencySchema.optional(),
+  currency: z.string().length(3).toUpperCase().optional(), // No default - show all currencies
   trnNumber: z.string().optional(),
   search: z.string().optional(),
   isOverdue: z.coerce.boolean().optional(),
@@ -171,7 +171,7 @@ export const updateCustomerSchema = createCustomerSchema.partial().omit({ compan
 
 // Customer search and filtering schema
 export const customerFiltersSchema = z.object({
-  companyId: z.string().min(1, 'Company ID is required'),
+  companyId: z.string().optional(), // Optional - will use authenticated user's company ID
   search: z.string().optional(),
   businessType: z.enum(UAE_BUSINESS_TYPES).optional(),
   hasOutstandingBalance: z.coerce.boolean().optional(),

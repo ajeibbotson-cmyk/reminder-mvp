@@ -50,7 +50,7 @@ export function ImportHistory({
   onDeleteBatch,
   onViewDetails 
 }: ImportHistoryProps) {
-  const t = useTranslations('importHistory')
+  const t = useTranslations('import.importHistory')
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortField, setSortField] = useState<SortField>('createdAt')

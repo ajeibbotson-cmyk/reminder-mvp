@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     const validConsolidations = await prisma.customerConsolidatedReminder.findMany({
       where: {
         id: { in: data.consolidationIds },
-        companyId: session.user.companiesId
+        companyId: session.user.companyId
       },
       select: {
         id: true,
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         results = await handleBulkSchedule(validConsolidations, data.parameters)
         break
       case 'send':
-        results = await handleBulkSend(validConsolidations, session.user.companiesId)
+        results = await handleBulkSend(validConsolidations, session.user.companyId)
         estimatedEmailsSaved = calculateEmailsSaved(validConsolidations)
         break
       case 'cancel':
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     // Log bulk operation for audit
     await logBulkOperation(
-      session.user.companiesId,
+      session.user.companyId,
       session.user.id,
       operationId,
       data.operation,
@@ -153,7 +153,7 @@ export async function PUT(request: NextRequest) {
 
     // Get consolidation candidates for each customer
     const candidates = await getConsolidationCandidates(
-      session.user.companiesId,
+      session.user.companyId,
       data.customerIds,
       data.parameters
     )
@@ -499,7 +499,7 @@ export async function GET(request: NextRequest) {
       // Get specific operation status
       const operation = await prisma.auditLog.findFirst({
         where: {
-          companyId: session.user.companiesId,
+          companyId: session.user.companyId,
           entityId: operationId,
           action: { startsWith: 'BULK_' }
         },
@@ -527,7 +527,7 @@ export async function GET(request: NextRequest) {
     // Get recent bulk operations
     const recentOperations = await prisma.auditLog.findMany({
       where: {
-        companyId: session.user.companiesId,
+        companyId: session.user.companyId,
         action: { startsWith: 'BULK_' }
       },
       orderBy: { createdAt: 'desc' },

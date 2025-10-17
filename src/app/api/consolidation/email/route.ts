@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const customer = await prisma.customers.findFirst({
       where: {
         id: customerId,
-        companyId: authContext.user.companiesId
+        companyId: authContext.user.companyId
       }
     })
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       where: {
         id: { in: invoiceIds },
         customerId,
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         status: { in: ['SENT', 'OVERDUE'] },
         isActive: true
       }
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         userId: authContext.user.id,
         type: 'consolidated_email_created',
         description: `Created consolidated email for ${customer.name} with ${invoiceIds.length} invoices`,
@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: any = {
-      companyId: authContext.user.companiesId
+      companyId: authContext.user.companyId
     }
 
     if (customerId) {

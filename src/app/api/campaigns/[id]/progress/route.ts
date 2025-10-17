@@ -52,7 +52,7 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    if (!session.user.companiesId) {
+    if (!session.user.companyId) {
       return new NextResponse('Company association required', { status: 401 })
     }
 

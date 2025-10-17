@@ -1,7 +1,6 @@
 'use client'
 
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -50,9 +49,9 @@ export default function InvoicesPage() {
   // Authentication check
   useEffect(() => {
     if (status === "unauthenticated") {
-      redirect("/auth/signin");
+      router.push("/en/auth/signin");
     }
-  }, [status]);
+  }, [status, router]);
 
   // Fetch invoices
   const loadInvoices = useCallback(async (appliedFilters?: FilterType) => {

@@ -49,7 +49,7 @@ export async function PATCH(request: NextRequest) {
     const invoicesCheck = await prisma.invoices.findMany({
       where: {
         id: { in: invoiceIds },
-        company_id: authContext.user.companiesId
+        company_id: authContext.user.companyId
       },
       select: {
         id: true,
@@ -104,7 +104,7 @@ export async function PATCH(request: NextRequest) {
           await tx.activities.create({
             data: {
               id: crypto.randomUUID(),
-              company_id: authContext.user.companiesId,
+              company_id: authContext.user.companyId,
               user_id: authContext.user.id,
               type: 'invoice_status_bulk_updated',
               description: `Bulk updated invoice ${invoice.number} status from ${invoice.status} to ${status}`,
@@ -148,7 +148,7 @@ export async function PATCH(request: NextRequest) {
       await tx.activities.create({
         data: {
           id: crypto.randomUUID(),
-          company_id: authContext.user.companiesId,
+          company_id: authContext.user.companyId,
           user_id: authContext.user.id,
           type: 'invoice_bulk_operation_completed',
           description: `Bulk status update completed: ${result.successCount} successful, ${result.failureCount} failed`,

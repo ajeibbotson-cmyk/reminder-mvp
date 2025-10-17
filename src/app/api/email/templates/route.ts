@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: Record<string, any> = {
-      companyId: authContext.user.companiesId
+      companyId: authContext.user.companyId
     }
 
     if (templateType) {
@@ -140,8 +140,8 @@ export async function POST(request: NextRequest) {
     const templateData = await validateRequestBody(request, createEmailTemplateSchema)
     
     // Ensure user can only create templates for their company
-    if (templateData.companyId !== authContext.user.companiesId) {
-      templateData.companyId = authContext.user.companiesId
+    if (templateData.companyId !== authContext.user.companyId) {
+      templateData.companyId = authContext.user.companyId
     }
 
     // Set created by user
@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         userId: authContext.user.id,
         type: 'email_template_created',
         description: `Created email template: ${template.name}`,

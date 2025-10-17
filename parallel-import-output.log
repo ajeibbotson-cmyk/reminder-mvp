@@ -1,0 +1,207 @@
+📦 Importing 133 invoices with PARALLEL processing...
+
+✅ Found user: admin@testcompany.ae
+✅ Company: Test Company LLC
+✅ Company ID: 9a1b69f0-89e7-4a02-8065-d7f6bd810ed8
+
+Found 133 PDF files
+
+📥 Loading PDFs...
+✓ PDFs loaded
+
+🚀 Starting parallel extraction...
+
+
+🚀 Starting parallel extraction of 133 PDFs
+⚙️  Max concurrent jobs: 50
+
+📦 Processing batch 1/3 (50 PDFs)
+   ⬆️  Uploading 50 PDFs to S3...
+   ✓ Uploads complete (1.7s)
+   🔄 Starting 50 Textract jobs...
+   ✓ Jobs started (2.2s)
+   ⏳ Polling 50 jobs for completion...
+   ✓ Polling complete (10.6s)
+   ✅ Batch 1 complete: 23 success, 27 failed
+
+📊 Progress: 50/133 (38%) | Batch 1/3 | ✅ 23 | ❌ 27 | Elapsed: 17s
+📦 Processing batch 2/3 (50 PDFs)
+   ⬆️  Uploading 50 PDFs to S3...
+   ✓ Uploads complete (1.9s)
+   🔄 Starting 50 Textract jobs...
+   ✓ Jobs started (2.2s)
+   ⏳ Polling 50 jobs for completion...
+   ✓ Polling complete (10.1s)
+   ✅ Batch 2 complete: 59 success, 41 failed
+
+📊 Progress: 100/133 (75%) | Batch 2/3 | ✅ 59 | ❌ 41 | Elapsed: 32s
+📦 Processing batch 3/3 (33 PDFs)
+   ⬆️  Uploading 33 PDFs to S3...
+   ✓ Uploads complete (2.3s)
+   🔄 Starting 33 Textract jobs...
+   ✓ Jobs started (1.1s)
+   ⏳ Polling 33 jobs for completion...
+   ✓ Polling complete (11.6s)
+   ✅ Batch 3 complete: 92 success, 41 failed
+
+📊 Progress: 133/133 (100%) | Batch 3/3 | ✅ 92 | ❌ 41 | Elapsed: 47s
+
+✅ All batches processed!
+   Total time: 43.8s
+   Avg per PDF: 0.3s
+   Success: 92
+   Failed: 41
+
+
+✅ Extraction complete (46.5s)
+
+💾 Importing to database...
+
+   ❌ 049 SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ❌ Above The Clouds AW25 Drop-1.pdf: Provisioned rate exceeded
+   ❌ Above The Clouds SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ⏭️  Above the Clouds SS25 Drop 2  .pdf: Already exists (V01250256)
+   ❌ Bijenkorf SS25 Drop 1  .pdf: Provisioned rate exceeded
+   ❌ Bijenkorf SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ❌ Bijenkorf SS25 NOS .pdf: Provisioned rate exceeded
+   ⏭️  Block 60 SS25 Drop 1.pdf: Already exists (V01250087)
+   ⏭️  Block60 SS25 Drop 2  .pdf: Already exists (V01250266)
+   ⏭️  Bottega Backdoor SS25 Drop 1 NOS.pdf: Already exists (V01250080)
+   ⏭️  Bottega Backdoor SS25 Drop 2  .pdf: Already exists (V01250259)
+   ❌ Club 21 Malaysia SS25 Drop 1.pdf: Provisioned rate exceeded
+   ⏭️  Club21 Malaysia SS25 Drop 2  .pdf: Already exists (V01250243)
+   ❌ Club21 Malaysia SS25 NOS  .pdf: Provisioned rate exceeded
+   ⏭️  Crowdless SS25 Drop 1 NOS.pdf: Already exists (V01250102)
+   ⏭️  Crowdless SS25 Drop 2  .pdf: Already exists (V01250281)
+   ❌ Duck SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ❌ Duck SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ❌ END SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ❌ END SS25 NOS  .pdf: Provisioned rate exceeded
+   ⏭️  Effetti SS25 Drop 1 NOS.pdf: Already exists (V01250088)
+   ⏭️  Effetti SS25 Drop 2  .pdf: Already exists (V01250267)
+   ❌ Eksikon NUW SS25 Drop 1 NOS .pdf: Provisioned rate exceeded
+   ⚠️  Eksikon NUW SS25 Drop 2  .pdf: Missing required fields
+   ⏭️  End Clothing SS25 Drop 1.pdf: Already exists (V01250057)
+   ✅ FWRD SS25 Drop 1.pdf: V01250069 - €4.06
+   ❌ FWRD SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ❌ Foot District SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ⏭️  Foot District SS25 Drop 2  .pdf: Already exists (V01250247)
+   ❌ Good Life SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ⏭️  Good Life SS25 Drop 2  .pdf: Already exists (V01250250)
+   ❌ Graduate SS25 Drop 1.pdf: Provisioned rate exceeded
+   ⏭️  Graduate SS25 Drop 2  .pdf: Already exists (V01250278)
+   ⏭️  HHV SS25 Drop 1 NOS.pdf: Already exists (V01250082)
+   ⏭️  HHV SS25 Drop 2  .pdf: Already exists (V01250260)
+   ❌ Homebody SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ❌ Homebody SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ⏭️  ITK AW25 Drop-2.pdf: Already exists (V01250845)
+   ⏭️  ITK SS25 Drop 1.pdf: Already exists (V01250092)
+   ⏭️  ITK SS25 Drop 2  .pdf: Already exists (V01250271)
+   ❌ ITK SS25 NOS.pdf: Provisioned rate exceeded
+   ❌ Illum SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ⏭️  Illum SS25 Drop 2  .pdf: Already exists (V01250251)
+   ❌ Incu SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ⏭️  Incu SS25 Drop 2  .pdf: Already exists (V01250240)
+   ❌ Kapok SS25 Drop 1.pdf: Provisioned rate exceeded
+   ❌ Kapok SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ❌ Kixbox SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ❌ Kixbox_October SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ❌ Kyoto SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ⏭️  Kyoto SS25 Drop 2  .pdf: Already exists (V01250269)
+   ⏭️  Lagune SS25 Drop 1 NOS.pdf: Already exists (V01250065)
+   ⏭️  Lagune SS25 Drop 2  .pdf: Already exists (V01250244)
+   ✅ Locus SS25 Drop 1.pdf: V01250103 - €69400
+   ✅ Locus SS25 Drop 2  .pdf: V01250282 - €1.946
+   ✅ Maple SS25 Drop 2  .pdf: V01250272 - €1.44
+   ✅ Maple Store SS25 Drop 1 NOS.pdf: V01250195 - €1.656
+   ✅ Middle of Nowhere SS25 Drop 1.pdf: V01250104 - €1.126
+   ✅ Mr Porter DC4 SS25 Drop 2  .pdf: V01250241 - €2.504
+   ✅ Mr. Porter SS25 Drop 1 NOS.pdf: V01250186 - €12.134
+   ✅ Never Never SS25 Drop 1.pdf: V01250081 - €1.577
+   ✅ Never Never SS25 Drop 2  .pdf: V01250261 - €2.346
+   ✅ Never Never SS25 NOS.pdf: V01241299 - €69800
+   ✅ Nu Yorica SS25 Drop 1 NOS.pdf: V01250110 - €1.225
+   ✅ Nu Yorica SS25 Drop 2  .pdf: V01250288 - €2.12
+   ⚠️  Ounass SS25 Drop 1.pdf: Missing required fields
+   ⚠️  Ounass SS25 Drop 2  .pdf: Missing required fields
+   ⚠️  Peak SS25 Drop 1 NOS.pdf: Missing required fields
+   ⚠️  Peak SS25 Drop 2  .pdf: Missing required fields
+   ✅ Peggs & Son SS25 Drop 2  .pdf: V01250239 - €8.168
+   ✅ Peggs & Son SS25 NOS  .pdf: V01241293 - €1.868
+   ✅ Peggs and Son SS25 Drop 1.pdf: V01250061 - €7.2
+   ⚠️  Picture International SS25 Drop 1 NOS.pdf: Missing required fields
+   ❌ Picture International SS25 Drop 2.pdf: Provisioned rate exceeded
+   ✅ Pronto United Lasting SS25 Drop 1.pdf: V01250070 - €3.372
+   ❌ Pronto United Lasting SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ❌ Refresh SS25 Drop 1.pdf: Provisioned rate exceeded
+   ❌ Refresh SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ✅ Room SS25 Drop 1.pdf: V01250083 - €4.177
+   ✅ Room SS25 Drop 2  .pdf: V01250262 - €1.308
+   ✅ SKP Beijing SS25 Drop 1 NOS.pdf: V01250075 - €4.191
+   ❌ SKP Beijing SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ✅ SKP Chengdu SS25 Drop 2  .pdf: V01250255 - €1.604
+   ❌ SKP Shengdu SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ✅ SKP Wuhan SS25 Drop 1 NOS.pdf: V01250072 - €4.849
+   ✅ SKP Wuhan SS25 Drop 2  .pdf: V01250252 - €1.812
+   ✅ SKP XIAN SS25 Drop 1 NOS.pdf: V01250073 - €5.183
+   ✅ SKP XIan SS25 Drop 2  .pdf: V01250253 - €1.122
+   ✅ SRL 049 SS25 Drop 1 NOS.pdf: V01250086 - €3.08
+   ❌ SVD BCN AW25 Drop-2.pdf: Provisioned rate exceeded
+   ✅ SVD BCN SS25 Drop 2  .pdf: V01250279 - €85600
+   ❌ SVD Dubai AW25 Drop-1.pdf: Provisioned rate exceeded
+   ❌ SVD Dubai AW25 Drop-2.pdf: Provisioned rate exceeded
+   ❌ Seven Stones AW25 Drop-2.pdf: Provisioned rate exceeded
+   ❌ Seven Stones SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ✅ Seven Stones SS25 Drop 2  .pdf: V01250284 - €54400
+   ❌ Sivas des Calzo SS25 Drop 1 NOS.pdf: Provisioned rate exceeded
+   ❌ Sneaker Box SS25 Drop 1.pdf: Provisioned rate exceeded
+   ❌ Sneaker Box SS25 Drop 2  .pdf: Provisioned rate exceeded
+   ✅ Sneakerbox SS25 NOS.pdf: V01241296 - €1.423
+   ✅ Spazio (Gruppo Pritelli) SS25 Drop 1.pdf: V01250095 - €2.112
+   ✅ Spazio Gruppo Priteli SS25 Drop 2  .pdf: V01250274 - €1.578
+   ✅ Stimm SS25 Drop 1.pdf: V01250089 - €1.972
+   ✅ Stimm SS25 Drop 2  .pdf: V01250268 - €2.726
+   ✅ Superstylin_ SS25 Drop 1.pdf: V01250105 - €79800
+   ✅ Superstylin_ SS25 Drop 2  .pdf: V01250283 - €1.712
+   ✅ Switch SS25 Drop 1 NOS.pdf: V01250101 - €1.758
+   ✅ Switch SS25 Drop 2  .pdf: V01250280 - €1.598
+   ⚠️  Ultimate BXL SS25 Drop 1 NOS.pdf: Missing required fields
+   ✅ Ultimate BXL SS25 Drop 2  .pdf: V01250258 - €2.305
+   ⚠️  Ultimate Mol SS25 Drop 1 NOS.pdf: Missing required fields
+   ✅ Ultimate Mol SS25 Drop 2  .pdf: V01250263 - €2.185
+   ✅ Undergarden SS25 Drop 1.pdf: V01250085 - €1.929
+   ✅ Undergarden SS25 Drop 2  .pdf: V01250264 - €1.646
+   ✅ Undergarden SS25 NOS  .pdf: V01241295 - €1.611
+   ✅ Urban Industry SS25 Drop 1.pdf: V01250098 - €1.884
+   ✅ Urban Industry SS25 Drop 2  .pdf: V01250277 - €1.36
+   ⏭️  Urban Industry SS25 NOS  .pdf: Already exists (V01241299)
+   ✅ V01250724 Seven Stones AW25 Drop-1 (1).pdf: V01250724 - €2.462
+   ✅ V01250732 SVD BCN AW25 Drop-1 (1).pdf: V01250732 - €1.785
+   ✅ Vicious SS25 Drop 1.pdf: V01250096 - €1.744
+   ✅ Vicious SS25 Drop 2  .pdf: V01250275 - €1.876
+   ✅ Warsaw Sneakerstore SS25 Drop 1.pdf: V01250094 - €1.587
+   ✅ Warsaw Sneakerstore SS25 Drop 2  .pdf: V01250273 - €2.659
+   ✅ Working Title AW25 Drop-1.pdf: V01250914 - €98200
+   ✅ Working Title AW25 Drop-2.pdf: V01250851 - €96000
+   ✅ Working Title SS25 Drop 1.pdf: V01250107 - €94100
+   ✅ Working Title SS25 Drop 2  .pdf: V01250285 - €1.05
+   ⚠️  Worksout SS25 Drop 1 .pdf: Missing required fields
+   ⚠️  Worksout SS25 Drop 2  .pdf: Missing required fields
+   ⚠️  Worksout SS25 NOS.pdf: Missing required fields
+   ✅ Wunder SS25 Drop 1.pdf: V01250173 - €1.927
+   ✅ Wunder SS25 Drop 2  .pdf: V01250270 - €2.562
+
+════════════════════════════════════════════════════════════
+📊 Import Summary
+════════════════════════════════════════════════════════════
+✅ Imported: 56
+⏭️  Skipped (already exists): 25
+❌ Failed: 52
+📋 Total: 133
+
+⏱️  Total time: 260.8s (4.3 mins)
+   Extraction: 46.5s | Database: 214.3s
+
+🎉 Invoices are now in your dashboard!
+🌐 View at: http://localhost:3000/en/dashboard/invoices
+

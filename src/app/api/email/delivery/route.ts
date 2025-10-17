@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
     const filters = validateQueryParams(searchParams, emailDeliveryFilterSchema)
     
     // Ensure user can only access their company's email logs
-    if (filters.companyId !== authContext.user.companiesId) {
-      filters.companyId = authContext.user.companiesId
+    if (filters.companyId !== authContext.user.companyId) {
+      filters.companyId = authContext.user.companyId
     }
 
     const skip = (filters.page - 1) * filters.limit
@@ -138,8 +138,8 @@ export async function POST(request: NextRequest) {
     const emailData = await validateRequestBody(request, sendEmailSchema)
     
     // Ensure user can only send emails for their company
-    if (emailData.companyId !== authContext.user.companiesId) {
-      emailData.companyId = authContext.user.companiesId
+    if (emailData.companyId !== authContext.user.companyId) {
+      emailData.companyId = authContext.user.companyId
     }
 
     // Initialize email service
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         userId: authContext.user.id,
         type: 'email_sent_manually',
         description: `Manual email sent to ${emailData.recipientEmail}`,

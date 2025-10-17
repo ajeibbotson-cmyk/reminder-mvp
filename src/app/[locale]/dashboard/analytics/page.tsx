@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useSession } from "next-auth/react"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { UAEErrorBoundary } from '@/components/error-boundaries/uae-error-boundary'
 import { MainAnalyticsDashboard } from "@/components/analytics/MainAnalyticsDashboard"
@@ -33,6 +33,7 @@ interface AnalyticsPageProps {
 
 export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   const { data: session, status } = useSession()
+  const router = useRouter()
   const [dateRange, setDateRange] = useState('30')
   const [exportFormat, setExportFormat] = useState('pdf')
   const [isExporting, setIsExporting] = useState(false)
@@ -40,9 +41,9 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   // Redirect if not authenticated
   useEffect(() => {
     if (status === "unauthenticated") {
-      redirect("/auth/signin")
+      router.push("/en/auth/signin")
     }
-  }, [status])
+  }, [status, router])
 
   const handleExport = async (format: string, section: string) => {
     setIsExporting(true)

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const companyId = searchParams.get('companyId')
     const status = searchParams.get('status')
 
-    if (!companyId || companyId !== session.user.companiesId) {
+    if (!companyId || companyId !== session.user.companyId) {
       return NextResponse.json(
         { message: 'Forbidden - Invalid company access' },
         { status: 403 }

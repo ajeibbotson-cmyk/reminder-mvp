@@ -65,10 +65,9 @@ export const authOptions: NextAuthOptions = {
         ...session,
         user: {
           ...session.user,
-          id: token.id,
-          role: token.role,
-          companyId: token.companyId,
-          company: token.company
+          id: token.id as string,
+          role: token.role as string,
+          companyId: token.companyId as string,
         },
       }
     },
@@ -80,7 +79,7 @@ export const authOptions: NextAuthOptions = {
           id: u.id,
           role: u.role,
           companyId: u.companyId,
-          company: u.company
+          // Don't store company object - it causes JWT size/serialization issues
         }
       }
       return token

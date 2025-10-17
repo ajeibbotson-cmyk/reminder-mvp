@@ -149,7 +149,7 @@ export class UnifiedEmailService {
       throw new Error('Invalid session or missing company ID')
     }
 
-    const companyId = this.session.user.companiesId
+    const companyId = this.session.user.companyId
 
     try {
       // 1. Validate and parse options
@@ -245,7 +245,7 @@ export class UnifiedEmailService {
     const campaign = await this.prisma.invoiceCampaign.findFirst({
       where: {
         id: campaignId,
-        company_id: this.session.user.companiesId
+        company_id: this.session.user.companyId
       },
       include: {
         campaign_email_sends: {
@@ -435,7 +435,7 @@ export class UnifiedEmailService {
     const campaign = await this.prisma.invoiceCampaign.findFirst({
       where: {
         id: campaignId,
-        company_id: this.session.user.companiesId
+        company_id: this.session.user.companyId
       },
       include: {
         campaign_email_sends: {
@@ -504,7 +504,7 @@ export class UnifiedEmailService {
 
     // Check suppression list
     const suppressedEmailList = await this.prisma.emailSuppression.findMany({
-      where: { company_id: this.session.user.companiesId },
+      where: { company_id: this.session.user.companyId },
       select: { email: true }
     })
     const suppressedSet = new Set(suppressedEmailList.map(s => s.email.toLowerCase()))

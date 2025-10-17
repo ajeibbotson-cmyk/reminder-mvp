@@ -114,7 +114,7 @@ export async function GET(
     }
 
     // Enforce company-level data isolation
-    if (invoice.companyId !== authContext.user.companiesId) {
+    if (invoice.companyId !== authContext.user.companyId) {
       throw new NotFoundError('Invoice')
     }
 
@@ -195,7 +195,7 @@ export async function PUT(
     }
 
     // Enforce company-level data isolation
-    if (existingInvoice.companyId !== authContext.user.companiesId) {
+    if (existingInvoice.companyId !== authContext.user.companyId) {
       throw new NotFoundError('Invoice')
     }
 
@@ -390,7 +390,7 @@ export async function PUT(
       await tx.activities.create({
         data: {
           id: crypto.randomUUID(),
-          companyId: authContext.user.companiesId,
+          companyId: authContext.user.companyId,
           userId: authContext.user.id,
           type: 'invoice_updated',
           description: `Updated invoice ${invoice.number}`,
@@ -483,7 +483,7 @@ export async function DELETE(
     }
 
     // Enforce company-level data isolation
-    if (existingInvoice.companyId !== authContext.user.companiesId) {
+    if (existingInvoice.companyId !== authContext.user.companyId) {
       throw new NotFoundError('Invoice')
     }
 
@@ -520,7 +520,7 @@ export async function DELETE(
       await tx.activities.create({
         data: {
           id: crypto.randomUUID(),
-          companyId: authContext.user.companiesId,
+          companyId: authContext.user.companyId,
           userId: authContext.user.id,
           type: 'invoice_deleted',
           description: `Deleted invoice ${existingInvoice.number} for ${existingInvoice.customerName}`,

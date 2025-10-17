@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     console.log(`📧 Processing consolidation send for ${customerIds.length} customers`)
 
     // Get all consolidation candidates for the company
-    const allCandidates = await customerConsolidationService.getConsolidationCandidates(session.user.companiesId)
+    const allCandidates = await customerConsolidationService.getConsolidationCandidates(session.user.companyId)
 
     const results: BulkOperationResult['results'] = []
     let totalInvoicesConsolidated = 0
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
         // Find an active sequence for execution
         const activeSequence = await prisma.follow_up_sequencess.findFirst({
           where: {
-            companyId: session.user.companiesId,
+            companyId: session.user.companyId,
             active: true
           }
         })
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
     await prisma.activities.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: session.user.companiesId,
+        companyId: session.user.companyId,
         userId: session.user.id,
         type: 'BULK_CONSOLIDATION_SENT',
         description: `Bulk consolidation sent: ${successCount} successful, ${failureCount} failed`,

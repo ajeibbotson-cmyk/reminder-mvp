@@ -126,7 +126,7 @@ async function processSinglePaymentWorkflow(request: NextRequest, authContext: a
     {
       userId: authContext.user.id,
       userRole: authContext.user.role,
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       reason: reason || `Payment workflow: ${event}`,
       metadata
     }
@@ -137,7 +137,7 @@ async function processSinglePaymentWorkflow(request: NextRequest, authContext: a
     processingContext: {
       processedAt: new Date().toISOString(),
       processedBy: authContext.user.name,
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       automaticProcessing: true
     },
     nextSteps: result.recommendedActions
@@ -159,7 +159,7 @@ async function processBatchPaymentWorkflow(request: NextRequest, authContext: an
     {
       userId: authContext.user.id,
       userRole: authContext.user.role,
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       batchId: batchId || `batch_${Date.now()}`
     }
   )
@@ -170,7 +170,7 @@ async function processBatchPaymentWorkflow(request: NextRequest, authContext: an
       batchId: batchId || `batch_${Date.now()}`,
       processedAt: new Date().toISOString(),
       processedBy: authContext.user.name,
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       businessHoursProcessing: isUAEBusinessHours(),
       forcedProcessing: forceProcess && !isUAEBusinessHours()
     },
@@ -198,7 +198,7 @@ async function processPaymentWebhook(request: NextRequest, authContext: any) {
 
   const result = await paymentWorkflowService.processPaymentNotification(
     notificationData,
-    authContext.user.companiesId
+    authContext.user.companyId
   )
 
   return successResponse({
@@ -207,7 +207,7 @@ async function processPaymentWebhook(request: NextRequest, authContext: any) {
       webhookProcessedAt: new Date().toISOString(),
       externalPaymentId: notificationData.externalPaymentId,
       gatewayStatus: notificationData.status,
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       automaticProcessing: true
     },
     gatewayInfo: {
@@ -230,7 +230,7 @@ async function processPaymentReconciliation(request: NextRequest, authContext: a
 
   const result = await paymentWorkflowService.reconcileInvoicePayments(
     invoiceId,
-    authContext.user.companiesId
+    authContext.user.companyId
   )
 
   return successResponse({
@@ -238,7 +238,7 @@ async function processPaymentReconciliation(request: NextRequest, authContext: a
     processingContext: {
       reconciledAt: new Date().toISOString(),
       reconciledBy: authContext.user.name,
-      companyId: authContext.user.companiesId
+      companyId: authContext.user.companyId
     },
     complianceInfo: {
       uaeCompliant: true,
@@ -254,7 +254,7 @@ async function getWorkflowStatus(authContext: any) {
   
   const recentWorkflowActivities = await prisma.activities.findMany({
     where: {
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       type: 'payment_workflow_processed',
       createdAt: {
         gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
@@ -267,7 +267,7 @@ async function getWorkflowStatus(authContext: any) {
   const workflowStats = await prisma.activities.groupBy({
     by: ['metadata'],
     where: {
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       type: 'payment_workflow_processed',
       createdAt: {
         gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
@@ -318,7 +318,7 @@ async function getWorkflowStatus(authContext: any) {
 async function getReconciliationStatus(invoiceId: string, authContext: any) {
   const result = await paymentWorkflowService.reconcileInvoicePayments(
     invoiceId,
-    authContext.user.companiesId
+    authContext.user.companyId
   )
 
   return successResponse({
@@ -326,7 +326,7 @@ async function getReconciliationStatus(invoiceId: string, authContext: any) {
     analysisContext: {
       analyzedAt: new Date().toISOString(),
       analyzedBy: authContext.user.name,
-      companyId: authContext.user.companiesId
+      companyId: authContext.user.companyId
     },
     recommendations: generateReconciliationRecommendations(result)
   }, `Reconciliation analysis completed for invoice ${result.invoiceNumber}`)

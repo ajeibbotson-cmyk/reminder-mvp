@@ -125,6 +125,21 @@
       "dueDate": "Due Date",
       "customerEmail": "Customer Email",
       "customerPhone": "Customer Phone"
+    },
+    "importHistory": {
+      "title": "Import History",
+      "description": "View past import batches and their status",
+      "noBatches": "No import history found",
+      "noImportsYet": "No imports yet",
+      "noImportsDescription": "Upload your first invoice file to get started",
+      "batchId": "Batch ID",
+      "fileName": "File Name",
+      "status": "Status",
+      "totalRecords": "Total Records",
+      "successCount": "Successful",
+      "failureCount": "Failed",
+      "createdAt": "Imported On",
+      "viewDetails": "View Details"
     }
   },
   "fieldMapping": {

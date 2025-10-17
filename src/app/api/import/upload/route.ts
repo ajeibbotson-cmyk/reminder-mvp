@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
     }))
 
     // Ensure user can only upload for their company
-    if (uploadData.companyId !== authContext.user.companiesId) {
-      uploadData.companyId = authContext.user.companiesId
+    if (uploadData.companyId !== authContext.user.companyId) {
+      uploadData.companyId = authContext.user.companyId
     }
 
     // Read file buffer

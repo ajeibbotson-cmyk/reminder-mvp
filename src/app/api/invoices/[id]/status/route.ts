@@ -28,7 +28,7 @@ export async function PATCH(
     const result = await invoiceStatusService.updateInvoiceStatus(id, status, {
       userId: authContext.user.id,
       userRole: authContext.user.role,
-      companyId: authContext.user.companiesId,
+      companyId: authContext.user.companyId,
       reason,
       notes,
       notifyCustomer,
@@ -48,7 +48,7 @@ export async function PATCH(
       {
         userId: authContext.user.id,
         userRole: authContext.user.role,
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         ipAddress: request.headers.get('x-forwarded-for') || undefined,
         userAgent: request.headers.get('user-agent') || undefined,
         apiEndpoint: '/api/invoices/[id]/status',
@@ -191,7 +191,7 @@ export async function GET(
     const invoice = await prisma.invoices.findUnique({
       where: { 
         id,
-        companyId: authContext.user.companiesId // Enforce company isolation
+        companyId: authContext.user.companyId // Enforce company isolation
       },
       include: {
         payments: {
@@ -222,7 +222,7 @@ export async function GET(
     // Get status change history from audit trail
     const statusHistory = await prisma.activities.findMany({
       where: {
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         type: 'invoice_status_updated',
         metadata: {
           path: ['invoiceId'],
@@ -252,7 +252,7 @@ export async function GET(
       invoice.status, // Same status to get available transitions
       {
         invoice,
-        user: { role: authContext.user.role, companyId: authContext.user.companiesId }
+        user: { role: authContext.user.role, companyId: authContext.user.companyId }
       }
     )
 

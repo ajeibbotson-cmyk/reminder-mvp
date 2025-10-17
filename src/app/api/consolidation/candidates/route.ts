@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
       offset: searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0
     }
 
-    console.log(`🔍 Getting consolidation candidates for company ${session.user.companiesId}`)
+    console.log(`🔍 Getting consolidation candidates for company ${session.user.companyId}`)
 
     // Get consolidation candidates
-    const allCandidates = await customerConsolidationService.getConsolidationCandidates(session.user.companiesId)
+    const allCandidates = await customerConsolidationService.getConsolidationCandidates(session.user.companyId)
 
     // Apply filters
     let filteredCandidates = allCandidates

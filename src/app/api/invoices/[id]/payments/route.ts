@@ -71,7 +71,7 @@ export async function POST(
       const invoice = await tx.invoices.findUnique({
         where: { 
           id: invoiceId,
-          companyId: authContext.user.companiesId // Enforce company isolation
+          companyId: authContext.user.companyId // Enforce company isolation
         },
         include: {
           payments: {
@@ -153,7 +153,7 @@ export async function POST(
             {
               userId: authContext.user.id,
               userRole: authContext.user.role,
-              companyId: authContext.user.companiesId,
+              companyId: authContext.user.companyId,
               reason: `Automatic status update - payment received (${formatUAECurrency(newPaymentAmount, invoice.currency)})`,
               notes: `Payment method: ${paymentData.method}${paymentData.reference ? `, Reference: ${paymentData.reference}` : ''}`,
               notifyCustomer: paymentData.notifyCustomer,
@@ -171,7 +171,7 @@ export async function POST(
       await tx.activities.create({
         data: {
           id: crypto.randomUUID(),
-          companyId: authContext.user.companiesId,
+          companyId: authContext.user.companyId,
           userId: authContext.user.id,
           type: 'payment_recorded',
           description: `Recorded ${formatUAECurrency(newPaymentAmount, invoice.currency)} payment for invoice ${invoice.number}`,
@@ -200,7 +200,7 @@ export async function POST(
 
       // Schedule customer notification if requested
       if (paymentData.notifyCustomer) {
-        await schedulePaymentNotification(tx, invoice, payment, authContext.user.companiesId)
+        await schedulePaymentNotification(tx, invoice, payment, authContext.user.companyId)
       }
 
       // Fetch updated invoice for response
@@ -295,7 +295,7 @@ export async function GET(
     const invoice = await prisma.invoices.findUnique({
       where: { 
         id: invoiceId,
-        companyId: authContext.user.companiesId // Enforce company isolation
+        companyId: authContext.user.companyId // Enforce company isolation
       },
       include: {
         payments: {
@@ -332,7 +332,7 @@ export async function GET(
     // Get payment activity history
     const paymentActivities = await prisma.activities.findMany({
       where: {
-        companyId: authContext.user.companiesId,
+        companyId: authContext.user.companyId,
         type: 'payment_recorded',
         metadata: {
           path: ['invoiceId'],
