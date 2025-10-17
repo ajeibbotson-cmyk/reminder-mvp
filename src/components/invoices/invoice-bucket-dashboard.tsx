@@ -32,14 +32,27 @@ export function InvoiceBucketDashboard({ onEmailCampaign }: InvoiceBucketDashboa
     setSelectedBucket(selectedBucket === bucketId ? null : bucketId)
   }
 
-  const handleQuickAction = (bucket: InvoiceBucket, action: 'send_all' | 'review_all') => {
+  const handleQuickAction = async (bucket: InvoiceBucket, action: 'send_all' | 'review_all') => {
     if (action === 'send_all' && bucket.eligibleForReminder > 0) {
-      // This would typically open an email campaign modal
-      // For now, we'll just log the action
-      console.log(`Quick send all for bucket ${bucket.id}`)
-      if (onEmailCampaign) {
-        // In a real implementation, we'd fetch the invoice IDs for this bucket
-        onEmailCampaign([])
+      // Fetch all invoice IDs for this bucket to create email campaign
+      try {
+        const response = await fetch(`/api/invoices/buckets/${bucket.id}?limit=1000`)
+        if (!response.ok) throw new Error('Failed to fetch bucket invoices')
+
+        const bucketData = await response.json()
+        const invoiceIds = bucketData.invoiceIds || []
+
+        // Open email modal with invoice IDs
+        setCampaignInvoiceIds(invoiceIds)
+        setShowEmailModal(true)
+
+        // Also call callback if provided
+        if (onEmailCampaign) {
+          onEmailCampaign(invoiceIds)
+        }
+      } catch (error) {
+        console.error('Failed to fetch invoice IDs:', error)
+        alert('Failed to load invoices for email campaign')
       }
     } else if (action === 'review_all') {
       setSelectedBucket(bucket.id)

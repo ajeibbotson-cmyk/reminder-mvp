@@ -71,8 +71,31 @@ export async function GET(
       is_active: true
     }
 
-    // Note: Date filtering removed for now - causing issues with Prisma query generation
-    // Will filter results in-memory after fetch to get dashboard working first
+    // Add date filtering based on bucket definition (SQL filtering - Option C)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Start of today
+
+    if (bucketDef.max === null) {
+      // For 30+ days bucket (open-ended)
+      const minDate = new Date(today)
+      minDate.setDate(minDate.getDate() - bucketDef.min)
+
+      whereClause.due_date = {
+        lte: minDate
+      }
+    } else {
+      // For ranged buckets (1-3, 4-7, etc)
+      const minDate = new Date(today)
+      minDate.setDate(minDate.getDate() - bucketDef.max)
+
+      const maxDate = new Date(today)
+      maxDate.setDate(maxDate.getDate() - bucketDef.min)
+
+      whereClause.due_date = {
+        gte: minDate,
+        lte: maxDate
+      }
+    }
 
     // Add search filter if provided
     if (search) {
@@ -189,6 +212,7 @@ export async function GET(
     return NextResponse.json({
       bucketId,
       invoices: bucketInvoices,
+      invoiceIds: bucketInvoices.map(inv => inv.id), // For email campaign integration
       stats: bucketStats,
       pagination,
       filters: {
