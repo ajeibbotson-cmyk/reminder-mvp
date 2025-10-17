@@ -43,6 +43,7 @@ import {
   X
 } from 'lucide-react'
 import { formatCurrency } from '@/hooks/use-invoice-buckets'
+import { useEmailTemplates } from '@/hooks/useEmailTemplates'
 
 interface EmailCampaignModalProps {
   isOpen: boolean
@@ -115,7 +116,11 @@ Best regards,
     }
   })
 
-  const emailTemplates = [
+  // Fetch database templates with fallback
+  const { templates: dbTemplates, loading: templatesLoading, error: templatesError } = useEmailTemplates('INVOICE_REMINDER')
+
+  // Hardcoded fallback templates (used if database fails or is empty)
+  const fallbackTemplates = [
     {
       id: 'gentle-reminder',
       name: 'Gentle Reminder',
@@ -138,6 +143,16 @@ Best regards,
       preview: 'This is our final attempt to collect...'
     }
   ]
+
+  // Use database templates if available, otherwise fall back to hardcoded
+  const emailTemplates = dbTemplates.length > 0 ? dbTemplates.map(t => ({
+    id: t.id,
+    name: t.name,
+    description: t.description || 'Email template',
+    subject: t.subject_en,
+    preview: t.content_en.substring(0, 50) + '...',
+    content: t.content_en
+  })) : fallbackTemplates
 
   const mergeTagOptions = [
     { tag: '{customer_name}', description: 'Customer full name' },
@@ -271,13 +286,25 @@ Best regards,
                 <div>
                   <Label htmlFor="template">Email Template</Label>
                   <div className="space-y-2 mt-2">
+                    {templatesLoading && (
+                      <div className="text-sm text-gray-500 py-2">Loading templates...</div>
+                    )}
+                    {templatesError && (
+                      <div className="text-sm text-amber-600 py-2">Using default templates (database unavailable)</div>
+                    )}
                     {emailTemplates.map((template) => (
                       <Card
                         key={template.id}
                         className={`cursor-pointer transition-colors ${
                           formData.templateId === template.id ? 'border-blue-500 bg-blue-50' : ''
                         }`}
-                        onClick={() => updateFormData({ templateId: template.id })}
+                        onClick={() => {
+                          updateFormData({
+                            templateId: template.id,
+                            emailSubject: template.subject,
+                            emailContent: (template as any).content || formData.emailContent
+                          })
+                        }}
                       >
                         <CardContent className="p-3">
                           <div className="flex items-center justify-between">
