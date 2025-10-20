@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { Session } from 'next-auth'
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
+import { SESClient, SendEmailCommand, SendRawEmailCommand } from '@aws-sdk/client-ses'
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
 import { z } from 'zod'
 
 // ==========================================
@@ -37,7 +38,8 @@ const CampaignOptionsSchema = z.object({
     scheduleFor: z.date().optional(), // Immediate or scheduled
     respectBusinessHours: z.boolean().default(true),
     batchSize: z.number().min(1).max(50).default(5),
-    delayBetweenBatches: z.number().min(1000).default(3000)
+    delayBetweenBatches: z.number().min(1000).default(3000),
+    attachInvoicePdf: z.boolean().default(true) // Attach invoice PDF from S3
   }).default({}),
 
   // Personalization
@@ -104,27 +106,65 @@ interface SendResults {
 }
 
 // ==========================================
+// SYSTEM SESSION HELPER
+// ==========================================
+
+/**
+ * Create a system session for background jobs (auto-send, cron tasks)
+ * Used when operations run without a user session
+ */
+export function createSystemSession(companyId: string, userId?: string): Session {
+  return {
+    user: {
+      id: userId || 'system',
+      email: 'system@reminder.internal',
+      name: 'System',
+      companyId: companyId,
+      role: 'ADMIN' as any
+    },
+    expires: new Date(Date.now() + 1000 * 60 * 60).toISOString() // 1 hour
+  }
+}
+
+// ==========================================
 // UNIFIED EMAIL SERVICE CLASS
 // ==========================================
 
 export class UnifiedEmailService {
   private prisma: PrismaClient
-  private session: Session
+  private session: Session | null
   private config: UnifiedEmailConfig
   private sesClient: SESClient
+  private s3Client: S3Client
 
   constructor(
     prisma: PrismaClient,
-    session: Session,
+    session: Session | null,  // Now optional for system operations
     config: Partial<UnifiedEmailConfig> = {}
   ) {
     this.prisma = prisma
     this.session = session
-    this.config = UnifiedEmailConfigSchema.parse(config)
+
+    // Validate session is required for the config
+    const defaultFromEmail = process.env.AWS_SES_FROM_EMAIL || 'noreply@reminder.com'
+
+    this.config = UnifiedEmailConfigSchema.parse({
+      defaultFromEmail,
+      ...config
+    })
 
     // Initialize AWS SES client
     this.sesClient = new SESClient({
       region: this.config.awsRegion,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
+      }
+    })
+
+    // Initialize AWS S3 client for PDF attachments
+    this.s3Client = new S3Client({
+      region: process.env.AWS_S3_REGION || this.config.awsRegion,
       credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
@@ -150,6 +190,7 @@ export class UnifiedEmailService {
     }
 
     const companyId = this.session.user.companyId
+    const userId = this.session.user.id || 'system'
 
     try {
       // 1. Validate and parse options
@@ -162,7 +203,7 @@ export class UnifiedEmailService {
           company_id: companyId // Multi-tenant security
         },
         include: {
-          customer: true,
+          customers: true,
           companies: true
         }
       })
@@ -194,18 +235,19 @@ export class UnifiedEmailService {
           batch_size: validatedOptions.sendingOptions.batchSize,
           delay_between_batches: validatedOptions.sendingOptions.delayBetweenBatches,
           respect_business_hours: validatedOptions.sendingOptions.respectBusinessHours,
+          attach_invoice_pdf: validatedOptions.sendingOptions.attachInvoicePdf,
           scheduled_for: validatedOptions.sendingOptions.scheduleFor,
-          created_by: this.session.user.id,
+          created_by: userId,  // Support both user and system sessions
 
           // Create associated email send records
           campaign_email_sends: {
             create: invoices
-              .filter(invoice => invoice.customer?.email) // Only valid emails
+              .filter(invoice => invoice.customer_email) // Only valid emails
               .map(invoice => ({
                 company_id: companyId,
                 invoice_id: invoice.id,
                 customer_id: invoice.customer_id,
-                recipient_email: invoice.customer!.email!,
+                recipient_email: invoice.customer_email!,
                 email_subject: this.resolveSubjectMergeTags(validatedOptions.emailSubject, invoice),
                 email_content: this.resolveContentMergeTags(validatedOptions.emailContent, invoice),
                 delivery_status: 'pending',
@@ -249,7 +291,17 @@ export class UnifiedEmailService {
       },
       include: {
         campaign_email_sends: {
-          where: { delivery_status: 'pending' }
+          where: { delivery_status: 'pending' },
+          include: {
+            invoices: {
+              select: {
+                id: true,
+                number: true,
+                pdf_s3_key: true,
+                pdf_s3_bucket: true
+              }
+            }
+          }
         }
       }
     })
@@ -283,6 +335,9 @@ export class UnifiedEmailService {
       let sentCount = 0
       let failedCount = 0
 
+      // Get attachment setting (default true for backward compatibility)
+      const attachPdf = campaign.attach_invoice_pdf ?? true
+
       // Process emails in batches
       for (let i = 0; i < pendingEmails.length; i += batchSize) {
         currentBatch++
@@ -291,7 +346,7 @@ export class UnifiedEmailService {
         // Send batch emails in parallel
         const batchPromises = batch.map(async (emailSend) => {
           try {
-            const result = await this.sendSingleEmail(emailSend)
+            const result = await this.sendSingleEmail(emailSend, attachPdf)
 
             // Update database record
             await this.prisma.campaignEmailSend.update({
@@ -503,14 +558,15 @@ export class UnifiedEmailService {
     let duplicateEmails = 0
 
     // Check suppression list
-    const suppressedEmailList = await this.prisma.emailSuppression.findMany({
+    const suppressedEmailList = await this.prisma.email_suppression_list.findMany({
       where: { company_id: this.session.user.companyId },
-      select: { email: true }
+      select: { email_address: true }
     })
-    const suppressedSet = new Set(suppressedEmailList.map(s => s.email.toLowerCase()))
+    const suppressedSet = new Set(suppressedEmailList.map(s => s.email_address.toLowerCase()))
 
     for (const invoice of invoices) {
-      const email = invoice.customer?.email?.toLowerCase()
+      // Use denormalized customer_email field (invoices have it directly)
+      const email = invoice.customer_email?.toLowerCase()
 
       // Missing email
       if (!email) {
@@ -575,30 +631,130 @@ export class UnifiedEmailService {
   }
 
   /**
-   * Send single email via AWS SES
+   * Fetch PDF from S3 for email attachment
    */
-  private async sendSingleEmail(emailSend: any): Promise<EmailSendResult> {
+  private async fetchPdfFromS3(s3Key: string, s3Bucket: string): Promise<Buffer | null> {
     try {
-      const command = new SendEmailCommand({
-        Source: this.config.defaultFromEmail,
-        Destination: {
-          ToAddresses: [emailSend.recipient_email]
-        },
-        Message: {
-          Subject: {
-            Data: emailSend.email_subject,
-            Charset: 'UTF-8'
-          },
-          Body: {
-            Html: {
-              Data: emailSend.email_content,
-              Charset: 'UTF-8'
-            }
-          }
-        }
+      const command = new GetObjectCommand({
+        Bucket: s3Bucket,
+        Key: s3Key
       })
 
-      const response = await this.sesClient.send(command)
+      const response = await this.s3Client.send(command)
+
+      if (!response.Body) {
+        console.error(`S3 PDF fetch failed: No body for ${s3Key}`)
+        return null
+      }
+
+      // Convert stream to buffer
+      const chunks: Uint8Array[] = []
+      for await (const chunk of response.Body as any) {
+        chunks.push(chunk)
+      }
+
+      return Buffer.concat(chunks)
+    } catch (error) {
+      console.error(`S3 PDF fetch error for ${s3Key}:`, error)
+      return null
+    }
+  }
+
+  /**
+   * Build MIME email with PDF attachment
+   * AWS SES requires raw MIME format for attachments
+   */
+  private buildMimeEmailWithAttachment(
+    to: string,
+    subject: string,
+    htmlBody: string,
+    pdfBuffer: Buffer,
+    pdfFileName: string
+  ): string {
+    const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(7)}`
+
+    // Email headers
+    const headers = [
+      `From: ${this.config.defaultFromEmail}`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      `MIME-Version: 1.0`,
+      `Content-Type: multipart/mixed; boundary="${boundary}"`
+    ].join('\r\n')
+
+    // HTML body part
+    const htmlPart = [
+      `--${boundary}`,
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: 7bit`,
+      ``,
+      htmlBody,
+      ``
+    ].join('\r\n')
+
+    // PDF attachment part
+    const base64Pdf = pdfBuffer.toString('base64')
+    const attachmentPart = [
+      `--${boundary}`,
+      `Content-Type: application/pdf; name="${pdfFileName}"`,
+      `Content-Description: ${pdfFileName}`,
+      `Content-Disposition: attachment; filename="${pdfFileName}"`,
+      `Content-Transfer-Encoding: base64`,
+      ``,
+      base64Pdf,
+      ``
+    ].join('\r\n')
+
+    // Final boundary
+    const endBoundary = `--${boundary}--`
+
+    return [headers, '', htmlPart, attachmentPart, endBoundary].join('\r\n')
+  }
+
+  /**
+   * Send single email via AWS SES (with optional PDF attachment)
+   */
+  private async sendSingleEmail(emailSend: any, attachPdf: boolean = true): Promise<EmailSendResult> {
+    try {
+      // Check if we should attach PDF and if PDF is available
+      const invoice = emailSend.invoices
+      const shouldAttachPdf = attachPdf && invoice?.pdf_s3_key && invoice?.pdf_s3_bucket
+
+      let response: any
+
+      if (shouldAttachPdf) {
+        // Fetch PDF from S3
+        const pdfBuffer = await this.fetchPdfFromS3(invoice.pdf_s3_key, invoice.pdf_s3_bucket)
+
+        if (pdfBuffer) {
+          // Build MIME email with attachment
+          const pdfFileName = `invoice-${invoice.number || invoice.id}.pdf`
+          const rawMessage = this.buildMimeEmailWithAttachment(
+            emailSend.recipient_email,
+            emailSend.email_subject,
+            emailSend.email_content,
+            pdfBuffer,
+            pdfFileName
+          )
+
+          // Send using SendRawEmailCommand
+          const rawCommand = new SendRawEmailCommand({
+            RawMessage: {
+              Data: Buffer.from(rawMessage)
+            }
+          })
+
+          response = await this.sesClient.send(rawCommand)
+          console.log(`Email sent with PDF attachment: ${pdfFileName} to ${emailSend.recipient_email}`)
+        } else {
+          // PDF fetch failed, send without attachment
+          console.warn(`PDF fetch failed for invoice ${invoice.id}, sending email without attachment`)
+          response = await this.sendEmailWithoutAttachment(emailSend)
+        }
+      } else {
+        // Send without attachment
+        response = await this.sendEmailWithoutAttachment(emailSend)
+      }
 
       return {
         recipientEmail: emailSend.recipient_email,
@@ -618,6 +774,32 @@ export class UnifiedEmailService {
         sentAt: new Date()
       }
     }
+  }
+
+  /**
+   * Send email without attachment using standard SES command
+   */
+  private async sendEmailWithoutAttachment(emailSend: any): Promise<any> {
+    const command = new SendEmailCommand({
+      Source: this.config.defaultFromEmail,
+      Destination: {
+        ToAddresses: [emailSend.recipient_email]
+      },
+      Message: {
+        Subject: {
+          Data: emailSend.email_subject,
+          Charset: 'UTF-8'
+        },
+        Body: {
+          Html: {
+            Data: emailSend.email_content,
+            Charset: 'UTF-8'
+          }
+        }
+      }
+    })
+
+    return await this.sesClient.send(command)
   }
 
   /**
@@ -647,9 +829,9 @@ export class UnifiedEmailService {
   private resolveSubjectMergeTags(subject: string, invoice: any): string {
     return subject
       .replace(/\{\{invoiceNumber\}\}/g, invoice.number || '')
-      .replace(/\{\{customerName\}\}/g, invoice.customer?.name || '')
-      .replace(/\{\{amount\}\}/g, invoice.amount_aed?.toString() || '')
-      .replace(/\{\{companyName\}\}/g, invoice.company?.name || '')
+      .replace(/\{\{customerName\}\}/g, invoice.customer_name || invoice.customer?.name || '')
+      .replace(/\{\{amount\}\}/g, invoice.amount?.toString() || invoice.amount_aed?.toString() || '')
+      .replace(/\{\{companyName\}\}/g, invoice.companies?.name || '')
   }
 
   /**
@@ -662,12 +844,12 @@ export class UnifiedEmailService {
 
     return content
       .replace(/\{\{invoiceNumber\}\}/g, invoice.number || '')
-      .replace(/\{\{customerName\}\}/g, invoice.customer?.name || '')
-      .replace(/\{\{amount\}\}/g, invoice.amount_aed?.toString() || '')
+      .replace(/\{\{customerName\}\}/g, invoice.customer_name || invoice.customer?.name || '')
+      .replace(/\{\{amount\}\}/g, invoice.amount?.toString() || invoice.amount_aed?.toString() || '')
       .replace(/\{\{dueDate\}\}/g, dueDate)
       .replace(/\{\{daysPastDue\}\}/g, daysPastDue.toString())
-      .replace(/\{\{companyName\}\}/g, invoice.company?.name || '')
-      .replace(/\{\{customerEmail\}\}/g, invoice.customer?.email || '')
+      .replace(/\{\{companyName\}\}/g, invoice.companies?.name || '')
+      .replace(/\{\{customerEmail\}\}/g, invoice.customer_email || invoice.customer?.email || '')
   }
 
   /**
@@ -700,6 +882,7 @@ export class UnifiedEmailService {
 
 /**
  * Create UnifiedEmailService instance with session validation
+ * Now supports both user sessions and system sessions for auto-send
  */
 export async function createUnifiedEmailService(
   session: Session | null,

@@ -163,6 +163,8 @@ model companies {
   activities                      activities[]
   audit_logs                      audit_logs[]
   bank_reconciliation             bank_reconciliation[]
+  bucket_configs                  bucket_configs[]
+  campaignEmailSends              campaignEmailSend[]
   customer_consolidated_reminders customer_consolidated_reminders[]
   customers                       customers[]
   email_logs                      email_logs[]
@@ -170,6 +172,7 @@ model companies {
   email_templates                 email_templates[]
   follow_up_sequences             follow_up_sequences[]
   import_batches                  import_batches[]
+  invoiceCampaigns                invoiceCampaign[]
   invoices                        invoices[]
   users                           users[]
 
@@ -595,6 +598,7 @@ model invoices {
   pdf_s3_key         String?
   pdf_s3_bucket      String?
   pdf_uploaded_at    DateTime?
+  campaignEmailSends campaignEmailSend[]
   email_logs         email_logs[]
   follow_up_logs     follow_up_logs[]
   invoice_items      invoice_items[]
@@ -778,6 +782,88 @@ enum ReminderType {
   URGENT_CONSOLIDATED
   FINAL_CONSOLIDATED
   MANUAL_CONSOLIDATED
+}
+
+model bucket_configs {
+  id                    String   @id @default(uuid())
+  company_id            String
+  bucket_id             String   // 'not_due', 'overdue_1_3', 'overdue_4_7', etc.
+  auto_send_enabled     Boolean  @default(false)
+  email_template_id     String?  // Optional: link to specific email template
+  send_time_hour        Int      @default(9)  // Hour in UAE time (0-23)
+  send_days_of_week     Json     @default("[0,1,2,3,4]") // Sunday=0, Thursday=4 (UAE business days)
+  last_auto_send_at     DateTime?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  companies             companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_id, bucket_id])
+  @@index([company_id, auto_send_enabled])
+  @@index([auto_send_enabled, last_auto_send_at])
+}
+
+model invoiceCampaign {
+  id                      String   @id @default(uuid())
+  company_id              String
+  name                    String
+  email_subject           String
+  email_content           String   @db.Text
+  language                String   @default("ENGLISH")
+  template_id             String?
+  status                  String   @default("draft") // draft, sending, completed, failed, completed_with_errors, paused
+  total_recipients        Int      @default(0)
+  sent_count              Int      @default(0)
+  failed_count            Int      @default(0)
+  success_rate            Int      @default(0)
+  batch_size              Int      @default(5)
+  delay_between_batches   Int      @default(3000)
+  respect_business_hours  Boolean  @default(true)
+  attach_invoice_pdf      Boolean  @default(true) // Attach invoice PDF from S3
+  scheduled_for           DateTime?
+  started_at              DateTime?
+  completed_at            DateTime?
+  error_message           String?  @db.Text
+  created_by              String   // user_id or 'system' for auto-send
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+
+  companies               companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  campaign_email_sends    campaignEmailSend[]
+
+  @@index([company_id, status])
+  @@index([created_by])
+  @@index([scheduled_for])
+}
+
+model campaignEmailSend {
+  id                String    @id @default(uuid())
+  campaign_id       String
+  company_id        String
+  invoice_id        String
+  customer_id       String?
+  recipient_email   String
+  email_subject     String
+  email_content     String    @db.Text
+  delivery_status   String    @default("pending") // pending, sent, failed, bounced, delivered
+  ses_message_id    String?
+  error_message     String?   @db.Text
+  sent_at           DateTime?
+  delivered_at      DateTime?
+  bounced_at        DateTime?
+  language          String    @default("ENGLISH")
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  campaign          invoiceCampaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  companies         companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  invoices          invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  @@index([campaign_id, delivery_status])
+  @@index([company_id])
+  @@index([invoice_id])
+  @@index([delivery_status])
+  @@index([sent_at])
 }
 
 enum UaeBusinessType {
