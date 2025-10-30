@@ -47,6 +47,15 @@ Continue working on Reminder MVP. Implement [FEATURE NAME] from the PRD prioriti
 
 ## Completed Features
 
+### ✅ Reply-To Header Configuration (October 30, 2025)
+- Reply-To header support for MIME and standard emails
+- Company-level default Reply-To via email_settings JSON field
+- Intelligent fallback to customer email
+- Graceful degradation if unavailable
+- Zero database migrations required
+- **Status**: Production-ready, deployed to main branch
+- **Next**: Settings UI to configure Reply-To
+
 ### ✅ PDF Attachment System (October 20, 2025)
 - AWS S3 PDF retrieval with streaming downloads
 - RFC-compliant MIME multipart email encoding
@@ -104,9 +113,11 @@ Continue working on Reminder MVP. Implement [FEATURE NAME] from the PRD prioriti
 
 ### Recent Commits
 ```
+82f7fa2 - docs: Add Reply-To feature session summary
+95bb990 - feat: Add Reply-To header support for invoice reminder emails
+7a3ccfc - docs: Add resume session guide for future development
 624e53b - docs: Add comprehensive PDF attachment session summary
 01c3465 - feat: Add invoice PDF attachments to reminder emails
-cb3f784 - feat: Complete database-driven email template system
 ```
 
 ## User Preferences
@@ -187,6 +198,7 @@ prisma/
 
 ---
 
-**Last Updated**: October 20, 2025
-**Last Completed**: PDF Attachment Feature ✅
+**Last Updated**: October 30, 2025
+**Last Completed**: Reply-To Header Configuration ✅
+**PRD Progress**: 1/5 features complete (20%)
 **Status**: Ready for next feature development
