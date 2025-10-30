@@ -631,6 +631,40 @@ export class UnifiedEmailService {
   }
 
   /**
+   * Determine Reply-To email address for invoice reminder
+   * Priority: Customer override > Company default > Invoice customer email
+   */
+  private async getReplyToAddress(invoice: any): Promise<string | undefined> {
+    try {
+      // Get company email settings
+      const company = await this.prisma.companies.findUnique({
+        where: { id: invoice.company_id },
+        select: { email_settings: true }
+      })
+
+      const emailSettings = company?.email_settings as any
+      const companyReplyTo = emailSettings?.replyTo
+
+      // If company has a default Reply-To configured, use it
+      if (companyReplyTo && typeof companyReplyTo === 'string' && companyReplyTo.includes('@')) {
+        return companyReplyTo
+      }
+
+      // Otherwise, use the customer's email as Reply-To (they reply to themselves)
+      // This makes sense for B2B invoicing where customer knows the context
+      if (invoice.customer_email && invoice.customer_email.includes('@')) {
+        return invoice.customer_email
+      }
+
+      // No Reply-To configured
+      return undefined
+    } catch (error) {
+      console.error('Error determining Reply-To address:', error)
+      return undefined
+    }
+  }
+
+  /**
    * Fetch PDF from S3 for email attachment
    */
   private async fetchPdfFromS3(s3Key: string, s3Bucket: string): Promise<Buffer | null> {
@@ -669,7 +703,8 @@ export class UnifiedEmailService {
     subject: string,
     htmlBody: string,
     pdfBuffer: Buffer,
-    pdfFileName: string
+    pdfFileName: string,
+    replyTo?: string
   ): string {
     const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(7)}`
 
@@ -678,6 +713,7 @@ export class UnifiedEmailService {
       `From: ${this.config.defaultFromEmail}`,
       `To: ${to}`,
       `Subject: ${subject}`,
+      ...(replyTo ? [`Reply-To: ${replyTo}`] : []),
       `MIME-Version: 1.0`,
       `Content-Type: multipart/mixed; boundary="${boundary}"`
     ].join('\r\n')
@@ -720,6 +756,9 @@ export class UnifiedEmailService {
       const invoice = emailSend.invoices
       const shouldAttachPdf = attachPdf && invoice?.pdf_s3_key && invoice?.pdf_s3_bucket
 
+      // Determine Reply-To address for this email
+      const replyTo = await this.getReplyToAddress(invoice)
+
       let response: any
 
       if (shouldAttachPdf) {
@@ -734,7 +773,8 @@ export class UnifiedEmailService {
             emailSend.email_subject,
             emailSend.email_content,
             pdfBuffer,
-            pdfFileName
+            pdfFileName,
+            replyTo
           )
 
           // Send using SendRawEmailCommand
@@ -745,15 +785,15 @@ export class UnifiedEmailService {
           })
 
           response = await this.sesClient.send(rawCommand)
-          console.log(`Email sent with PDF attachment: ${pdfFileName} to ${emailSend.recipient_email}`)
+          console.log(`Email sent with PDF attachment: ${pdfFileName} to ${emailSend.recipient_email}${replyTo ? ` (Reply-To: ${replyTo})` : ''}`)
         } else {
           // PDF fetch failed, send without attachment
           console.warn(`PDF fetch failed for invoice ${invoice.id}, sending email without attachment`)
-          response = await this.sendEmailWithoutAttachment(emailSend)
+          response = await this.sendEmailWithoutAttachment(emailSend, replyTo)
         }
       } else {
         // Send without attachment
-        response = await this.sendEmailWithoutAttachment(emailSend)
+        response = await this.sendEmailWithoutAttachment(emailSend, replyTo)
       }
 
       return {
@@ -779,9 +819,10 @@ export class UnifiedEmailService {
   /**
    * Send email without attachment using standard SES command
    */
-  private async sendEmailWithoutAttachment(emailSend: any): Promise<any> {
+  private async sendEmailWithoutAttachment(emailSend: any, replyTo?: string): Promise<any> {
     const command = new SendEmailCommand({
       Source: this.config.defaultFromEmail,
+      ...(replyTo ? { ReplyToAddresses: [replyTo] } : {}),
       Destination: {
         ToAddresses: [emailSend.recipient_email]
       },
