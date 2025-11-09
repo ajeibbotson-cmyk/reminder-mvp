@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get recent consolidation activity (last 7 days)
-    const recentActivity = await prisma.customerConsolidatedReminders.findMany({
+    const recentActivity = await prisma.customerConsolidatedReminder.findMany({
       where: {
         companyId: session.user.companyId,
         createdAt: {
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
       .slice(0, 15)
 
     // Get upcoming scheduled consolidations
-    const upcomingScheduled = await prisma.customerConsolidatedReminders.findMany({
+    const upcomingScheduled = await prisma.customerConsolidatedReminder.findMany({
       where: {
         companyId: session.user.companyId,
         deliveryStatus: 'QUEUED',

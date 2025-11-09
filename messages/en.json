@@ -512,5 +512,65 @@
     "error": "An error occurred",
     "success": "Success",
     "confirm": "Confirm"
+  },
+  "emailTemplates": {
+    "pageTitle": "Email Templates",
+    "pageDescription": "Manage and customize your invoice reminder email templates",
+    "backToDashboard": "Back to Dashboard",
+    "createTemplate": "Create Template",
+    "stats": {
+      "total": "Total Templates",
+      "active": "Active",
+      "consolidation": "Consolidation Enabled",
+      "default": "Default Templates",
+      "inactive": "Inactive"
+    },
+    "filters": {
+      "title": "Filter Templates",
+      "description": "Filter by status, type, or consolidation preference",
+      "allStatuses": "All Statuses",
+      "allTypes": "All Types",
+      "allConsolidation": "All Consolidation",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "searchPlaceholder": "Search templates by name or description...",
+    "showingResults": "Showing all templates",
+    "templatesList": "Email Templates",
+    "templatesListDescription": "Create and manage email templates for automated invoice reminders",
+    "noTemplatesFound": "No Templates Found",
+    "noTemplatesFoundDescription": "Get started by creating your first email template for invoice reminders",
+    "createFirstTemplate": "Create First Template"
+  },
+  "followUps": {
+    "pageTitle": "Follow-up Sequences",
+    "pageDescription": "Manage automated follow-up sequences for invoice reminders",
+    "backToDashboard": "Back to Dashboard",
+    "createSequence": "Create Sequence",
+    "stats": {
+      "total": "Total Sequences",
+      "active": "Active",
+      "paused": "Paused",
+      "averageSteps": "Avg Steps",
+      "totalSent": "Total Sent"
+    },
+    "filters": {
+      "title": "Filter Sequences",
+      "description": "Filter by status or type",
+      "allStatuses": "All Statuses",
+      "active": "Active",
+      "inactive": "Inactive",
+      "paused": "Paused"
+    },
+    "searchPlaceholder": "Search sequences by name...",
+    "showingResults": "Showing all sequences",
+    "sequencesList": "Follow-up Sequences",
+    "sequencesListDescription": "Create and manage automated follow-up sequences for invoices",
+    "noSequencesFound": "No Sequences Found",
+    "noSequencesFoundDescription": "Get started by creating your first automated follow-up sequence",
+    "createFirstSequence": "Create First Sequence",
+    "steps": "Steps",
+    "status": "Status",
+    "lastModified": "Last Modified"
   }
 }

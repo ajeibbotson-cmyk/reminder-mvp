@@ -33,7 +33,7 @@ export async function GET(
     // TODO: Implement proper consolidation model
     // Get consolidation with related data
     /*
-    const consolidation = await prisma.customerConsolidatedReminders.findFirst({
+    const consolidation = await prisma.customerConsolidatedReminder.findFirst({
       where: {
         id,
         companyId: session.user.companyId // Ensure company isolation
@@ -113,7 +113,7 @@ export async function GET(
     }
 
     // Get related invoices
-    const invoices = await prisma.invoices.findMany({
+    const invoices = await prisma.invoice.findMany({
       where: {
         id: { in: consolidation.invoiceIds },
         companyId: session.user.companyId
@@ -247,7 +247,7 @@ export async function PUT(
     const updates = await request.json()
 
     // Validate consolidation exists and belongs to company
-    const existingConsolidation = await prisma.customerConsolidatedReminders.findFirst({
+    const existingConsolidation = await prisma.customerConsolidatedReminder.findFirst({
       where: {
         id,
         companyId: session.user.companyId
@@ -343,7 +343,7 @@ export async function PUT(
     }
 
     // Update the consolidation
-    const updatedConsolidation = await prisma.customerConsolidatedReminders.update({
+    const updatedConsolidation = await prisma.customerConsolidatedReminder.update({
       where: { id },
       data: updateData,
       include: {
@@ -358,7 +358,7 @@ export async function PUT(
     })
 
     // Log the update activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: session.user.companyId,
@@ -421,7 +421,7 @@ export async function DELETE(
     const { id } = params
 
     // Get consolidation details before deletion
-    const consolidation = await prisma.customerConsolidatedReminders.findFirst({
+    const consolidation = await prisma.customerConsolidatedReminder.findFirst({
       where: {
         id,
         companyId: session.user.companyId
@@ -463,7 +463,7 @@ export async function DELETE(
     }
 
     // Cancel any scheduled emails
-    const scheduledEmails = await prisma.emailLogs.findMany({
+    const scheduledEmails = await prisma.emailLog.findMany({
       where: {
         consolidatedReminderId: id,
         deliveryStatus: 'QUEUED'
@@ -471,19 +471,19 @@ export async function DELETE(
     })
 
     for (const email of scheduledEmails) {
-      await prisma.emailLogs.update({
+      await prisma.emailLog.update({
         where: { id: email.id },
         data: { deliveryStatus: 'CANCELLED' }
       })
     }
 
     // Delete the consolidation
-    await prisma.customerConsolidatedReminders.delete({
+    await prisma.customerConsolidatedReminder.delete({
       where: { id }
     })
 
     // Log the deletion activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: session.user.companyId,

@@ -24,7 +24,7 @@ export async function PUT(
     const existingTemplate = await prisma.email_templates.findFirst({
       where: {
         id: templateId,
-        company_id: session.user.companyId,
+        companyId: session.user.companyId,
       },
     })
 
@@ -39,7 +39,7 @@ export async function PUT(
     if (body.is_default && existingTemplate.template_type) {
       await prisma.email_templates.updateMany({
         where: {
-          company_id: session.user.companyId,
+          companyId: session.user.companyId,
           template_type: existingTemplate.template_type,
           is_default: true,
           id: { not: templateId },
@@ -51,7 +51,7 @@ export async function PUT(
     }
 
     const updateData: any = {
-      updated_at: new Date(),
+      updatedAt: new Date(),
     }
 
     // Only update provided fields
@@ -115,7 +115,7 @@ export async function DELETE(
     const existingTemplate = await prisma.email_templates.findFirst({
       where: {
         id: templateId,
-        company_id: session.user.companyId,
+        companyId: session.user.companyId,
       },
     })
 
@@ -130,8 +130,8 @@ export async function DELETE(
     const template = await prisma.email_templates.update({
       where: { id: templateId },
       data: {
-        is_active: false,
-        updated_at: new Date(),
+        isActive: false,
+        updatedAt: new Date(),
       },
     })
 

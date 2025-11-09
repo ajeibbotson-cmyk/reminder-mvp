@@ -204,7 +204,7 @@ export async function PUT(
     })
 
     // Log activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: authContext.user.companyId,
@@ -272,7 +272,7 @@ export async function DELETE(
       })
 
       // Log activity
-      await prisma.activities.create({
+      await prisma.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: authContext.user.companyId,
@@ -299,7 +299,7 @@ export async function DELETE(
     })
 
     // Log activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: authContext.user.companyId,

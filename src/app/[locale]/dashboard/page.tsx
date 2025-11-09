@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { EnhancedDashboard } from '@/components/dashboard/enhanced-dashboard';
+import { HybridDashboard } from '@/components/dashboard/hybrid-dashboard';
 import { UAEErrorBoundary } from '@/components/error-boundaries/uae-error-boundary';
 import { ProfessionalLoading } from '@/components/ui/professional-loading';
 
@@ -41,8 +41,8 @@ export default function DashboardPage() {
   return (
     <UAEErrorBoundary>
       <DashboardLayout>
-        <EnhancedDashboard 
-          companyId={session.user.companyId} 
+        <HybridDashboard
+          companyId={session.user.companyId}
           locale="en"
         />
       </DashboardLayout>

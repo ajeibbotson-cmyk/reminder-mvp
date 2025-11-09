@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Record the email open event
-    const updateResult = await prisma.emailLogs.updateMany({
+    const updateResult = await prisma.emailLog.updateMany({
       where: {
         id: emailLogId,
         openedAt: null // Only update if not already opened
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       console.log(`📧 Email opened: ${emailLogId}`)
 
       // Get email details for additional logging
-      const emailLog = await prisma.emailLogs.findUnique({
+      const emailLog = await prisma.emailLog.findUnique({
         where: { id: emailLogId },
         select: {
           id: true,
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       if (emailLog) {
         // Log activity for consolidated email opens
         if (emailLog.consolidatedReminderId) {
-          await prisma.activities.create({
+          await prisma.activity.create({
             data: {
               id: crypto.randomUUID(),
               companyId: emailLog.companyId,
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
 
         // Update consolidation effectiveness metrics
         if (emailLog.consolidatedReminderId) {
-          await prisma.customerConsolidatedReminders.update({
+          await prisma.customerConsolidatedReminder.update({
             where: { id: emailLog.consolidatedReminderId },
             data: {
               effectivenessMetrics: {

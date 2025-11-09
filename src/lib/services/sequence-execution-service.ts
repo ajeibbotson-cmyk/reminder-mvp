@@ -89,11 +89,11 @@ export class SequenceExecutionService {
     try {
       // Get sequence and invoice data
       const [sequence, invoice] = await Promise.all([
-        prisma.follow_up_sequences.findUnique({
+        prisma.followUpSequence.findUnique({
           where: { id: sequenceId },
           include: { companies: true }
         }),
-        prisma.invoices.findUnique({
+        prisma.invoice.findUnique({
           where: { id: invoiceId },
           include: { customers: true, companies: true }
         })
@@ -120,7 +120,7 @@ export class SequenceExecutionService {
       }
 
       // Check if sequence already running for this invoice
-      const existingExecution = await prisma.follow_up_logs.findFirst({
+      const existingExecution = await prisma.followUpLog.findFirst({
         where: {
           invoiceId,
           sequenceId,
@@ -204,7 +204,7 @@ export class SequenceExecutionService {
 
     try {
       // Get the last follow-up log for this execution
-      const lastLog = await prisma.follow_up_logs.findFirst({
+      const lastLog = await prisma.followUpLog.findFirst({
         where: {
           id: sequenceExecutionId // Using execution ID as reference
         },
@@ -542,7 +542,7 @@ export class SequenceExecutionService {
   ): Promise<{ shouldStop: boolean; reason?: string }> {
     
     // Check payment received
-    const payments = await prisma.payments.findMany({
+    const payments = await prisma.payment.findMany({
       where: { invoiceId: invoice.id }
     })
 
@@ -598,7 +598,7 @@ export class SequenceExecutionService {
     step: SequenceStep,
     emailLogId: string
   ): Promise<void> {
-    await prisma.follow_up_logs.create({
+    await prisma.followUpLog.create({
       data: {
         id: executionId,
         invoiceId,
@@ -635,7 +635,7 @@ export class SequenceExecutionService {
       }
 
       // Update follow-up logs to mark sequence as stopped
-      await prisma.follow_up_logs.updateMany({
+      await prisma.followUpLog.updateMany({
         where: {
           sequenceId,
           invoiceId
@@ -661,7 +661,7 @@ export class SequenceExecutionService {
     invoiceId: string
   ): Promise<SequenceExecution | null> {
     try {
-      const logs = await prisma.follow_up_logs.findMany({
+      const logs = await prisma.followUpLog.findMany({
         where: {
           sequenceId,
           invoiceId
@@ -708,7 +708,7 @@ export class SequenceExecutionService {
   async getSequenceAnalytics(sequenceId: string): Promise<SequenceAnalytics> {
     try {
       const [logs, sequence] = await Promise.all([
-        prisma.follow_up_logs.findMany({
+        prisma.followUpLog.findMany({
           where: { sequenceId },
           include: {
             emailLogs: true,
@@ -717,7 +717,7 @@ export class SequenceExecutionService {
             }
           }
         }),
-        prisma.follow_up_sequences.findUnique({
+        prisma.followUpSequence.findUnique({
           where: { id: sequenceId }
         })
       ])
@@ -816,7 +816,7 @@ export class SequenceExecutionService {
       console.log(`🔄 Starting consolidated sequence execution for customer ${consolidatedReminder.customerId}`)
 
       // Get sequence data
-      const sequence = await prisma.follow_up_sequencess.findUnique({
+      const sequence = await prisma.followUpSequences.findUnique({
         where: { id: sequenceId },
         include: { companies: true }
       })
@@ -830,7 +830,7 @@ export class SequenceExecutionService {
       }
 
       // Get all invoices for the consolidation
-      const invoices = await prisma.invoices.findMany({
+      const invoices = await prisma.invoice.findMany({
         where: {
           id: { in: consolidatedReminder.invoiceIds },
           companyId: consolidatedReminder.companyId
@@ -1238,7 +1238,7 @@ export class SequenceExecutionService {
     emailLogId: string
   ): Promise<void> {
     // Create a follow-up log entry that references the consolidation
-    await prisma.follow_up_logss.create({
+    await prisma.followUpLogs.create({
       data: {
         id: executionId,
         invoiceId: consolidatedReminder.invoiceIds[0], // Reference primary invoice

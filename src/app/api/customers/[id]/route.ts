@@ -16,45 +16,45 @@ export async function GET(
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.VIEWER])
 
-    const customer = await prisma.customers.findUnique({
+    const customer = await prisma.customer.findUnique({
       where: {
         id,
-        is_active: true // Only return active customers
+        isActive: true // Only return active customers
       },
       include: {
         invoices: {
           where: {
-            is_active: true
+            isActive: true
           },
-          orderBy: { created_at: 'desc' },
+          orderBy: { createdAt: 'desc' },
           include: {
             payments: {
-              orderBy: { payment_date: 'desc' }
+              orderBy: { paymentDate: 'desc' }
             },
-            invoice_items: {
-              orderBy: { created_at: 'asc' }
+            invoiceItems: {
+              orderBy: { createdAt: 'asc' }
             }
           }
         },
-        companies: {
+        company: {
           select: {
             id: true,
             name: true,
             trn: true,
-            default_vat_rate: true,
-            business_hours: true
+            defaultVatRate: true,
+            businessHours: true
           }
         },
-        email_logs: {
+        emailLogs: {
           take: 10,
-          orderBy: { sent_at: 'desc' },
+          orderBy: { sentAt: 'desc' },
           select: {
             id: true,
-            template_id: true,
+            templateId: true,
             subject: true,
-            delivery_status: true,
-            sent_at: true,
-            opened_at: true
+            deliveryStatus: true,
+            sentAt: true,
+            openedAt: true
           }
         }
       }
@@ -164,10 +164,10 @@ export async function PUT(
     const updateData = await validateRequestBody(request, updateCustomerSchema)
 
     // First check if customer exists and user has access
-    const existingCustomer = await prisma.customers.findUnique({
+    const existingCustomer = await prisma.customer.findUnique({
       where: {
         id,
-        is_active: true
+        isActive: true
       }
     })
 
@@ -186,12 +186,12 @@ export async function PUT(
       }
       
       // Check for duplicate TRN (excluding current customer)
-      const existingTrnCustomer = await prisma.customers.findFirst({
+      const existingTrnCustomer = await prisma.customer.findFirst({
         where: {
           companyId: authContext.user.companyId,
           // trn: updateData.trn,
           id: { not: id },
-          is_active: true
+          isActive: true
         }
       })
       
@@ -202,12 +202,12 @@ export async function PUT(
 
     // Check for duplicate email (excluding current customer)
     if (updateData.email && updateData.email !== existingCustomer.email) {
-      const existingEmailCustomer = await prisma.customers.findFirst({
+      const existingEmailCustomer = await prisma.customer.findFirst({
         where: {
           companyId: authContext.user.companyId,
           email: updateData.email,
           id: { not: id },
-          is_active: true
+          isActive: true
         }
       })
       
@@ -233,13 +233,13 @@ export async function PUT(
       // if (updateData.businessType !== undefined) updateFields.businessType = updateData.businessType
       // if (updateData.businessName !== undefined) updateFields.businessName = updateData.businessName
 
-      const customer = await tx.customers.update({
+      const customer = await tx.customer.update({
         where: { id },
         data: updateFields,
         include: {
           invoices: {
-            where: { is_active: true },
-            orderBy: { created_at: 'desc' },
+            where: { isActive: true },
+            orderBy: { createdAt: 'desc' },
             take: 5,
             include: {
               payments: true
@@ -250,11 +250,11 @@ export async function PUT(
 
       // If email changed, update all related invoices and maintain referential integrity
       if (updateData.email && updateData.email !== existingCustomer.email) {
-        await tx.invoices.updateMany({
+        await tx.invoice.updateMany({
           where: {
             customerEmail: existingCustomer.email,
             companyId: authContext.user.companyId,
-            is_active: true
+            isActive: true
           },
           data: {
             customerEmail: updateData.email,
@@ -266,11 +266,11 @@ export async function PUT(
 
       // If name changed, update all related invoices
       if (updateData.name && updateData.name !== existingCustomer.name) {
-        await tx.invoices.updateMany({
+        await tx.invoice.updateMany({
           where: {
             customerEmail: customer.email,
             companyId: authContext.user.companyId,
-            is_active: true
+            isActive: true
           },
           data: {
             customerName: updateData.name,
@@ -284,7 +284,7 @@ export async function PUT(
         updateData[key as keyof typeof updateData] !== undefined
       )
       
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
           companyId: authContext.user.companyId,
           userId: authContext.user.id,
@@ -343,15 +343,15 @@ export async function DELETE(
     }
 
     // First check if customer exists and user has access
-    const existingCustomer = await prisma.customers.findUnique({
+    const existingCustomer = await prisma.customer.findUnique({
       where: {
         id,
-        is_active: true
+        isActive: true
       },
       include: {
         invoices: {
           where: {
-            is_active: true
+            isActive: true
           },
           include: {
             payments: true
@@ -395,10 +395,10 @@ export async function DELETE(
 
     await prisma.$transaction(async (tx) => {
       // Soft delete the customer (UAE compliance - maintain audit trail)
-      await tx.customers.update({
+      await tx.customer.update({
         where: { id },
         data: {
-          is_active: false,
+          isActive: false,
           archivedAt: new Date(),
           // Append timestamp to email to allow re-creation with same email
           email: `${existingCustomer.email}_archived_${Date.now()}`
@@ -407,20 +407,20 @@ export async function DELETE(
 
       // Soft delete related invoices if any (for audit compliance)
       if (existingCustomer.invoices.length > 0) {
-        await tx.invoices.updateMany({
+        await tx.invoice.updateMany({
           where: {
             customerEmail: existingCustomer.email,
             companyId: authContext.user.companyId
           },
           data: {
-            is_active: false,
+            isActive: false,
             archivedAt: new Date()
           }
         })
       }
 
       // Log comprehensive activity for UAE audit requirements
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
           companyId: authContext.user.companyId,
           userId: authContext.user.id,

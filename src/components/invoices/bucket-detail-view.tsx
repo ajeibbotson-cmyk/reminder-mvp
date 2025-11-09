@@ -52,7 +52,7 @@ export function BucketDetailView({
 }: BucketDetailViewProps) {
   const [selectedInvoices, setSelectedInvoices] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState('due_date')
+  const [sortBy, setSortBy] = useState('dueDate')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [page, setPage] = useState(1)
 
@@ -216,11 +216,11 @@ export function BucketDetailView({
               <SelectValue placeholder="Sort by..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="due_date_asc">Due Date (Earliest)</SelectItem>
-              <SelectItem value="due_date_desc">Due Date (Latest)</SelectItem>
+              <SelectItem value="dueDate_asc">Due Date (Earliest)</SelectItem>
+              <SelectItem value="dueDate_desc">Due Date (Latest)</SelectItem>
               <SelectItem value="amount_desc">Amount (High to Low)</SelectItem>
               <SelectItem value="amount_asc">Amount (Low to High)</SelectItem>
-              <SelectItem value="customer_name_asc">Customer (A-Z)</SelectItem>
+              <SelectItem value="customerName_asc">Customer (A-Z)</SelectItem>
               <SelectItem value="daysOverdue_desc">Days Overdue (Most)</SelectItem>
             </SelectContent>
           </Select>
@@ -263,10 +263,10 @@ export function BucketDetailView({
                 </TableHead>
                 <TableHead
                   className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('customer_name')}
+                  onClick={() => handleSort('customerName')}
                 >
                   <div className="flex items-center gap-2">
-                    Customer {getSortIcon('customer_name')}
+                    Customer {getSortIcon('customerName')}
                   </div>
                 </TableHead>
                 <TableHead
@@ -287,10 +287,10 @@ export function BucketDetailView({
                 </TableHead>
                 <TableHead
                   className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('due_date')}
+                  onClick={() => handleSort('dueDate')}
                 >
                   <div className="flex items-center gap-2">
-                    Due Date {getSortIcon('due_date')}
+                    Due Date {getSortIcon('dueDate')}
                   </div>
                 </TableHead>
                 <TableHead>Status</TableHead>

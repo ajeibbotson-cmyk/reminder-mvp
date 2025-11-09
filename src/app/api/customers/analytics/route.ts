@@ -51,14 +51,14 @@ export async function GET(request: NextRequest) {
     // Total and Active Customers
     if (filters.metrics.includes('totalCustomers') || filters.metrics.includes('activeCustomers')) {
       queries.push(
-        prisma.customers.aggregate({
+        prisma.customer.aggregate({
           where: baseWhereClause,
           _count: { id: true }
         }).then(result => ({ totalCustomers: result._count.id }))
       )
 
       queries.push(
-        prisma.customers.aggregate({
+        prisma.customer.aggregate({
           where: {
             ...baseWhereClause,
             isActive: true
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     // New Customers in period
     if (filters.metrics.includes('newCustomers')) {
       queries.push(
-        prisma.customers.aggregate({
+        prisma.customer.aggregate({
           where: {
             ...baseWhereClause,
             createdAt: {
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     // Outstanding Balance calculations
     if (filters.metrics.includes('outstandingBalance')) {
       queries.push(
-        prisma.invoices.aggregate({
+        prisma.invoice.aggregate({
           where: {
             companyId: authContext.user.companyId,
             isActive: true,
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
     // Total Invoiced and Average Invoice Value
     if (filters.metrics.includes('totalInvoiced') || filters.metrics.includes('averageInvoiceValue')) {
       queries.push(
-        prisma.invoices.aggregate({
+        prisma.invoice.aggregate({
           where: {
             companyId: authContext.user.companyId,
             isActive: true,
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
     // Payment Behavior Analysis
     if (filters.metrics.includes('paymentBehavior')) {
       queries.push(
-        prisma.$queryRaw<{ payment_behavior: string; count: number; avg_days: number }[]>`
+        prisma.$queryRaw<{ paymentBehavior: string; count: number; avg_days: number }[]>`
           SELECT 
             CASE 
               WHEN AVG(EXTRACT(day FROM (p.payment_date - i.created_at))) <= i.payment_terms THEN 'on_time'
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
     // Top Customers by Revenue
     if (filters.metrics.includes('topCustomers')) {
       queries.push(
-        prisma.customers.findMany({
+        prisma.customer.findMany({
           where: baseWhereClause,
           include: {
             invoices: {
@@ -281,8 +281,8 @@ async function generateMonthlyCustomerMetrics(
     const monthlyData = await prisma.$queryRaw<{
       month: string;
       year: number;
-      new_customers: number;
-      total_customers: number;
+      new_customer: number;
+      total_customer: number;
       total_revenue: number;
       avg_invoice_value: number;
     }[]>`
@@ -297,8 +297,8 @@ async function generateMonthlyCustomerMetrics(
             AND c2.created_at <= DATE_TRUNC('month', c.created_at) + INTERVAL '1 month' - INTERVAL '1 day'
             ${includeInactive ? '' : 'AND c2.is_active = true'}
         ) as total_customers,
-        COALESCE(SUM(i.total_amount), 0) as total_revenue,
-        COALESCE(AVG(i.total_amount), 0) as avg_invoice_value
+        COALESCE(SUM(i.totalAmount), 0) as total_revenue,
+        COALESCE(AVG(i.totalAmount), 0) as avg_invoice_value
       FROM customers c
       LEFT JOIN invoices i ON i.customer_email = c.email AND i.company_id = c.company_id
         AND i.is_active = true
@@ -333,7 +333,7 @@ async function generateBusinessTypeMetrics(companyId: string, includeInactive: b
 // Helper function to generate payment terms metrics
 async function generatePaymentTermsMetrics(companyId: string, includeInactive: boolean) {
   try {
-    const paymentTermsData = await prisma.customers.groupBy({
+    const paymentTermsData = await prisma.customer.groupBy({
       by: ['paymentTerms'],
       where: {
         companyId,
@@ -371,8 +371,8 @@ async function generateCustomerGrowthMetrics(
   try {
     const growthData = await prisma.$queryRaw<{
       period: string;
-      new_customers: number;
-      churned_customers: number;
+      new_customer: number;
+      churned_customer: number;
       net_growth: number;
       growth_rate: number;
     }[]>`

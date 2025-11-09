@@ -19,7 +19,7 @@ export {
 }
 
 // Legacy prisma client for backward compatibility
-// This uses the pooled connection by default
+// CRITICAL FIX: Use DIRECT_URL because DATABASE_URL pooler (port 6543) has connectivity issues
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
@@ -27,6 +27,11 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DIRECT_URL || process.env.DATABASE_URL
+      }
+    },
     log: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],
   })
 

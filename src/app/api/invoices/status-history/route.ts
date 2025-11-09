@@ -168,10 +168,10 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Get total count for pagination
-    const totalCount = await prisma.activities.count({ where: whereConditions })
+    const totalCount = await prisma.activity.count({ where: whereConditions })
 
     // Fetch status history with related data
-    const statusHistory = await prisma.activities.findMany({
+    const statusHistory = await prisma.activity.findMany({
       where: whereConditions,
       include: {
         users: {
@@ -329,11 +329,11 @@ export async function POST(request: NextRequest) {
  * Get current business context for an invoice
  */
 async function getBusinessContext(invoiceId: string) {
-  const invoice = await prisma.invoices.findUnique({
+  const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
       payments: { select: { amount: true, paymentDate: true } },
-      customers: { select: { name: true, email: true } }
+      customer: { select: { name: true, email: true } }
     }
   })
 
@@ -440,7 +440,7 @@ async function generateAdvancedStatusAnalytics(
     }
   }
 
-  const statusHistory = await prisma.activities.findMany({
+  const statusHistory = await prisma.activity.findMany({
     where: whereConditions,
     include: {
       users: { select: { name: true, role: true } }
@@ -542,7 +542,7 @@ async function handleStatusHistoryExport(
   return successResponse({
     exportRequested: true,
     format,
-    estimatedRecords: await prisma.activities.count({ where: whereConditions }),
+    estimatedRecords: await prisma.activity.count({ where: whereConditions }),
     downloadUrl: `/api/invoices/status-history/download?format=${format}&companyId=${companyId}`,
     message: 'Export will be generated and download link will be provided'
   }, `Status history export (${format}) requested successfully`)

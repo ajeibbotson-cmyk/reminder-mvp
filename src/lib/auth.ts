@@ -23,12 +23,12 @@ export const authOptions: NextAuthOptions = {
           // Use direct connection for authentication
           const authPrisma = getAuthPrisma()
 
-          const user = await authPrisma.users.findUnique({
+          const user = await authPrisma.user.findUnique({
           where: {
             email: credentials.email
           },
           include: {
-            companies: true
+            company: true
           }
         })
 
@@ -49,8 +49,8 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
-            companyId: user.company_id,
-            company: user.companies
+            companyId: user.companyId,
+            company: user.company
           }
         } catch (error) {
           console.error('Auth error:', error)

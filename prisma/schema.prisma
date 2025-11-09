@@ -8,691 +8,829 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model ab_test_assignments {
-  id              String           @id
-  test_id         String
-  variant_id      String
-  recipient_email String
-  recipient_id    String?
-  assigned_at     DateTime         @default(now())
-  ab_test_config  ab_test_config   @relation(fields: [test_id], references: [id], onDelete: Cascade)
-  ab_test_events  ab_test_events[]
+// ============================================================================
+// A/B TESTING MODELS
+// ============================================================================
 
-  @@unique([test_id, recipient_email])
-  @@index([recipient_email])
-  @@index([test_id, variant_id])
+model AbTestAssignment {
+  id             String         @id
+  testId         String         @map("test_id")
+  variantId      String         @map("variant_id")
+  recipientEmail String         @map("recipient_email")
+  recipientId    String?        @map("recipient_id")
+  assignedAt     DateTime       @default(now()) @map("assigned_at")
+  abTestConfig   AbTestConfig   @relation(fields: [testId], references: [id], onDelete: Cascade)
+  abTestEvents   AbTestEvent[]
+
+  @@unique([testId, recipientEmail], map: "ab_test_assignments_test_id_recipient_email_key")
+  @@index([recipientEmail])
+  @@index([testId, variantId])
+  @@map("ab_test_assignments")
 }
 
-model ab_test_config {
-  id                  String                @id
-  name                String
-  description         String?
-  company_id          String
-  variants            Json
-  target_audience     Json
-  success_metrics     Json
-  minimum_sample_size Int                   @default(1000)
-  significance_level  Decimal               @default(0.05) @db.Decimal(3, 2)
-  power               Decimal               @default(0.80) @db.Decimal(3, 2)
-  status              String                @default("draft")
-  start_date          DateTime
-  end_date            DateTime?
-  created_at          DateTime              @default(now())
-  updated_at          DateTime
-  ab_test_assignments ab_test_assignments[]
-  companies           companies             @relation(fields: [company_id], references: [id], onDelete: Cascade)
-
-  @@index([company_id, status])
-  @@index([status, start_date])
-}
-
-model ab_test_events {
-  id                  String              @id
-  test_id             String
-  assignment_id       String
-  event_type          String
-  event_data          Json?
-  timestamp           DateTime            @default(now())
-  ab_test_assignments ab_test_assignments @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
-
-  @@index([assignment_id, event_type])
-  @@index([test_id, event_type])
-  @@index([timestamp])
-}
-
-model accounts {
-  id                  String  @id
-  user_id             String
-  type                String
-  provider            String
-  provider_account_id String
-  refresh_token       String?
-  access_token        String?
-  expires_at          Int?
-  token_type          String?
-  scope               String?
-  id_token            String?
-  session_state       String?
-  users               users   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@unique([provider, provider_account_id])
-}
-
-model activities {
-  id          String    @id
-  company_id  String
-  user_id     String
-  type        String
-  description String
-  metadata    Json?     @default("{}")
-  created_at  DateTime  @default(now())
-  companies   companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-}
-
-model audit_logs {
-  id              String    @id
-  company_id      String
-  user_id         String?
-  entity_type     String
-  entity_id       String
-  action          String
-  old_values      Json?
-  new_values      Json?
-  changed_fields  String[]
-  ip_address      String?
-  user_agent      String?
-  session_id      String?
-  request_id      String?
-  compliance_flag Boolean   @default(false)
-  risk_level      String    @default("LOW")
-  metadata        Json?
-  created_at      DateTime  @default(now())
-  companies       companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-
-  @@index([action, created_at])
-  @@index([company_id, created_at])
-  @@index([company_id, entity_type, action])
-  @@index([company_id, entity_type, created_at])
-  @@index([compliance_flag, risk_level])
-  @@index([created_at, risk_level])
-  @@index([entity_type, entity_id])
-  @@index([user_id, action, created_at])
-  @@index([user_id, created_at])
-}
-
-model bank_reconciliation {
-  id                  String    @id
-  company_id          String
-  bank_account        String
-  statement_date      DateTime
-  statement_ref       String?
-  opening_balance     Decimal   @db.Decimal(12, 2)
-  closing_balance     Decimal   @db.Decimal(12, 2)
-  total_credits       Decimal   @db.Decimal(12, 2)
-  total_debits        Decimal   @db.Decimal(12, 2)
-  reconciled_amount   Decimal   @db.Decimal(12, 2)
-  unreconciled_amount Decimal   @db.Decimal(12, 2)
-  status              String    @default("PENDING")
-  reconciled_by       String?
-  reconciled_at       DateTime?
-  created_at          DateTime  @default(now())
-  updated_at          DateTime
-  companies           companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-
-  @@index([bank_account, statement_date])
-  @@index([company_id, statement_date])
-  @@index([reconciled_by, reconciled_at])
-  @@index([status, created_at])
-}
-
-model companies {
-  id                              String                            @id
-  name                            String
-  trn                             String?                           @unique
-  address                         String?
-  settings                        Json?                             @default("{}")
-  created_at                      DateTime                          @default(now())
-  updated_at                      DateTime
-  business_hours                  Json?
-  default_vat_rate                Decimal?                          @default(5.00) @db.Decimal(5, 2)
-  email_settings                  Json?
-  archived_at                     DateTime?
-  is_active                       Boolean                           @default(true)
-  ab_test_config                  ab_test_config[]
-  activities                      activities[]
-  audit_logs                      audit_logs[]
-  bank_reconciliation             bank_reconciliation[]
-  bucket_configs                  bucket_configs[]
-  campaignEmailSends              campaignEmailSend[]
-  customer_consolidated_reminders customer_consolidated_reminders[]
-  customers                       customers[]
-  email_logs                      email_logs[]
-  email_suppression_list          email_suppression_list[]
-  email_templates                 email_templates[]
-  follow_up_sequences             follow_up_sequences[]
-  import_batches                  import_batches[]
-  invoiceCampaigns                invoiceCampaign[]
-  invoices                        invoices[]
-  users                           users[]
-
-  @@index([is_active, created_at])
-  @@index([trn])
-}
-
-model customer_consolidated_reminders {
-  id                        String              @id
-  customer_id               String
-  company_id                String
-  invoice_ids               String[]
-  total_amount              Decimal             @db.Decimal(12, 2)
-  currency                  String              @default("AED")
-  invoice_count             Int
-  reminder_type             ReminderType        @default(CONSOLIDATED)
-  escalation_level          EscalationLevel     @default(POLITE)
-  template_id               String?
-  scheduled_for             DateTime?
-  sent_at                   DateTime?
-  delivery_status           EmailDeliveryStatus @default(QUEUED)
-  aws_message_id            String?
-  last_contact_date         DateTime?
-  next_eligible_contact     DateTime?
-  contact_interval_days     Int                 @default(7)
-  priority_score            Int                 @default(0)
-  consolidation_reason      String?
-  business_rules_applied    Json?               @default("{}")
-  cultural_compliance_flags Json?               @default("{}")
-  email_opened_at           DateTime?
-  email_clicked_at          DateTime?
-  customer_responded_at     DateTime?
-  payment_received_at       DateTime?
-  created_at                DateTime            @default(now())
-  updated_at                DateTime
-  created_by                String?
-  companies                 companies           @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  users                     users?              @relation(fields: [created_by], references: [id])
-  customers                 customers           @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  email_templates           email_templates?    @relation(fields: [template_id], references: [id])
-  email_logs                email_logs[]
-
-  @@index([company_id, created_at])
-  @@index([company_id, delivery_status, priority_score])
-  @@index([company_id, delivery_status])
-  @@index([company_id, escalation_level, delivery_status])
-  @@index([company_id, priority_score])
-  @@index([company_id, reminder_type, escalation_level])
-  @@index([company_id, sent_at])
-  @@index([customer_id, company_id])
-  @@index([customer_id, next_eligible_contact])
-  @@index([customer_id, sent_at, delivery_status])
-  @@index([scheduled_for, delivery_status])
-}
-
-model customers {
-  id                              String                            @id
-  company_id                      String
-  name                            String
-  email                           String
-  phone                           String?
-  payment_terms                   Int?                              @default(30)
-  notes                           String?
-  created_at                      DateTime                          @default(now())
-  updated_at                      DateTime
-  name_ar                         String?
-  notes_ar                        String?
-  address                         String?
-  address_ar                      String?
-  archived_at                     DateTime?
-  business_name                   String?
-  business_name_ar                String?
-  business_type                   UaeBusinessType?
-  communication_pref              String?                           @default("email")
-  contact_person                  String?
-  contact_person_ar               String?
-  credit_limit                    Decimal?                          @db.Decimal(12, 2)
-  customer_since                  DateTime?
-  is_active                       Boolean                           @default(true)
-  last_interaction                DateTime?
-  last_payment_date               DateTime?
-  lifetime_value                  Decimal?                          @default(0.00) @db.Decimal(12, 2)
-  outstanding_balance             Decimal?                          @default(0.00) @db.Decimal(12, 2)
-  payment_behavior                Json?                             @default("{}")
-  payment_method_pref             String?
-  preferred_language              String?                           @default("en")
-  risk_score                      Decimal?                          @db.Decimal(3, 2)
-  trn                             String?
-  consolidation_preference        ConsolidationPreference           @default(ENABLED)
-  max_consolidation_amount        Decimal?                          @db.Decimal(12, 2)
-  preferred_contact_interval      Int                               @default(7)
-  customer_consolidated_reminders customer_consolidated_reminders[]
-  companies                       companies                         @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  email_logs                      email_logs[]
-  invoices                        invoices[]
-
-  @@unique([email, company_id])
-  @@unique([trn, company_id])
-  @@index([business_type, risk_score, company_id])
-  @@index([company_id, business_type])
-  @@index([company_id, business_type, is_active])
-  @@index([company_id, created_at, lifetime_value])
-  @@index([company_id, customer_since])
-  @@index([company_id, email])
-  @@index([company_id, is_active, created_at])
-  @@index([company_id, is_active, outstanding_balance])
-  @@index([company_id, last_interaction, is_active])
-  @@index([company_id, last_payment_date])
-  @@index([company_id, name])
-  @@index([company_id, outstanding_balance])
-  @@index([company_id, payment_terms, risk_score])
-  @@index([company_id, preferred_language, is_active])
-  @@index([company_id, risk_score])
-  @@index([company_id, trn])
-  @@index([name_ar, business_name_ar])
-  @@index([name_ar])
-  @@index([name, email])
-  @@index([name])
-  @@index([phone])
-}
-
-model data_retention_policies {
-  id               String   @id
-  entity_type      String   @unique
-  retention_days   Int
-  archive_days     Int
-  auto_delete_days Int?
-  is_active        Boolean  @default(true)
-  compliance_rule  String?
-  created_at       DateTime @default(now())
-  updated_at       DateTime
-
-  @@index([entity_type, is_active])
-}
-
-model db_performance_logs {
-  id             String   @id
-  query_type     String
-  table_name     String
-  execution_time Int
-  rows_affected  Int?
-  query_hash     String
-  slow_query     Boolean  @default(false)
-  company_id     String?
-  user_id        String?
-  endpoint       String?
-  created_at     DateTime @default(now())
-
-  @@index([company_id, created_at])
-  @@index([query_hash, created_at])
-  @@index([query_type, created_at])
-  @@index([slow_query, created_at])
-  @@index([table_name, execution_time])
-}
-
-model email_bounce_tracking {
-  id              String     @id
-  email_log_id    String     @unique
-  bounce_type     String
-  bounce_subtype  String?
-  diagnostic_code String?
-  feedback_id     String?
-  arrival_date    DateTime
-  is_suppressed   Boolean    @default(false)
-  created_at      DateTime   @default(now())
-  email_logs      email_logs @relation(fields: [email_log_id], references: [id], onDelete: Cascade)
-
-  @@index([arrival_date])
-  @@index([bounce_type, is_suppressed])
-}
-
-model email_logs {
-  id                              String                           @id
-  template_id                     String?
-  company_id                      String
-  invoice_id                      String?
-  customer_id                     String?
-  follow_up_log_id                String?
-  recipient_email                 String
-  recipient_name                  String?
-  subject                         String
-  content                         String
-  language                        EmailLanguage                    @default(ENGLISH)
-  delivery_status                 EmailDeliveryStatus              @default(QUEUED)
-  sent_at                         DateTime?
-  delivered_at                    DateTime?
-  opened_at                       DateTime?
-  clicked_at                      DateTime?
-  bounced_at                      DateTime?
-  complained_at                   DateTime?
-  unsubscribed_at                 DateTime?
-  aws_message_id                  String?
-  aws_request_id                  String?
-  bounce_reason                   String?
-  complaint_feedback              String?
-  engagement_score                Decimal?                         @db.Decimal(3, 2)
-  uae_send_time                   DateTime?
-  retry_count                     Int                              @default(0)
-  max_retries                     Int                              @default(3)
-  created_at                      DateTime                         @default(now())
-  updated_at                      DateTime
-  consolidated_reminder_id        String?
-  consolidation_metadata          Json?                            @default("{}")
-  consolidation_savings           Decimal?                         @default(0.00) @db.Decimal(5, 2)
-  invoice_count                   Int                              @default(1)
-  email_bounce_tracking           email_bounce_tracking?
-  companies                       companies                        @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  customer_consolidated_reminders customer_consolidated_reminders? @relation(fields: [consolidated_reminder_id], references: [id])
-  customers                       customers?                       @relation(fields: [customer_id], references: [id])
-  follow_up_logs                  follow_up_logs?                  @relation(fields: [follow_up_log_id], references: [id])
-  invoices                        invoices?                        @relation(fields: [invoice_id], references: [id])
-  email_templates                 email_templates?                 @relation(fields: [template_id], references: [id])
-
-  @@index([company_id, delivered_at, opened_at, clicked_at])
-  @@index([company_id, delivery_status])
-  @@index([company_id, sent_at, invoice_count, consolidation_savings])
-  @@index([consolidated_reminder_id, delivery_status])
-  @@index([customer_id, sent_at])
-  @@index([delivery_status, created_at])
-  @@index([invoice_id, sent_at])
-  @@index([recipient_email, company_id])
-  @@index([uae_send_time])
-}
-
-model email_suppression_list {
-  id               String    @id
-  email_address    String
-  company_id       String
-  suppression_type String
-  reason           String
-  suppressed_at    DateTime  @default(now())
-  suppressed_by    String?
-  is_active        Boolean   @default(true)
-  notes            String?
-  created_at       DateTime  @default(now())
-  updated_at       DateTime
-  companies        companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-
-  @@unique([email_address, company_id])
-  @@index([company_id, is_active])
-  @@index([email_address])
-  @@index([suppression_type, is_active])
-}
-
-model email_templates {
-  id                              String                            @id
-  company_id                      String
-  name                            String
-  description                     String?
-  template_type                   EmailTemplateType                 @default(FOLLOW_UP)
-  subject_en                      String
-  subject_ar                      String?
-  content_en                      String
-  content_ar                      String?
-  variables                       Json?
-  version                         Int                               @default(1)
-  is_active                       Boolean                           @default(true)
-  is_default                      Boolean                           @default(false)
-  uae_business_hours_only         Boolean                           @default(true)
-  created_by                      String
-  created_at                      DateTime                          @default(now())
-  updated_at                      DateTime
-  consolidation_variables         Json?                             @default("{}")
-  max_invoice_count               Int                               @default(1)
-  supports_consolidation          Boolean                           @default(false)
-  customer_consolidated_reminders customer_consolidated_reminders[]
-  email_logs                      email_logs[]
-  companies                       companies                         @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  users                           users                             @relation(fields: [created_by], references: [id])
-
-  @@unique([company_id, name, version])
-  @@index([company_id, template_type, is_active])
-  @@index([is_default, template_type])
-  @@index([template_type, max_invoice_count, is_active])
-  @@index([template_type, supports_consolidation, is_active])
-}
-
-model follow_up_logs {
-  id                  String              @id
-  invoice_id          String
-  sequence_id         String
-  step_number         Int
-  email_address       String
-  subject             String
-  content             String
-  sent_at             DateTime
-  email_opened        DateTime?
-  email_clicked       DateTime?
-  response_received   DateTime?
-  aws_message_id      String?
-  delivery_status     String?
-  email_logs          email_logs[]
-  invoices            invoices            @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-  follow_up_sequences follow_up_sequences @relation(fields: [sequence_id], references: [id], onDelete: Cascade)
-}
-
-model follow_up_sequences {
-  id             String           @id
-  company_id     String
-  name           String
-  steps          Json
-  active         Boolean          @default(true)
-  created_at     DateTime         @default(now())
-  updated_at     DateTime
-  follow_up_logs follow_up_logs[]
-  companies      companies        @relation(fields: [company_id], references: [id], onDelete: Cascade)
-}
-
-model import_batches {
-  id                    String                  @id
-  company_id            String
-  user_id               String
-  filename              String
-  original_filename     String
-  file_size             Int
-  total_records         Int                     @default(0)
-  processed_records     Int                     @default(0)
-  successful_records    Int                     @default(0)
-  failed_records        Int                     @default(0)
-  status                ImportBatchStatus       @default(PENDING)
-  import_type           ImportType              @default(INVOICE)
-  field_mappings        Json?
-  processing_started_at DateTime?
-  processing_ended_at   DateTime?
-  error_summary         String?
-  created_at            DateTime                @default(now())
-  updated_at            DateTime
-  companies             companies               @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  users                 users                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  import_errors         import_errors[]
-  import_field_mappings import_field_mappings[]
-  invoices              invoices[]
-
-  @@index([company_id, status])
-  @@index([status, created_at])
-  @@index([user_id, created_at])
-}
-
-model import_errors {
-  id              String          @id
-  import_batch_id String
-  row_number      Int
-  csv_data        Json
-  error_type      ImportErrorType
-  error_message   String
-  field_name      String?
-  attempted_value String?
-  suggestion      String?
-  is_resolved     Boolean         @default(false)
-  resolved_at     DateTime?
-  resolved_by     String?
-  created_at      DateTime        @default(now())
-  import_batches  import_batches  @relation(fields: [import_batch_id], references: [id], onDelete: Cascade)
-
-  @@index([import_batch_id, error_type])
-  @@index([import_batch_id, is_resolved])
-  @@index([row_number, import_batch_id])
-}
-
-model import_field_mappings {
-  id              String         @id
-  import_batch_id String
-  csv_column_name String
-  system_field    String
-  data_type       String
-  is_required     Boolean        @default(false)
-  default_value   String?
-  validation_rule String?
-  transformation  String?
-  created_at      DateTime       @default(now())
-  import_batches  import_batches @relation(fields: [import_batch_id], references: [id], onDelete: Cascade)
-
-  @@unique([import_batch_id, csv_column_name])
-  @@index([import_batch_id])
-}
-
-model invoice_items {
-  id             String   @id
-  invoice_id     String
-  description    String
-  quantity       Decimal  @db.Decimal(10, 2)
-  unit_price     Decimal  @db.Decimal(10, 2)
-  total          Decimal  @db.Decimal(10, 2)
-  created_at     DateTime @default(now())
-  description_ar String?
-  tax_category   String?  @default("STANDARD")
-  total_with_vat Decimal? @db.Decimal(10, 2)
-  updated_at     DateTime
-  vat_amount     Decimal? @default(0.00) @db.Decimal(10, 2)
-  vat_rate       Decimal? @default(5.00) @db.Decimal(5, 2)
-  invoices       invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-
-  @@index([invoice_id])
-  @@index([tax_category])
-}
-
-model invoices {
-  id                 String           @id
-  company_id         String
-  number             String
-  customer_name      String
-  customer_email     String
-  amount             Decimal          @db.Decimal(10, 2)
-  currency           String           @default("AED")
-  due_date           DateTime
-  status             InvoiceStatus    @default(SENT)
+model AbTestConfig {
+  id                 String              @id
+  name               String
   description        String?
-  notes              String?
-  created_at         DateTime         @default(now())
-  updated_at         DateTime
-  description_ar     String?
-  import_batch_id    String?
-  notes_ar           String?
-  subtotal           Decimal?         @db.Decimal(10, 2)
-  total_amount       Decimal?         @db.Decimal(10, 2)
-  trn_number         String?
-  vat_amount         Decimal?         @default(0.00) @db.Decimal(10, 2)
-  archived_at        DateTime?
-  is_active          Boolean          @default(true)
-  last_reminder_sent DateTime?
-  payment_link       String?
-  payment_intent_id  String?
-  pdf_s3_key         String?
-  pdf_s3_bucket      String?
-  pdf_uploaded_at    DateTime?
-  campaignEmailSends campaignEmailSend[]
-  email_logs         email_logs[]
-  follow_up_logs     follow_up_logs[]
-  invoice_items      invoice_items[]
-  companies          companies        @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  customers          customers        @relation(fields: [customer_email, company_id], references: [email, company_id])
-  import_batches     import_batches?  @relation(fields: [import_batch_id], references: [id])
-  payments           payments[]
+  companyId          String              @map("company_id")
+  variants           Json
+  targetAudience     Json                @map("target_audience")
+  successMetrics     Json                @map("success_metrics")
+  minimumSampleSize  Int                 @default(1000) @map("minimum_sample_size")
+  significanceLevel  Decimal             @default(0.05) @db.Decimal(3, 2) @map("significance_level")
+  power              Decimal             @default(0.80) @db.Decimal(3, 2)
+  status             String              @default("draft")
+  startDate          DateTime            @map("start_date")
+  endDate            DateTime?           @map("end_date")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @map("updated_at")
+  abTestAssignments  AbTestAssignment[]
+  company            Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  @@unique([company_id, number])
-  @@index([company_id, created_at])
-  @@index([company_id, created_at, total_amount])
-  @@index([company_id, currency, created_at])
-  @@index([company_id, currency, status])
-  @@index([company_id, customer_email, status])
-  @@index([company_id, due_date])
-  @@index([company_id, is_active, created_at])
-  @@index([company_id, status, created_at])
-  @@index([company_id, status, due_date])
-  @@index([company_id, status, total_amount])
-  @@index([company_id, total_amount])
-  @@index([customer_name, customer_email])
-  @@index([import_batch_id])
-  @@index([number, customer_name])
-  @@index([status, due_date])
-  @@index([trn_number])
+  @@index([companyId, status])
+  @@index([status, startDate])
+  @@map("ab_test_config")
 }
 
-model payments {
-  id                String        @id
-  invoice_id        String
-  amount            Decimal       @db.Decimal(10, 2)
-  payment_date      DateTime
-  method            PaymentMethod @default(BANK_TRANSFER)
-  reference         String?
-  notes             String?
-  created_at        DateTime      @default(now())
-  bank_reference    String?
-  exchange_rate     Decimal?      @db.Decimal(10, 6)
-  fees_amount       Decimal?      @default(0.00) @db.Decimal(10, 2)
-  is_verified       Boolean       @default(false)
-  original_amount   Decimal?      @db.Decimal(10, 2)
-  original_currency String?
-  reconciliation_id String?
-  updated_at        DateTime
-  verified_at       DateTime?
-  verified_by       String?
-  invoices          invoices      @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+model AbTestEvent {
+  id               String           @id
+  testId           String           @map("test_id")
+  assignmentId     String           @map("assignment_id")
+  eventType        String           @map("event_type")
+  eventData        Json?            @map("event_data")
+  timestamp        DateTime         @default(now())
+  abTestAssignment AbTestAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 
-  @@index([bank_reference])
-  @@index([invoice_id, payment_date])
-  @@index([is_verified, payment_date])
-  @@index([method, is_verified])
-  @@index([payment_date, amount, method])
-  @@index([payment_date, method])
-  @@index([reconciliation_id])
-  @@index([reference])
-  @@index([verified_by, verified_at])
+  @@index([assignmentId, eventType])
+  @@index([testId, eventType])
+  @@index([timestamp])
+  @@map("ab_test_events")
 }
 
-model sessions {
-  id            String   @id
-  session_token String   @unique
-  user_id       String
-  expires       DateTime
-  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+// ============================================================================
+// AUTH MODELS (NextAuth)
+// ============================================================================
+
+model Account {
+  id                String  @id
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refreshToken      String? @map("refresh_token")
+  accessToken       String? @map("access_token")
+  expiresAt         Int?    @map("expires_at")
+  tokenType         String? @map("token_type")
+  scope             String?
+  idToken           String? @map("id_token")
+  sessionState      String? @map("session_state")
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
 }
 
-model users {
-  id                              String                            @id
-  email                           String                            @unique
-  name                            String
-  password                        String?
-  company_id                      String
-  role                            UserRole                          @default(FINANCE)
-  created_at                      DateTime                          @default(now())
-  updated_at                      DateTime
-  reset_token                     String?
-  reset_token_expiry              DateTime?
-  accounts                        accounts[]
-  activities                      activities[]
-  customer_consolidated_reminders customer_consolidated_reminders[]
-  email_templates                 email_templates[]
-  import_batches                  import_batches[]
-  sessions                        sessions[]
-  companies                       companies                         @relation(fields: [company_id], references: [id], onDelete: Cascade)
+model Session {
+  id           String   @id
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
 }
 
-model verification_tokens {
+model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
 
   @@unique([identifier, token])
+  @@map("verification_tokens")
 }
+
+// ============================================================================
+// CORE BUSINESS MODELS
+// ============================================================================
+
+model Activity {
+  id          String   @id
+  companyId   String   @map("company_id")
+  userId      String   @map("user_id")
+  type        String
+  description String
+  metadata    Json?    @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activities")
+}
+
+model AuditLog {
+  id             String    @id
+  companyId      String    @map("company_id")
+  userId         String?   @map("user_id")
+  entityType     String    @map("entity_type")
+  entityId       String    @map("entity_id")
+  action         String
+  oldValues      Json?     @map("old_values")
+  newValues      Json?     @map("new_values")
+  changedFields  String[]  @map("changed_fields")
+  ipAddress      String?   @map("ip_address")
+  userAgent      String?   @map("user_agent")
+  sessionId      String?   @map("session_id")
+  requestId      String?   @map("request_id")
+  complianceFlag Boolean   @default(false) @map("compliance_flag")
+  riskLevel      String    @default("LOW") @map("risk_level")
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([action, createdAt])
+  @@index([companyId, createdAt])
+  @@index([companyId, entityType, action])
+  @@index([companyId, entityType, createdAt])
+  @@index([complianceFlag, riskLevel])
+  @@index([createdAt, riskLevel])
+  @@index([entityType, entityId])
+  @@index([userId, action, createdAt])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+model BankReconciliation {
+  id                 String    @id
+  companyId          String    @map("company_id")
+  bankAccount        String    @map("bank_account")
+  statementDate      DateTime  @map("statement_date")
+  statementRef       String?   @map("statement_ref")
+  openingBalance     Decimal   @db.Decimal(12, 2) @map("opening_balance")
+  closingBalance     Decimal   @db.Decimal(12, 2) @map("closing_balance")
+  totalCredits       Decimal   @db.Decimal(12, 2) @map("total_credits")
+  totalDebits        Decimal   @db.Decimal(12, 2) @map("total_debits")
+  reconciledAmount   Decimal   @db.Decimal(12, 2) @map("reconciled_amount")
+  unreconciledAmount Decimal   @db.Decimal(12, 2) @map("unreconciled_amount")
+  status             String    @default("PENDING")
+  reconciledBy       String?   @map("reconciled_by")
+  reconciledAt       DateTime? @map("reconciled_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @map("updated_at")
+  company            Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([bankAccount, statementDate])
+  @@index([companyId, statementDate])
+  @@index([reconciledBy, reconciledAt])
+  @@index([status, createdAt])
+  @@map("bank_reconciliation")
+}
+
+model BucketConfig {
+  id               String    @id
+  companyId        String    @map("company_id")
+  bucketId         String    @map("bucket_id")
+  autoSendEnabled  Boolean   @default(false) @map("auto_send_enabled")
+  emailTemplateId  String?   @map("email_template_id")
+  sendTimeHour     Int       @default(9) @map("send_time_hour")
+  sendDaysOfWeek   Json      @default("[0, 1, 2, 3, 4]") @map("send_days_of_week")
+  lastAutoSendAt   DateTime? @map("last_auto_send_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @map("updated_at")
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, bucketId])
+  @@index([autoSendEnabled, lastAutoSendAt])
+  @@index([companyId, autoSendEnabled])
+  @@map("bucket_configs")
+}
+
+model Company {
+  id                           String                        @id
+  name                         String
+  trn                          String?                       @unique
+  address                      String?
+  settings                     Json?                         @default("{}")
+  createdAt                    DateTime                      @default(now()) @map("created_at")
+  updatedAt                    DateTime                      @map("updated_at")
+  businessHours                Json?                         @map("business_hours")
+  defaultVatRate               Decimal?                      @default(5.00) @db.Decimal(5, 2) @map("default_vat_rate")
+  emailSettings                Json?                         @map("email_settings")
+  archivedAt                   DateTime?                     @map("archived_at")
+  isActive                     Boolean                       @default(true) @map("is_active")
+  abTestConfigs                AbTestConfig[]
+  activities                   Activity[]
+  auditLogs                    AuditLog[]
+  bankReconciliations          BankReconciliation[]
+  bucketConfigs                BucketConfig[]
+  campaignEmailSends           CampaignEmailSend[]
+  customerConsolidatedReminders CustomerConsolidatedReminder[]
+  customers                    Customer[]
+  emailLogs                    EmailLog[]
+  emailSuppressionList         EmailSuppressionList[]
+  emailTemplates               EmailTemplate[]
+  followUpSequences            FollowUpSequence[]
+  importBatches                ImportBatch[]
+  invoiceCampaigns             InvoiceCampaign[]
+  invoices                     Invoice[]
+  users                        User[]
+
+  @@index([isActive, createdAt])
+  @@index([trn])
+  @@map("companies")
+}
+
+model Customer {
+  id                           String                        @id
+  companyId                    String                        @map("company_id")
+  name                         String
+  email                        String
+  phone                        String?
+  paymentTerms                 Int?                          @default(30) @map("payment_terms")
+  notes                        String?
+  createdAt                    DateTime                      @default(now()) @map("created_at")
+  updatedAt                    DateTime                      @map("updated_at")
+  nameAr                       String?                       @map("name_ar")
+  notesAr                      String?                       @map("notes_ar")
+  address                      String?
+  addressAr                    String?                       @map("address_ar")
+  archivedAt                   DateTime?                     @map("archived_at")
+  businessName                 String?                       @map("business_name")
+  businessNameAr               String?                       @map("business_name_ar")
+  businessType                 UaeBusinessType?              @map("business_type")
+  communicationPref            String?                       @default("email") @map("communication_pref")
+  contactPerson                String?                       @map("contact_person")
+  contactPersonAr              String?                       @map("contact_person_ar")
+  creditLimit                  Decimal?                      @db.Decimal(12, 2) @map("credit_limit")
+  customerSince                DateTime?                     @map("customer_since")
+  isActive                     Boolean                       @default(true) @map("is_active")
+  lastInteraction              DateTime?                     @map("last_interaction")
+  lastPaymentDate              DateTime?                     @map("last_payment_date")
+  lifetimeValue                Decimal?                      @default(0.00) @db.Decimal(12, 2) @map("lifetime_value")
+  outstandingBalance           Decimal?                      @default(0.00) @db.Decimal(12, 2) @map("outstanding_balance")
+  paymentBehavior              Json?                         @default("{}") @map("payment_behavior")
+  paymentMethodPref            String?                       @map("payment_method_pref")
+  preferredLanguage            String?                       @default("en") @map("preferred_language")
+  riskScore                    Decimal?                      @db.Decimal(3, 2) @map("risk_score")
+  trn                          String?
+  consolidationPreference      ConsolidationPreference       @default(ENABLED) @map("consolidation_preference")
+  maxConsolidationAmount       Decimal?                      @db.Decimal(12, 2) @map("max_consolidation_amount")
+  preferredContactInterval     Int                           @default(7) @map("preferred_contact_interval")
+  customerConsolidatedReminders CustomerConsolidatedReminder[]
+  company                      Company                       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  emailLogs                    EmailLog[]
+  invoices                     Invoice[]
+
+  @@unique([email, companyId])
+  @@unique([trn, companyId])
+  @@index([businessType, riskScore, companyId])
+  @@index([companyId, businessType])
+  @@index([companyId, businessType, isActive])
+  @@index([companyId, createdAt, lifetimeValue])
+  @@index([companyId, customerSince])
+  @@index([companyId, email])
+  @@index([companyId, isActive, createdAt])
+  @@index([companyId, isActive, outstandingBalance])
+  @@index([companyId, lastInteraction, isActive])
+  @@index([companyId, lastPaymentDate])
+  @@index([companyId, name])
+  @@index([companyId, outstandingBalance])
+  @@index([companyId, paymentTerms, riskScore])
+  @@index([companyId, preferredLanguage, isActive])
+  @@index([companyId, riskScore])
+  @@index([companyId, trn])
+  @@index([nameAr, businessNameAr])
+  @@index([nameAr])
+  @@index([name, email])
+  @@index([name])
+  @@index([phone])
+  @@map("customers")
+}
+
+model Invoice {
+  id                   String              @id
+  companyId            String              @map("company_id")
+  number               String
+  customerName         String              @map("customer_name")
+  customerEmail        String              @map("customer_email")
+  amount               Decimal             @db.Decimal(10, 2)
+  currency             String              @default("AED")
+  dueDate              DateTime            @map("due_date")
+  status               InvoiceStatus       @default(SENT)
+  description          String?
+  notes                String?
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @map("updated_at")
+  descriptionAr        String?             @map("description_ar")
+  importBatchId        String?             @map("import_batch_id")
+  notesAr              String?             @map("notes_ar")
+  subtotal             Decimal?            @db.Decimal(10, 2)
+  totalAmount          Decimal?            @db.Decimal(10, 2) @map("total_amount")
+  trnNumber            String?             @map("trn_number")
+  vatAmount            Decimal?            @default(0.00) @db.Decimal(10, 2) @map("vat_amount")
+  archivedAt           DateTime?           @map("archived_at")
+  isActive             Boolean             @default(true) @map("is_active")
+  lastReminderSent     DateTime?           @map("last_reminder_sent")
+  paymentLink          String?             @map("payment_link")
+  paymentIntentId      String?             @map("payment_intent_id")
+  pdfS3Bucket          String?             @map("pdf_s3_bucket")
+  pdfS3Key             String?             @map("pdf_s3_key")
+  pdfUploadedAt        DateTime?           @map("pdf_uploaded_at")
+  campaignEmailSends   CampaignEmailSend[]
+  emailLogs            EmailLog[]
+  followUpLogs         FollowUpLog[]
+  invoiceItems         InvoiceItem[]
+  company              Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer             Customer            @relation(fields: [customerEmail, companyId], references: [email, companyId])
+  importBatch          ImportBatch?        @relation(fields: [importBatchId], references: [id])
+  payments             Payment[]
+
+  @@unique([companyId, number])
+  @@index([companyId, createdAt])
+  @@index([companyId, createdAt, totalAmount])
+  @@index([companyId, currency, createdAt])
+  @@index([companyId, currency, status])
+  @@index([companyId, customerEmail, status])
+  @@index([companyId, dueDate])
+  @@index([companyId, isActive, createdAt])
+  @@index([companyId, status, createdAt])
+  @@index([companyId, status, dueDate])
+  @@index([companyId, status, totalAmount])
+  @@index([companyId, totalAmount])
+  @@index([customerName, customerEmail])
+  @@index([importBatchId])
+  @@index([number, customerName])
+  @@index([status, dueDate])
+  @@index([trnNumber])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id            String   @id
+  invoiceId     String   @map("invoice_id")
+  description   String
+  quantity      Decimal  @db.Decimal(10, 2)
+  unitPrice     Decimal  @db.Decimal(10, 2) @map("unit_price")
+  total         Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now()) @map("created_at")
+  descriptionAr String?  @map("description_ar")
+  taxCategory   String?  @default("STANDARD") @map("tax_category")
+  totalWithVat  Decimal? @db.Decimal(10, 2) @map("total_with_vat")
+  updatedAt     DateTime @map("updated_at")
+  vatAmount     Decimal? @default(0.00) @db.Decimal(10, 2) @map("vat_amount")
+  vatRate       Decimal? @default(5.00) @db.Decimal(5, 2) @map("vat_rate")
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([taxCategory])
+  @@map("invoice_items")
+}
+
+model Payment {
+  id                String        @id
+  invoiceId         String        @map("invoice_id")
+  amount            Decimal       @db.Decimal(10, 2)
+  paymentDate       DateTime      @map("payment_date")
+  method            PaymentMethod @default(BANK_TRANSFER)
+  reference         String?
+  notes             String?
+  createdAt         DateTime      @default(now()) @map("created_at")
+  bankReference     String?       @map("bank_reference")
+  exchangeRate      Decimal?      @db.Decimal(10, 6) @map("exchange_rate")
+  feesAmount        Decimal?      @default(0.00) @db.Decimal(10, 2) @map("fees_amount")
+  isVerified        Boolean       @default(false) @map("is_verified")
+  originalAmount    Decimal?      @db.Decimal(10, 2) @map("original_amount")
+  originalCurrency  String?       @map("original_currency")
+  reconciliationId  String?       @map("reconciliation_id")
+  updatedAt         DateTime      @map("updated_at")
+  verifiedAt        DateTime?     @map("verified_at")
+  verifiedBy        String?       @map("verified_by")
+  invoice           Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([bankReference])
+  @@index([invoiceId, paymentDate])
+  @@index([isVerified, paymentDate])
+  @@index([method, isVerified])
+  @@index([paymentDate, amount, method])
+  @@index([paymentDate, method])
+  @@index([reconciliationId])
+  @@index([reference])
+  @@index([verifiedBy, verifiedAt])
+  @@map("payments")
+}
+
+model User {
+  id                           String                        @id
+  email                        String                        @unique
+  name                         String
+  password                     String?
+  companyId                    String                        @map("company_id")
+  role                         UserRole                      @default(FINANCE)
+  createdAt                    DateTime                      @default(now()) @map("created_at")
+  updatedAt                    DateTime                      @map("updated_at")
+  resetToken                   String?                       @map("reset_token")
+  resetTokenExpiry             DateTime?                     @map("reset_token_expiry")
+  accounts                     Account[]
+  activities                   Activity[]
+  customerConsolidatedReminders CustomerConsolidatedReminder[]
+  emailTemplates               EmailTemplate[]
+  importBatches                ImportBatch[]
+  sessions                     Session[]
+  company                      Company                       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+// ============================================================================
+// EMAIL & CAMPAIGN MODELS
+// ============================================================================
+
+model CampaignEmailSend {
+  id              String          @id
+  campaignId      String          @map("campaign_id")
+  companyId       String          @map("company_id")
+  invoiceId       String          @map("invoice_id")
+  customerId      String?         @map("customer_id")
+  recipientEmail  String          @map("recipient_email")
+  emailSubject    String          @map("email_subject")
+  emailContent    String          @map("email_content")
+  deliveryStatus  String          @default("pending") @map("delivery_status")
+  sesMessageId    String?         @map("ses_message_id")
+  errorMessage    String?         @map("error_message")
+  sentAt          DateTime?       @map("sent_at")
+  deliveredAt     DateTime?       @map("delivered_at")
+  bouncedAt       DateTime?       @map("bounced_at")
+  language        String          @default("ENGLISH")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @map("updated_at")
+  invoiceCampaign InvoiceCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  company         Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoice         Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, deliveryStatus])
+  @@index([companyId])
+  @@index([deliveryStatus])
+  @@index([invoiceId])
+  @@index([sentAt])
+  @@map("campaignEmailSend")
+}
+
+model CustomerConsolidatedReminder {
+  id                       String              @id
+  customerId               String              @map("customer_id")
+  companyId                String              @map("company_id")
+  invoiceIds               String[]            @map("invoice_ids")
+  totalAmount              Decimal             @db.Decimal(12, 2) @map("total_amount")
+  currency                 String              @default("AED")
+  invoiceCount             Int                 @map("invoice_count")
+  reminderType             ReminderType        @default(CONSOLIDATED) @map("reminder_type")
+  escalationLevel          EscalationLevel     @default(POLITE) @map("escalation_level")
+  templateId               String?             @map("template_id")
+  scheduledFor             DateTime?           @map("scheduled_for")
+  sentAt                   DateTime?           @map("sent_at")
+  deliveryStatus           EmailDeliveryStatus @default(QUEUED) @map("delivery_status")
+  awsMessageId             String?             @map("aws_message_id")
+  lastContactDate          DateTime?           @map("last_contact_date")
+  nextEligibleContact      DateTime?           @map("next_eligible_contact")
+  contactIntervalDays      Int                 @default(7) @map("contact_interval_days")
+  priorityScore            Int                 @default(0) @map("priority_score")
+  consolidationReason      String?             @map("consolidation_reason")
+  businessRulesApplied     Json?               @default("{}") @map("business_rules_applied")
+  culturalComplianceFlags  Json?               @default("{}") @map("cultural_compliance_flags")
+  emailOpenedAt            DateTime?           @map("email_opened_at")
+  emailClickedAt           DateTime?           @map("email_clicked_at")
+  customerRespondedAt      DateTime?           @map("customer_responded_at")
+  paymentReceivedAt        DateTime?           @map("payment_received_at")
+  createdAt                DateTime            @default(now()) @map("created_at")
+  updatedAt                DateTime            @map("updated_at")
+  createdBy                String?             @map("created_by")
+  company                  Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user                     User?               @relation(fields: [createdBy], references: [id])
+  customer                 Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  emailTemplate            EmailTemplate?      @relation(fields: [templateId], references: [id])
+  emailLogs                EmailLog[]
+
+  @@index([companyId, createdAt])
+  @@index([companyId, deliveryStatus, priorityScore])
+  @@index([companyId, deliveryStatus])
+  @@index([companyId, escalationLevel, deliveryStatus])
+  @@index([companyId, priorityScore])
+  @@index([companyId, reminderType, escalationLevel])
+  @@index([companyId, sentAt])
+  @@index([customerId, companyId])
+  @@index([customerId, nextEligibleContact])
+  @@index([customerId, sentAt, deliveryStatus])
+  @@index([scheduledFor, deliveryStatus])
+  @@map("customer_consolidated_reminders")
+}
+
+model EmailBounceTracking {
+  id             String   @id
+  emailLogId     String   @unique @map("email_log_id")
+  bounceType     String   @map("bounce_type")
+  bounceSubtype  String?  @map("bounce_subtype")
+  diagnosticCode String?  @map("diagnostic_code")
+  feedbackId     String?  @map("feedback_id")
+  arrivalDate    DateTime @map("arrival_date")
+  isSuppressed   Boolean  @default(false) @map("is_suppressed")
+  createdAt      DateTime @default(now()) @map("created_at")
+  emailLog       EmailLog @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
+
+  @@index([arrivalDate])
+  @@index([bounceType, isSuppressed])
+  @@map("email_bounce_tracking")
+}
+
+model EmailLog {
+  id                         String                        @id
+  templateId                 String?                       @map("template_id")
+  companyId                  String                        @map("company_id")
+  invoiceId                  String?                       @map("invoice_id")
+  customerId                 String?                       @map("customer_id")
+  followUpLogId              String?                       @map("follow_up_log_id")
+  recipientEmail             String                        @map("recipient_email")
+  recipientName              String?                       @map("recipient_name")
+  subject                    String
+  content                    String
+  language                   EmailLanguage                 @default(ENGLISH)
+  deliveryStatus             EmailDeliveryStatus           @default(QUEUED) @map("delivery_status")
+  sentAt                     DateTime?                     @map("sent_at")
+  deliveredAt                DateTime?                     @map("delivered_at")
+  openedAt                   DateTime?                     @map("opened_at")
+  clickedAt                  DateTime?                     @map("clicked_at")
+  bouncedAt                  DateTime?                     @map("bounced_at")
+  complainedAt               DateTime?                     @map("complained_at")
+  unsubscribedAt             DateTime?                     @map("unsubscribed_at")
+  awsMessageId               String?                       @map("aws_message_id")
+  awsRequestId               String?                       @map("aws_request_id")
+  bounceReason               String?                       @map("bounce_reason")
+  complaintFeedback          String?                       @map("complaint_feedback")
+  engagementScore            Decimal?                      @db.Decimal(3, 2) @map("engagement_score")
+  uaeSendTime                DateTime?                     @map("uae_send_time")
+  retryCount                 Int                           @default(0) @map("retry_count")
+  maxRetries                 Int                           @default(3) @map("max_retries")
+  createdAt                  DateTime                      @default(now()) @map("created_at")
+  updatedAt                  DateTime                      @map("updated_at")
+  consolidatedReminderId     String?                       @map("consolidated_reminder_id")
+  consolidationMetadata      Json?                         @default("{}") @map("consolidation_metadata")
+  consolidationSavings       Decimal?                      @default(0.00) @db.Decimal(5, 2) @map("consolidation_savings")
+  invoiceCount               Int                           @default(1) @map("invoice_count")
+  emailBounceTracking        EmailBounceTracking?
+  company                    Company                       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  consolidatedReminder       CustomerConsolidatedReminder? @relation(fields: [consolidatedReminderId], references: [id])
+  customer                   Customer?                     @relation(fields: [customerId], references: [id])
+  followUpLog                FollowUpLog?                  @relation(fields: [followUpLogId], references: [id])
+  invoice                    Invoice?                      @relation(fields: [invoiceId], references: [id])
+  emailTemplate              EmailTemplate?                @relation(fields: [templateId], references: [id])
+
+  @@index([companyId, deliveredAt, openedAt, clickedAt])
+  @@index([companyId, deliveryStatus])
+  @@index([companyId, sentAt, invoiceCount, consolidationSavings])
+  @@index([consolidatedReminderId, deliveryStatus])
+  @@index([customerId, sentAt])
+  @@index([deliveryStatus, createdAt])
+  @@index([invoiceId, sentAt])
+  @@index([recipientEmail, companyId])
+  @@index([uaeSendTime])
+  @@map("email_logs")
+}
+
+model EmailSuppressionList {
+  id              String   @id
+  emailAddress    String   @map("email_address")
+  companyId       String   @map("company_id")
+  suppressionType String   @map("suppression_type")
+  reason          String
+  suppressedAt    DateTime @default(now()) @map("suppressed_at")
+  suppressedBy    String?  @map("suppressed_by")
+  isActive        Boolean  @default(true) @map("is_active")
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @map("updated_at")
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([emailAddress, companyId])
+  @@index([companyId, isActive])
+  @@index([emailAddress])
+  @@index([suppressionType, isActive])
+  @@map("email_suppression_list")
+}
+
+model EmailTemplate {
+  id                           String                        @id
+  companyId                    String                        @map("company_id")
+  name                         String
+  description                  String?
+  templateType                 EmailTemplateType             @default(FOLLOW_UP) @map("template_type")
+  subjectEn                    String                        @map("subject_en")
+  subjectAr                    String?                       @map("subject_ar")
+  contentEn                    String                        @map("content_en")
+  contentAr                    String?                       @map("content_ar")
+  variables                    Json?
+  version                      Int                           @default(1)
+  isActive                     Boolean                       @default(true) @map("is_active")
+  isDefault                    Boolean                       @default(false) @map("is_default")
+  uaeBusinessHoursOnly         Boolean                       @default(true) @map("uae_business_hours_only")
+  createdBy                    String                        @map("created_by")
+  createdAt                    DateTime                      @default(now()) @map("created_at")
+  updatedAt                    DateTime                      @map("updated_at")
+  consolidationVariables       Json?                         @default("{}") @map("consolidation_variables")
+  maxInvoiceCount              Int                           @default(1) @map("max_invoice_count")
+  supportsConsolidation        Boolean                       @default(false) @map("supports_consolidation")
+  customerConsolidatedReminders CustomerConsolidatedReminder[]
+  emailLogs                    EmailLog[]
+  company                      Company                       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user                         User                          @relation(fields: [createdBy], references: [id])
+
+  @@unique([companyId, name, version])
+  @@index([companyId, templateType, isActive])
+  @@index([isDefault, templateType])
+  @@index([templateType, maxInvoiceCount, isActive])
+  @@index([templateType, supportsConsolidation, isActive])
+  @@map("email_templates")
+}
+
+model FollowUpLog {
+  id               String           @id
+  invoiceId        String           @map("invoice_id")
+  sequenceId       String           @map("sequence_id")
+  stepNumber       Int              @map("step_number")
+  emailAddress     String           @map("email_address")
+  subject          String
+  content          String
+  sentAt           DateTime         @map("sent_at")
+  emailOpened      DateTime?        @map("email_opened")
+  emailClicked     DateTime?        @map("email_clicked")
+  responseReceived DateTime?        @map("response_received")
+  awsMessageId     String?          @map("aws_message_id")
+  deliveryStatus   String?          @map("delivery_status")
+  emailLogs        EmailLog[]
+  invoice          Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  followUpSequence FollowUpSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+
+  @@map("follow_up_logs")
+}
+
+model FollowUpSequence {
+  id            String        @id
+  companyId     String        @map("company_id")
+  name          String
+  steps         Json
+  active        Boolean       @default(true)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @map("updated_at")
+  followUpLogs  FollowUpLog[]
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("follow_up_sequences")
+}
+
+model InvoiceCampaign {
+  id                    String              @id
+  companyId             String              @map("company_id")
+  name                  String
+  emailSubject          String              @map("email_subject")
+  emailContent          String              @map("email_content")
+  language              String              @default("ENGLISH")
+  templateId            String?             @map("template_id")
+  status                String              @default("draft")
+  totalRecipients       Int                 @default(0) @map("total_recipients")
+  sentCount             Int                 @default(0) @map("sent_count")
+  failedCount           Int                 @default(0) @map("failed_count")
+  successRate           Int                 @default(0) @map("success_rate")
+  batchSize             Int                 @default(5) @map("batch_size")
+  delayBetweenBatches   Int                 @default(3000) @map("delay_between_batches")
+  respectBusinessHours  Boolean             @default(true) @map("respect_business_hours")
+  scheduledFor          DateTime?           @map("scheduled_for")
+  startedAt             DateTime?           @map("started_at")
+  completedAt           DateTime?           @map("completed_at")
+  errorMessage          String?             @map("error_message")
+  createdBy             String              @map("created_by")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @map("updated_at")
+  attachInvoicePdf      Boolean             @default(true) @map("attach_invoice_pdf")
+  campaignEmailSends    CampaignEmailSend[]
+  company               Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, status])
+  @@index([createdBy])
+  @@index([scheduledFor])
+  @@map("invoiceCampaign")
+}
+
+// ============================================================================
+// IMPORT & DATA MANAGEMENT MODELS
+// ============================================================================
+
+model DataRetentionPolicy {
+  id             String   @id
+  entityType     String   @unique @map("entity_type")
+  retentionDays  Int      @map("retention_days")
+  archiveDays    Int      @map("archive_days")
+  autoDeleteDays Int?     @map("auto_delete_days")
+  isActive       Boolean  @default(true) @map("is_active")
+  complianceRule String?  @map("compliance_rule")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @map("updated_at")
+
+  @@index([entityType, isActive])
+  @@map("data_retention_policies")
+}
+
+model DbPerformanceLog {
+  id            String   @id
+  queryType     String   @map("query_type")
+  tableName     String   @map("table_name")
+  executionTime Int      @map("execution_time")
+  rowsAffected  Int?     @map("rows_affected")
+  queryHash     String   @map("query_hash")
+  slowQuery     Boolean  @default(false) @map("slow_query")
+  companyId     String?  @map("company_id")
+  userId        String?  @map("user_id")
+  endpoint      String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([companyId, createdAt])
+  @@index([queryHash, createdAt])
+  @@index([queryType, createdAt])
+  @@index([slowQuery, createdAt])
+  @@index([tableName, executionTime])
+  @@map("db_performance_logs")
+}
+
+model ImportBatch {
+  id                   String                @id
+  companyId            String                @map("company_id")
+  userId               String                @map("user_id")
+  filename             String
+  originalFilename     String                @map("original_filename")
+  fileSize             Int                   @map("file_size")
+  totalRecords         Int                   @default(0) @map("total_records")
+  processedRecords     Int                   @default(0) @map("processed_records")
+  successfulRecords    Int                   @default(0) @map("successful_records")
+  failedRecords        Int                   @default(0) @map("failed_records")
+  status               ImportBatchStatus     @default(PENDING)
+  importType           ImportType            @default(INVOICE) @map("import_type")
+  fieldMappings        Json?                 @map("field_mappings")
+  processingStartedAt  DateTime?             @map("processing_started_at")
+  processingEndedAt    DateTime?             @map("processing_ended_at")
+  errorSummary         String?               @map("error_summary")
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @map("updated_at")
+  company              Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  importErrors         ImportError[]
+  importFieldMappings  ImportFieldMapping[]
+  invoices             Invoice[]
+
+  @@index([companyId, status])
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@map("import_batches")
+}
+
+model ImportError {
+  id             String          @id
+  importBatchId  String          @map("import_batch_id")
+  rowNumber      Int             @map("row_number")
+  csvData        Json            @map("csv_data")
+  errorType      ImportErrorType @map("error_type")
+  errorMessage   String          @map("error_message")
+  fieldName      String?         @map("field_name")
+  attemptedValue String?         @map("attempted_value")
+  suggestion     String?
+  isResolved     Boolean         @default(false) @map("is_resolved")
+  resolvedAt     DateTime?       @map("resolved_at")
+  resolvedBy     String?         @map("resolved_by")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  importBatch    ImportBatch     @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
+
+  @@index([importBatchId, errorType])
+  @@index([importBatchId, isResolved])
+  @@index([rowNumber, importBatchId])
+  @@map("import_errors")
+}
+
+model ImportFieldMapping {
+  id             String      @id
+  importBatchId  String      @map("import_batch_id")
+  csvColumnName  String      @map("csv_column_name")
+  systemField    String      @map("system_field")
+  dataType       String      @map("data_type")
+  isRequired     Boolean     @default(false) @map("is_required")
+  defaultValue   String?     @map("default_value")
+  validationRule String?     @map("validation_rule")
+  transformation String?
+  createdAt      DateTime    @default(now()) @map("created_at")
+  importBatch    ImportBatch @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
+
+  @@unique([importBatchId, csvColumnName])
+  @@index([importBatchId])
+  @@map("import_field_mappings")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
 
 enum ConsolidationPreference {
   ENABLED
@@ -782,88 +920,6 @@ enum ReminderType {
   URGENT_CONSOLIDATED
   FINAL_CONSOLIDATED
   MANUAL_CONSOLIDATED
-}
-
-model bucket_configs {
-  id                    String   @id @default(uuid())
-  company_id            String
-  bucket_id             String   // 'not_due', 'overdue_1_3', 'overdue_4_7', etc.
-  auto_send_enabled     Boolean  @default(false)
-  email_template_id     String?  // Optional: link to specific email template
-  send_time_hour        Int      @default(9)  // Hour in UAE time (0-23)
-  send_days_of_week     Json     @default("[0,1,2,3,4]") // Sunday=0, Thursday=4 (UAE business days)
-  last_auto_send_at     DateTime?
-  created_at            DateTime @default(now())
-  updated_at            DateTime @updatedAt
-
-  companies             companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-
-  @@unique([company_id, bucket_id])
-  @@index([company_id, auto_send_enabled])
-  @@index([auto_send_enabled, last_auto_send_at])
-}
-
-model invoiceCampaign {
-  id                      String   @id @default(uuid())
-  company_id              String
-  name                    String
-  email_subject           String
-  email_content           String   @db.Text
-  language                String   @default("ENGLISH")
-  template_id             String?
-  status                  String   @default("draft") // draft, sending, completed, failed, completed_with_errors, paused
-  total_recipients        Int      @default(0)
-  sent_count              Int      @default(0)
-  failed_count            Int      @default(0)
-  success_rate            Int      @default(0)
-  batch_size              Int      @default(5)
-  delay_between_batches   Int      @default(3000)
-  respect_business_hours  Boolean  @default(true)
-  attach_invoice_pdf      Boolean  @default(true) // Attach invoice PDF from S3
-  scheduled_for           DateTime?
-  started_at              DateTime?
-  completed_at            DateTime?
-  error_message           String?  @db.Text
-  created_by              String   // user_id or 'system' for auto-send
-  created_at              DateTime @default(now())
-  updated_at              DateTime @updatedAt
-
-  companies               companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  campaign_email_sends    campaignEmailSend[]
-
-  @@index([company_id, status])
-  @@index([created_by])
-  @@index([scheduled_for])
-}
-
-model campaignEmailSend {
-  id                String    @id @default(uuid())
-  campaign_id       String
-  company_id        String
-  invoice_id        String
-  customer_id       String?
-  recipient_email   String
-  email_subject     String
-  email_content     String    @db.Text
-  delivery_status   String    @default("pending") // pending, sent, failed, bounced, delivered
-  ses_message_id    String?
-  error_message     String?   @db.Text
-  sent_at           DateTime?
-  delivered_at      DateTime?
-  bounced_at        DateTime?
-  language          String    @default("ENGLISH")
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
-
-  campaign          invoiceCampaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
-  companies         companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  invoices          invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-
-  @@index([campaign_id, delivery_status])
-  @@index([company_id])
-  @@index([invoice_id])
-  @@index([delivery_status])
-  @@index([sent_at])
 }
 
 enum UaeBusinessType {

@@ -60,13 +60,13 @@ export async function GET(request: NextRequest) {
       savingsAnalysis
     ] = await Promise.all([
       // Current period consolidated emails
-      prisma.emailLogs.findMany({
+      prisma.emailLog.findMany({
         where: baseWhere,
         include: {
           emailTemplates: {
             select: { name: true, templateType: true }
           },
-          customers: {
+          customer: {
             select: { name: true, businessType: true }
           },
           consolidatedReminder: {
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       }),
 
       // Comparison period emails (if requested)
-      comparisonWhere ? prisma.emailLogs.findMany({
+      comparisonWhere ? prisma.emailLog.findMany({
         where: comparisonWhere,
         select: {
           id: true,
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       }) : Promise.resolve([]),
 
       // Consolidation summary statistics
-      prisma.emailLogs.aggregate({
+      prisma.emailLog.aggregate({
         where: baseWhere,
         _count: { id: true },
         _sum: {
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       }),
 
       // Template performance analysis
-      prisma.emailLogs.groupBy({
+      prisma.emailLog.groupBy({
         by: ['templateId'],
         where: baseWhere,
         _count: { id: true },
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
       }),
 
       // Customer insights
-      prisma.emailLogs.groupBy({
+      prisma.emailLog.groupBy({
         by: ['customerId'],
         where: baseWhere,
         _count: { id: true },
@@ -224,7 +224,7 @@ async function getTimeSeriesData(companyId: string, startDate: Date, endDate: Da
 
   for (let i = 0; i < days; i++) {
     const date = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000))
-    const dayEmails = await prisma.emailLogs.count({
+    const dayEmails = await prisma.emailLog.count({
       where: {
         companyId,
         consolidatedReminderId: { not: null },
@@ -247,7 +247,7 @@ async function getTimeSeriesData(companyId: string, startDate: Date, endDate: Da
 }
 
 async function getEscalationAnalysis(companyId: string, startDate: Date, endDate: Date) {
-  const escalationData = await prisma.customerConsolidatedReminders.groupBy({
+  const escalationData = await prisma.customerConsolidatedReminder.groupBy({
     by: ['escalationLevel'],
     where: {
       companyId,
@@ -272,7 +272,7 @@ async function getEscalationAnalysis(companyId: string, startDate: Date, endDate
 }
 
 async function getDeliveryMetrics(companyId: string, startDate: Date, endDate: Date) {
-  const deliveryData = await prisma.emailLogs.groupBy({
+  const deliveryData = await prisma.emailLog.groupBy({
     by: ['deliveryStatus'],
     where: {
       companyId,
@@ -300,7 +300,7 @@ async function getDeliveryMetrics(companyId: string, startDate: Date, endDate: D
 }
 
 async function getEngagementMetrics(companyId: string, startDate: Date, endDate: Date) {
-  const engagementData = await prisma.emailLogs.aggregate({
+  const engagementData = await prisma.emailLog.aggregate({
     where: {
       companyId,
       consolidatedReminderId: { not: null },
@@ -332,7 +332,7 @@ async function getEngagementMetrics(companyId: string, startDate: Date, endDate:
 }
 
 async function getSavingsAnalysis(companyId: string, startDate: Date, endDate: Date) {
-  const savingsData = await prisma.emailLogs.aggregate({
+  const savingsData = await prisma.emailLog.aggregate({
     where: {
       companyId,
       consolidatedReminderId: { not: null },
@@ -468,7 +468,7 @@ async function enrichTemplatePerformance(templateData: any[]) {
 async function enrichCustomerInsights(customerData: any[]) {
   const enriched = await Promise.all(
     customerData.slice(0, 10).map(async (item) => {
-      const customer = await prisma.customers.findUnique({
+      const customer = await prisma.customer.findUnique({
         where: { id: item.customerId },
         select: { name: true, businessType: true }
       })

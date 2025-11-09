@@ -12,7 +12,7 @@ import { InvoiceStatus } from '@prisma/client'
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     $transaction: jest.fn(),
-    companies: {
+    company: {
       findMany: jest.fn()
     },
     invoices: {
@@ -56,7 +56,7 @@ describe('Cron Job: Invoice Status Updates', () => {
     
     // Mock successful default responses
     const { prisma } = require('@/lib/prisma')
-    prisma.companies.findMany.mockResolvedValue([
+    prisma.company.findMany.mockResolvedValue([
       { id: 'company-1', name: 'Test Company 1' },
       { id: 'company-2', name: 'Test Company 2' }
     ])
@@ -369,12 +369,12 @@ describe('Cron Job: Invoice Status Updates', () => {
         }
       ])
 
-      prisma.invoices.aggregate.mockResolvedValue({
+      prisma.invoice.aggregate.mockResolvedValue({
         _count: { id: 10 },
         _sum: { totalAmount: 50000, amount: 50000 }
       })
 
-      prisma.invoices.count.mockResolvedValue(25)
+      prisma.invoice.count.mockResolvedValue(25)
     })
 
     it('should require authentication for status check', async () => {
@@ -449,7 +449,7 @@ describe('Cron Job: Invoice Status Updates', () => {
 
     it('should handle database connection failures', async () => {
       const { prisma } = require('@/lib/prisma')
-      prisma.companies.findMany.mockRejectedValue(new Error('Database connection failed'))
+      prisma.company.findMany.mockRejectedValue(new Error('Database connection failed'))
 
       const response = await POST(mockRequest)
       
@@ -471,7 +471,7 @@ describe('Cron Job: Invoice Status Updates', () => {
 
     it('should update execution log with error status', async () => {
       const { prisma } = require('@/lib/prisma')
-      prisma.companies.findMany.mockRejectedValue(new Error('Critical error'))
+      prisma.company.findMany.mockRejectedValue(new Error('Critical error'))
 
       try {
         await POST(mockRequest)

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const activeOnly = searchParams.get('active') !== 'false'
 
     const whereClause: any = {
-      company_id: session.user.companyId,
+      companyId: session.user.companyId,
     }
 
     if (templateType) {
@@ -47,13 +47,13 @@ export async function GET(request: NextRequest) {
         content_ar: true,
         variables: true,
         version: true,
-        is_active: true,
+        isActive: true,
         is_default: true,
         supports_consolidation: true,
         max_invoice_count: true,
         uae_business_hours_only: true,
-        created_at: true,
-        updated_at: true,
+        createdAt: true,
+        updatedAt: true,
       },
     })
 
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     if (body.is_default) {
       await prisma.email_templates.updateMany({
         where: {
-          company_id: session.user.companyId,
+          companyId: session.user.companyId,
           template_type: body.template_type,
           is_default: true,
         },
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     const template = await prisma.email_templates.create({
       data: {
         id: crypto.randomUUID(),
-        company_id: session.user.companyId,
+        companyId: session.user.companyId,
         created_by: session.user.id,
         name: body.name,
         description: body.description || null,
@@ -121,14 +121,14 @@ export async function POST(request: NextRequest) {
         content_en: body.content_en,
         content_ar: body.content_ar || null,
         variables: body.variables || null,
-        is_active: body.is_active !== false,
+        isActive: body.is_active !== false,
         is_default: body.is_default || false,
         supports_consolidation: body.supports_consolidation || false,
         max_invoice_count: body.max_invoice_count || 1,
         uae_business_hours_only: body.uae_business_hours_only !== false,
         consolidation_variables: body.consolidation_variables || null,
-        created_at: new Date(),
-        updated_at: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     })
 

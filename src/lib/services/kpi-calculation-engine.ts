@@ -170,7 +170,7 @@ export class KPICalculationEngine {
    */
   private async getInvoiceOverviewMetrics(companyId: string, dateRange: AnalyticsDateRange) {
     const [totalMetrics, outstandingMetrics] = await Promise.all([
-      prisma.invoices.aggregate({
+      prisma.invoice.aggregate({
         where: {
           companyId,
           createdAt: {
@@ -182,7 +182,7 @@ export class KPICalculationEngine {
         _count: { id: true },
         _sum: { totalAmount: true }
       }),
-      prisma.invoices.aggregate({
+      prisma.invoice.aggregate({
         where: {
           companyId,
           status: { in: ['SENT', 'OVERDUE'] },
@@ -227,7 +227,7 @@ export class KPICalculationEngine {
    * Calculate average payment delay
    */
   private async calculateAveragePaymentDelay(companyId: string, dateRange: AnalyticsDateRange) {
-    const paidInvoices = await prisma.invoices.findMany({
+    const paidInvoices = await prisma.invoice.findMany({
       where: {
         companyId,
         status: 'PAID',
@@ -262,7 +262,7 @@ export class KPICalculationEngine {
    * Get customer overview metrics
    */
   private async getCustomerOverviewMetrics(companyId: string) {
-    const customers = await prisma.customers.findMany({
+    const customers = await prisma.customer.findMany({
       where: {
         companyId,
         isActive: true
@@ -294,7 +294,7 @@ export class KPICalculationEngine {
    */
   private async calculateCollectionEfficiency(companyId: string, dateRange: AnalyticsDateRange) {
     const [totalInvoiced, totalCollected] = await Promise.all([
-      prisma.invoices.aggregate({
+      prisma.invoice.aggregate({
         where: {
           companyId,
           createdAt: {
@@ -305,13 +305,15 @@ export class KPICalculationEngine {
         },
         _sum: { totalAmount: true }
       }),
-      prisma.payments.aggregate({
+      prisma.payment.aggregate({
         where: {
           paymentDate: {
             gte: dateRange.startDate,
             lte: dateRange.endDate
           },
-          invoices: { companyId }
+          invoice: {
+            companyId: companyId
+          }
         },
         _sum: { amount: true }
       })
@@ -366,7 +368,7 @@ export class KPICalculationEngine {
    */
   private async getActiveUsersCount(companyId: string): Promise<number> {
     // This would integrate with session management in a real application
-    return prisma.users.count({
+    return prisma.user.count({
       where: { companyId }
     })
   }
@@ -387,7 +389,7 @@ export class KPICalculationEngine {
     try {
       // Test database connectivity and performance
       const startTime = Date.now()
-      await prisma.companies.findUnique({ where: { id: companyId } })
+      await prisma.company.findUnique({ where: { id: companyId } })
       const dbResponseTime = Date.now() - startTime
 
       // Calculate health score based on response time
@@ -412,7 +414,7 @@ export class KPICalculationEngine {
 
     // Count various types of alerts
     const [overdueInvoices, highRiskCustomers, failedEmails] = await Promise.all([
-      prisma.invoices.count({
+      prisma.invoice.count({
         where: {
           companyId,
           status: 'OVERDUE',
@@ -420,7 +422,7 @@ export class KPICalculationEngine {
           isActive: true
         }
       }),
-      prisma.customers.count({
+      prisma.customer.count({
         where: {
           companyId,
           riskScore: { gte: 8 },
@@ -460,14 +462,14 @@ export class KPICalculationEngine {
    * Predict expected payments
    */
   private async predictExpectedPayments(companyId: string) {
-    const outstandingInvoices = await prisma.invoices.findMany({
+    const outstandingInvoices = await prisma.invoice.findMany({
       where: {
         companyId,
         status: { in: ['SENT', 'OVERDUE'] },
         isActive: true
       },
       include: {
-        customers: {
+        customer: {
           select: {
             paymentBehavior: true,
             riskScore: true
@@ -480,7 +482,7 @@ export class KPICalculationEngine {
     const now = new Date()
 
     for (const invoice of outstandingInvoices) {
-      const customer = invoice.customers
+      const customer = invoice.customer
       const riskScore = customer.riskScore?.toNumber() || 5
 
       // Simple prediction model based on risk score
@@ -506,7 +508,7 @@ export class KPICalculationEngine {
     const alerts = []
 
     // High-risk customers
-    const highRiskCustomers = await prisma.customers.count({
+    const highRiskCustomers = await prisma.customer.count({
       where: {
         companyId,
         riskScore: { gte: 8 },
@@ -524,7 +526,7 @@ export class KPICalculationEngine {
     }
 
     // Overdue invoices
-    const overdueInvoices = await prisma.invoices.count({
+    const overdueInvoices = await prisma.invoice.count({
       where: {
         companyId,
         status: 'OVERDUE',

@@ -82,7 +82,7 @@ export class SequenceTriggersService {
 
     try {
       // Get all active trigger rules
-      const triggerRules = await prisma.follow_up_sequences.findMany({
+      const triggerRules = await prisma.followUpSequence.findMany({
         where: { active: true },
         include: { companies: true }
       })
@@ -287,7 +287,7 @@ export class SequenceTriggersService {
         break
     }
 
-    return await prisma.invoices.findMany({
+    return await prisma.invoice.findMany({
       where: baseWhere,
       include: {
         customer: true,
@@ -407,7 +407,7 @@ export class SequenceTriggersService {
     const cooldownTime = new Date(Date.now() - cooldownHours * 60 * 60 * 1000)
 
     // Check recent trigger events for this invoice and type
-    const recentTrigger = await prisma.follow_up_logs.findFirst({
+    const recentTrigger = await prisma.followUpLog.findFirst({
       where: {
         invoiceId,
         sentAt: {
@@ -505,7 +505,7 @@ export class SequenceTriggersService {
    * Check if sequence is already running for invoice
    */
   private async checkExistingExecution(sequenceId: string, invoiceId: string): Promise<boolean> {
-    const existingLog = await prisma.follow_up_logs.findFirst({
+    const existingLog = await prisma.followUpLog.findFirst({
       where: {
         sequenceId,
         invoiceId,
@@ -619,7 +619,7 @@ export class SequenceTriggersService {
   async handlePaymentReceived(invoiceId: string, paymentAmount: number): Promise<void> {
     try {
       // Stop any active sequences for this invoice
-      const activeSequences = await prisma.follow_up_logs.findMany({
+      const activeSequences = await prisma.followUpLog.findMany({
         where: { invoiceId },
         distinct: ['sequenceId'],
         include: { followUpSequence: true }
@@ -634,7 +634,7 @@ export class SequenceTriggersService {
       }
 
       // Log payment event
-      const invoice = await prisma.invoices.findUnique({ where: { id: invoiceId } })
+      const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } })
       if (invoice) {
         await this.logTriggerEvent({
           companyId: invoice.companyId,
@@ -662,7 +662,7 @@ export class SequenceTriggersService {
     try {
       // If invoice is paid or written off, stop sequences
       if (newStatus === 'PAID' || newStatus === 'WRITTEN_OFF') {
-        const activeSequences = await prisma.follow_up_logs.findMany({
+        const activeSequences = await prisma.followUpLog.findMany({
           where: { invoiceId },
           distinct: ['sequenceId']
         })
@@ -678,14 +678,14 @@ export class SequenceTriggersService {
 
       // If invoice becomes overdue, trigger overdue sequences
       if (newStatus === 'OVERDUE' && oldStatus !== 'OVERDUE') {
-        const invoice = await prisma.invoices.findUnique({
+        const invoice = await prisma.invoice.findUnique({
           where: { id: invoiceId },
           include: { companies: true }
         })
 
         if (invoice) {
           // Find overdue sequences for this company
-          const overdueSequences = await prisma.follow_up_sequences.findMany({
+          const overdueSequences = await prisma.followUpSequence.findMany({
             where: {
               companyId: invoice.companyId,
               active: true,
@@ -736,12 +736,12 @@ export class SequenceTriggersService {
         triggerEvents
       ] = await Promise.all([
         // Total trigger rules
-        prisma.follow_up_sequences.count({
+        prisma.followUpSequence.count({
           where: { ...whereClause, active: true }
         }),
 
         // Active sequences (simplified)
-        prisma.follow_up_logs.count({
+        prisma.followUpLog.count({
           where: {
             ...whereClause,
             sentAt: {

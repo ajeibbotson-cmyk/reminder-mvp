@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify customer belongs to company
-    const customer = await prisma.customers.findFirst({
+    const customer = await prisma.customer.findFirst({
       where: {
         id: customerId,
         companyId: authContext.user.companyId
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify invoices belong to customer and company
-    const invoices = await prisma.invoices.findMany({
+    const invoices = await prisma.invoice.findMany({
       where: {
         id: { in: invoiceIds },
         customerId,
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
     const result = await consolidatedEmailService.createConsolidatedEmail(emailRequest)
 
     // Log activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: authContext.user.companyId,
@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
 
     // Get consolidated emails with related data
     const [consolidatedEmails, totalCount] = await Promise.all([
-      prisma.customerConsolidatedReminders.findMany({
+      prisma.customerConsolidatedReminder.findMany({
         where,
         include: {
           customer: {
@@ -225,7 +225,7 @@ export async function GET(request: NextRequest) {
               deliveredAt: true,
               openedAt: true,
               clickedAt: true,
-              bounced_at: true,
+              bouncedAt: true,
               awsMessageId: true
             }
           }
@@ -236,14 +236,14 @@ export async function GET(request: NextRequest) {
         skip: offset,
         take: limit
       }),
-      prisma.customerConsolidatedReminders.count({ where })
+      prisma.customerConsolidatedReminder.count({ where })
     ])
 
     // Enrich with additional data
     const enrichedEmails = await Promise.all(
       consolidatedEmails.map(async (email) => {
         // Get invoice details
-        const invoices = await prisma.invoices.findMany({
+        const invoices = await prisma.invoice.findMany({
           where: {
             id: { in: email.invoiceIds }
           },

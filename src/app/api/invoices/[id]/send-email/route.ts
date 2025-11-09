@@ -35,9 +35,9 @@ export async function POST(
     const validatedData = sendEmailSchema.parse(body)
 
     // Get user and company info
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies) {
@@ -45,14 +45,14 @@ export async function POST(
     }
 
     // Get invoice with related data
-    const invoice = await prisma.invoices.findFirst({
+    const invoice = await prisma.invoice.findFirst({
       where: {
         id: invoiceId,
         companyId: user.companies.id
       },
       include: {
         customer: true,
-        companies: true,
+        company: true,
         invoiceItems: true,
         payments: true
       }
@@ -160,7 +160,7 @@ export async function POST(
     })
 
     // Log activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.companies.id,
@@ -234,9 +234,9 @@ export async function GET(
     const { id: invoiceId } = await params
 
     // Get user and company info
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies) {
@@ -244,7 +244,7 @@ export async function GET(
     }
 
     // Get invoice
-    const invoice = await prisma.invoices.findFirst({
+    const invoice = await prisma.invoice.findFirst({
       where: {
         id: invoiceId,
         companyId: user.companies.id

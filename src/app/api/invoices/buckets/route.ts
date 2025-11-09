@@ -91,26 +91,26 @@ export async function GET(request: NextRequest) {
     const companyId = session.user.companyId
 
     // Get all unpaid invoices for the company - ONLY fetch what we need for categorization
-    const invoices = await prisma.invoices.findMany({
+    const invoices = await prisma.invoice.findMany({
       where: {
-        company_id: companyId,
+        companyId: companyId,
         status: {
           in: ['SENT', 'OVERDUE']
         },
-        is_active: true
+        isActive: true
       },
       select: {
         id: true,
         number: true,
-        customer_name: true,
+        customerName: true,
         amount: true,
-        total_amount: true,
-        due_date: true,
-        last_reminder_sent: true,
-        created_at: true
+        totalAmount: true,
+        dueDate: true,
+        lastReminderSent: true,
+        createdAt: true
       },
       orderBy: {
-        due_date: 'asc'
+        dueDate: 'asc'
       }
     })
 
@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
     let overdueCount = 0
 
     for (const invoice of invoices) {
-      const daysOverdue = calculateDaysOverdue(new Date(invoice.due_date))
+      const daysOverdue = calculateDaysOverdue(new Date(invoice.dueDate))
       const bucketId = categorizeInvoice(daysOverdue)
 
       // Initialize array if not exists
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
 
       // Update bucket metrics
       buckets[bucketId].count++
-      const amount = Number(invoice.total_amount || invoice.amount || 0)
+      const amount = Number(invoice.totalAmount || invoice.amount || 0)
       buckets[bucketId].totalAmount += amount
 
       // Check for urgent customers (high amount or long overdue)
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Check if eligible for reminder (no reminder sent in last 3 days)
-      const lastReminder = invoice.last_reminder_sent ? new Date(invoice.last_reminder_sent) : null
+      const lastReminder = invoice.lastReminderSent ? new Date(invoice.lastReminderSent) : null
       const daysSinceLastReminder = lastReminder ?
         Math.floor((new Date().getTime() - lastReminder.getTime()) / (1000 * 60 * 60 * 24)) : 999
 
@@ -175,14 +175,14 @@ export async function GET(request: NextRequest) {
       }
 
       // Check for recent activity (created or reminded in last 7 days)
-      const daysSinceCreated = Math.floor((new Date().getTime() - new Date(invoice.created_at).getTime()) / (1000 * 60 * 60 * 24))
+      const daysSinceCreated = Math.floor((new Date().getTime() - new Date(invoice.createdAt).getTime()) / (1000 * 60 * 60 * 24))
       if (daysSinceCreated <= 7 || daysSinceLastReminder <= 7) {
         buckets[bucketId].hasRecentActivity = true
       }
 
       // Update totals
       totalInvoices++
-      totalAmount += Number(invoice.total_amount || 0)
+      totalAmount += Number(invoice.totalAmount || 0)
       if (daysOverdue > 0) {
         overdueCount++
       }
@@ -199,10 +199,10 @@ export async function GET(request: NextRequest) {
         sampleInvoices: invoicesInBucket.slice(0, 3).map(inv => ({
           id: inv.id,
           number: inv.number,
-          customerName: inv.customer_name,
-          amount: Number(inv.total_amount || 0),
+          customerName: inv.customerName,
+          amount: Number(inv.totalAmount || 0),
           daysOverdue: inv.daysOverdue,
-          lastReminderSent: inv.last_reminder_sent
+          lastReminderSent: inv.lastReminderSent
         }))
       }
     })

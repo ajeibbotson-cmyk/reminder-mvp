@@ -1,55 +1,44 @@
 # Reminder Documentation Index
 
-Concise, actionable documentation for the Reminder invoice platform.
+**Complete documentation for the Reminder invoice management and payment reminder platform.**
 
-## 🎯 Start Here
+## 🎯 Quick Navigation
 
-**New to the project?** Read `/CLAUDE.md` in the root directory for complete overview.
+### 📋 Planning & Strategy
+- [Product Status (November 2025)](planning/PRODUCT_STATUS_NOVEMBER_2025.md) - Current state assessment
+- [December Beta Roadmap](planning/DECEMBER_BETA_ROADMAP.md) - 7-week launch plan
+- [Implementation Plan](planning/IMPLEMENTATION_PLAN.md) - Detailed technical roadmap
 
-**Current work?** See `16_WEEK_BUILD_PLAN.md` for roadmap and priorities.
+### 🚀 Development
 
-**Need help with?** Check CLAUDE.md files in relevant directories:
-- `/CLAUDE.md` - Project overview, setup, architecture
-- `/messages/CLAUDE.md` - Internationalization (English/Arabic)
-- `/prisma/CLAUDE.md` - Database schema and queries
-- `/src/app/api/CLAUDE.md` - API route patterns
-- `/src/components/CLAUDE.md` - React component patterns
-- `/src/lib/CLAUDE.md` - Services and utilities
+#### Week 1: Discovery + Critical Integration (Nov 1-7)
+- [Week 1 Overview](development/week1/README.md) - Objectives, timeline, progress
+- [Day 1 Handoff](development/week1/DAY1_HANDOFF.md) - Session summary and achievements
+- [Day 2 Resume Guide](development/week1/DAY2_RESUME.md) - How to continue work
+- [API Test Results](development/week1/API_TEST_RESULTS.md) - Endpoint validation status
+- [API Testing Guide](development/week1/API_TESTING_GUIDE.md) - Testing methodology
+- [API Fix Plan](development/week1/API_FIX_PLAN.md) - Exact fixes with file/line numbers
+- [Critical Database Fix](development/week1/CRITICAL_DATABASE_FIX.md) - Pooler vs direct connection
 
----
+### ✨ Features
 
-## 📁 Active Documentation
+#### Core Email Features
+- [PDF Attachments](features/pdf-attachments.md) - Automated invoice PDF attachments
+- [Reply-To Header](features/reply-to-header.md) - Configurable email reply routing
+- [Auto-Send System](features/auto-send.md) - Automated bucket-based reminders
+- [Bucket System](features/bucket-system.md) - Visual invoice organization
 
-### Current Roadmap
-- **`16_WEEK_BUILD_PLAN.md`** - Q4 2025 launch plan with weekly milestones
-- **`BUCKET_FIX_PLAN.md`** - Active bug fix (pagination issue)
-- **`claudedocs/bucket-system-mvp-implementation-plan.md`** - Email integration spec
+### 🚢 Deployment
+- [AWS SES Setup](deployment/AWS_SES_SETUP.md) - Email service configuration
+- [Environment Variables](deployment/ENVIRONMENT_VARIABLES.md) - Required configuration
+- [Production Deployment](deployment/PRODUCTION_DEPLOYMENT.md) - Deployment guide
 
-### Infrastructure
-- **`AWS_SETUP.md`** - AWS SES, S3, Textract configuration
-- **`TEXTRACT_ASYNC_IMPLEMENTATION.md`** - PDF extraction system (100% success rate)
-- **`PARALLEL_EXTRACTION.md`** - Performance optimization details
-- **`TEXTRACT_TEST_RESULTS.md`** - Validation data from POP Trading PDFs
+### 🔧 Technical Reference
+- [Database Fixes](technical/database-fixes.md) - Pooler vs direct connection
+- [Testing Framework](technical/testing.md) - Jest, Playwright, test infrastructure
 
-### Debugging
-- **`claudedocs/frontend-issues-resolution.md`** - React hydration, DB connection issues
-- **`claudedocs/invoice-upload-testing-summary.md`** - PDF upload test results
-
-### Deployment
-- **`claudedocs/DEPLOYMENT_STATUS.md`** - Production environment status
-- **`claudedocs/PRODUCTION_DEPLOYMENT.md`** - Vercel deployment guide
-
----
-
-## 🗂️ Archived Documentation
-
-Historical planning docs and progress reports are in `docs/archive/`:
-- Sprint planning (superseded by 16-week plan)
-- Consolidation roadmaps (features now complete)
-- Progress reports (captured in git history)
-- Old MVP plans (replaced by current roadmap)
-
-These are kept for reference but not actively maintained.
+### 📦 Archive
+Historical documentation and old session summaries are in the [archive/](archive/) directory.
 
 ---
 

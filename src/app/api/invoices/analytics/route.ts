@@ -227,20 +227,20 @@ function calculateDateRange(period: string, customStart?: Date, customEnd?: Date
 
 async function getOverviewMetrics(companyId: string, startDate: Date, endDate: Date, currency: string) {
   const [invoiceStats, paymentStats] = await Promise.all([
-    prisma.invoices.aggregate({
+    prisma.invoice.aggregate({
       where: {
         companyId,
-        created_at: { gte: startDate, lte: endDate }
+        createdAt: { gte: startDate, lte: endDate }
       },
       _count: { id: true },
       _sum: { totalAmount: true },
       _avg: { totalAmount: true }
     }),
-    prisma.payments.aggregate({
+    prisma.payment.aggregate({
       where: {
         invoices: {
           companyId,
-          created_at: { gte: startDate, lte: endDate }
+          createdAt: { gte: startDate, lte: endDate }
         }
       },
       _sum: { amount: true },
@@ -249,30 +249,30 @@ async function getOverviewMetrics(companyId: string, startDate: Date, endDate: D
   ])
 
   // Calculate outstanding and overdue amounts
-  const outstandingInvoices = await prisma.invoices.findMany({
+  const outstandingInvoices = await prisma.invoice.findMany({
     where: {
       companyId,
       status: { in: [InvoiceStatus.SENT, InvoiceStatus.OVERDUE, InvoiceStatus.DISPUTED] },
-      created_at: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate }
     },
     include: { payments: true }
   })
 
-  const overdueInvoices = await prisma.invoices.findMany({
+  const overdueInvoices = await prisma.invoice.findMany({
     where: {
       companyId,
       status: InvoiceStatus.OVERDUE,
-      created_at: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate }
     },
     include: { payments: true }
   })
 
   // Calculate payment timing
-  const paidInvoices = await prisma.invoices.findMany({
+  const paidInvoices = await prisma.invoice.findMany({
     where: {
       companyId,
       status: InvoiceStatus.PAID,
-      created_at: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate }
     },
     include: {
       payments: {
@@ -329,11 +329,11 @@ async function getOverviewMetrics(companyId: string, startDate: Date, endDate: D
 }
 
 async function getStatusBreakdown(companyId: string, startDate: Date, endDate: Date, currency: string) {
-  const statusData = await prisma.invoices.groupBy({
+  const statusData = await prisma.invoice.groupBy({
     by: ['status'],
     where: {
       companyId,
-      created_at: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate }
     },
     _count: { status: true },
     _sum: { totalAmount: true }
@@ -362,15 +362,15 @@ async function getTimeSeriesData(companyId: string, startDate: Date, endDate: Da
     const periodEnd = interval.end
 
     const [invoiceData, paymentData] = await Promise.all([
-      prisma.invoices.aggregate({
+      prisma.invoice.aggregate({
         where: {
           companyId,
-          created_at: { gte: periodStart, lt: periodEnd }
+          createdAt: { gte: periodStart, lt: periodEnd }
         },
         _count: { id: true },
         _sum: { totalAmount: true }
       }),
-      prisma.payments.aggregate({
+      prisma.payment.aggregate({
         where: {
           invoices: { companyId },
           paymentDate: { gte: periodStart, lt: periodEnd }
@@ -400,15 +400,15 @@ async function getTimeSeriesData(companyId: string, startDate: Date, endDate: Da
 }
 
 async function getTopCustomers(companyId: string, startDate: Date, endDate: Date, currency: string) {
-  const customerData = await prisma.invoices.groupBy({
+  const customerData = await prisma.invoice.groupBy({
     by: ['customerName', 'customerEmail'],
     where: {
       companyId,
-      created_at: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate }
     },
     _count: { id: true },
     _sum: { totalAmount: true },
-    _max: { created_at: true },
+    _max: { createdAt: true },
     orderBy: { _sum: { totalAmount: 'desc' } },
     take: 10
   })
@@ -416,24 +416,24 @@ async function getTopCustomers(companyId: string, startDate: Date, endDate: Date
   const topCustomers = []
   for (const customer of customerData) {
     // Get payment data for this customer
-    const customerPayments = await prisma.payments.aggregate({
+    const customerPayments = await prisma.payment.aggregate({
       where: {
         invoices: {
           companyId,
           customerEmail: customer.customerEmail,
-          created_at: { gte: startDate, lte: endDate }
+          createdAt: { gte: startDate, lte: endDate }
         }
       },
       _sum: { amount: true }
     })
 
     // Calculate average days to payment for this customer
-    const customerPaidInvoices = await prisma.invoices.findMany({
+    const customerPaidInvoices = await prisma.invoice.findMany({
       where: {
         companyId,
         customerEmail: customer.customerEmail,
         status: InvoiceStatus.PAID,
-        created_at: { gte: startDate, lte: endDate }
+        createdAt: { gte: startDate, lte: endDate }
       },
       include: {
         payments: {
@@ -476,7 +476,7 @@ async function getTopCustomers(companyId: string, startDate: Date, endDate: Date
 }
 
 async function getPaymentMethodBreakdown(companyId: string, startDate: Date, endDate: Date, currency: string) {
-  const paymentMethodData = await prisma.payments.groupBy({
+  const paymentMethodData = await prisma.payment.groupBy({
     by: ['method'],
     where: {
       invoices: { companyId },
@@ -498,7 +498,7 @@ async function getPaymentMethodBreakdown(companyId: string, startDate: Date, end
 }
 
 async function getOverdueAnalysis(companyId: string, currency: string) {
-  const overdueInvoices = await prisma.invoices.findMany({
+  const overdueInvoices = await prisma.invoice.findMany({
     where: {
       companyId,
       status: InvoiceStatus.OVERDUE

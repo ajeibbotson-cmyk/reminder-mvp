@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { handleApiError, successResponse, logError } from '@/lib/errors'
 import { requireRole, canManageInvoices } from '@/lib/auth-utils'
@@ -27,9 +28,9 @@ export async function GET(request: NextRequest) {
 
     // Build dynamic where clause for advanced filtering
     // Always use the authenticated user's company ID for security
-    const whereClause: Prisma.customersWhereInput = {
-      company_id: authContext.user.companyId,
-      is_active: filters.isActive
+    const whereClause: Prisma.CustomerWhereInput = {
+      companyId: authContext.user.companyId,
+      isActive: filters.isActive
     }
 
     // Advanced search functionality
@@ -37,14 +38,14 @@ export async function GET(request: NextRequest) {
       const searchTerm = filters.search.toLowerCase()
       whereClause.OR = [
         { name: { contains: searchTerm, mode: 'insensitive' } },
-        { name_ar: { contains: searchTerm, mode: 'insensitive' } },
+        { nameAr: { contains: searchTerm, mode: 'insensitive' } },
         { email: { contains: searchTerm, mode: 'insensitive' } },
         { phone: { contains: searchTerm, mode: 'insensitive' } },
         // TRN search - strip formatting and search
         {
           invoices: {
             some: {
-              trn_number: { contains: searchTerm.replace(/\D/g, ''), mode: 'insensitive' }
+              trnNumber: { contains: searchTerm.replace(/\D/g, ''), mode: 'insensitive' }
             }
           }
         }
@@ -59,23 +60,23 @@ export async function GET(request: NextRequest) {
 
     // Credit limit range filtering
     if (filters.minCreditLimit !== undefined || filters.maxCreditLimit !== undefined) {
-      whereClause.credit_limit = {}
+      whereClause.creditLimit = {}
       if (filters.minCreditLimit !== undefined) {
-        whereClause.credit_limit.gte = filters.minCreditLimit
+        whereClause.creditLimit.gte = filters.minCreditLimit
       }
       if (filters.maxCreditLimit !== undefined) {
-        whereClause.credit_limit.lte = filters.maxCreditLimit
+        whereClause.creditLimit.lte = filters.maxCreditLimit
       }
     }
 
     // Payment terms filtering
     if (filters.paymentTermsMin !== undefined || filters.paymentTermsMax !== undefined) {
-      whereClause.payment_terms = {}
+      whereClause.paymentTerms = {}
       if (filters.paymentTermsMin !== undefined) {
-        whereClause.payment_terms.gte = filters.paymentTermsMin
+        whereClause.paymentTerms.gte = filters.paymentTermsMin
       }
       if (filters.paymentTermsMax !== undefined) {
-        whereClause.payment_terms.lte = filters.paymentTermsMax
+        whereClause.paymentTerms.lte = filters.paymentTermsMax
       }
     }
 
@@ -103,7 +104,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build sorting
-    const orderBy: Prisma.customersOrderByWithRelationInput = {}
+    const orderBy: Prisma.CustomerOrderByWithRelationInput = {}
     switch (filters.sortBy) {
       case 'name':
         orderBy.name = filters.sortOrder
@@ -112,13 +113,13 @@ export async function GET(request: NextRequest) {
         orderBy.email = filters.sortOrder
         break
       case 'createdAt':
-        orderBy.created_at = filters.sortOrder
+        orderBy.createdAt = filters.sortOrder
         break
       case 'creditLimit':
-        orderBy.credit_limit = filters.sortOrder
+        orderBy.creditLimit = filters.sortOrder
         break
       case 'paymentTerms':
-        orderBy.payment_terms = filters.sortOrder
+        orderBy.paymentTerms = filters.sortOrder
         break
       default:
         orderBy.name = 'asc'
@@ -129,24 +130,24 @@ export async function GET(request: NextRequest) {
 
     // Execute queries in parallel for performance
     const [customers, totalCount] = await Promise.all([
-      prisma.customers.findMany({
+      prisma.customer.findMany({
         where: whereClause,
         include: {
           invoices: {
-            orderBy: { created_at: 'desc' },
+            orderBy: { createdAt: 'desc' },
             take: 5, // Limit recent invoices for performance
             select: {
               id: true,
               number: true,
               amount: true,
-              total_amount: true,
+              totalAmount: true,
               status: true,
-              due_date: true,
-              created_at: true,
+              dueDate: true,
+              createdAt: true,
               payments: {
                 select: {
                   amount: true,
-                  payment_date: true
+                  paymentDate: true
                 }
               }
             }
@@ -165,18 +166,18 @@ export async function GET(request: NextRequest) {
         skip,
         take: filters.limit
       }),
-      prisma.customers.count({ where: whereClause })
+      prisma.customer.count({ where: whereClause })
     ])
 
     // Calculate outstanding balances and enrich customer data
     const enrichedCustomers = customers.map(customer => {
-      const outstandingInvoices = customer.invoices.filter(invoice => 
-        ['SENT', 'OVERDUE', 'DISPUTED'].includes(invoice.status) && 
+      const outstandingInvoices = customer.invoices.filter(invoice =>
+        ['SENT', 'OVERDUE', 'DISPUTED'].includes(invoice.status) &&
         invoice.payments.length === 0
       )
-      
+
       const outstandingBalance = outstandingInvoices.reduce((sum, invoice) =>
-        sum + (invoice.total_amount || invoice.amount), 0
+        sum + (invoice.totalAmount || invoice.amount), 0
       )
 
       const totalPaid = customer.invoices.reduce((sum, invoice) => 
@@ -238,11 +239,9 @@ export async function POST(request: NextRequest) {
     }
 
     const customerData = await validateRequestBody(request, createCustomerSchema)
-    
-    // Ensure user can only create customers for their company
-    if (customerData.companyId !== authContext.user.companyId) {
-      customerData.companyId = authContext.user.companyId
-    }
+
+    // Always inject companyId from authenticated session (multi-tenant security)
+    customerData.companyId = authContext.user.companyId
 
     // UAE-specific business validations
     if (customerData.trn && !validateUAETRN(customerData.trn)) {
@@ -251,12 +250,12 @@ export async function POST(request: NextRequest) {
 
     // Check for duplicate TRN within the company
     if (customerData.trn) {
-      const existingTrnCustomer = await prisma.customers.findFirst({
+      const existingTrnCustomer = await prisma.customer.findFirst({
         where: {
-          company_id: authContext.user.companyId,
+          companyId: authContext.user.companyId,
           // Note: TRN field needs to be added to customer schema
           // trn: customerData.trn,
-          is_active: true
+          isActive: true
         }
       })
 
@@ -266,11 +265,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicate email within the company
-    const existingEmailCustomer = await prisma.customers.findFirst({
+    const existingEmailCustomer = await prisma.customer.findFirst({
       where: {
-        company_id: authContext.user.companyId,
+        companyId: authContext.user.companyId,
         email: customerData.email,
-        is_active: true
+        isActive: true
       }
     })
     
@@ -280,17 +279,19 @@ export async function POST(request: NextRequest) {
 
     const customer = await prisma.$transaction(async (tx) => {
       // Create customer with UAE-specific fields
-      const newCustomer = await tx.customers.create({
+      const newCustomer = await tx.customer.create({
         data: {
-          company_id: customerData.companyId,
+          id: randomUUID(), // Generate UUID for customer ID
+          companyId: customerData.companyId,
           name: customerData.name,
-          name_ar: customerData.nameAr,
+          nameAr: customerData.nameAr,
           email: customerData.email,
           phone: customerData.phone,
-          payment_terms: customerData.paymentTerms || 30, // UAE default
-          credit_limit: customerData.creditLimit,
+          paymentTerms: customerData.paymentTerms || 30, // UAE default
+          creditLimit: customerData.creditLimit,
           notes: customerData.notes,
-          notes_ar: customerData.notesAr,
+          notesAr: customerData.notesAr,
+          updatedAt: new Date(), // Required field
           // Note: These fields need to be added to customer schema
           // trn: customerData.trn,
           // businessType: customerData.businessType,
@@ -299,16 +300,17 @@ export async function POST(request: NextRequest) {
         include: {
           invoices: {
             take: 5,
-            orderBy: { created_at: 'desc' }
+            orderBy: { createdAt: 'desc' }
           }
         }
       })
 
       // Log activity with detailed metadata
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
-          company_id: authContext.user.companyId,
-          user_id: authContext.user.id,
+          id: randomUUID(), // Generate UUID for activity ID
+          companyId: authContext.user.companyId,
+          userId: authContext.user.id,
           type: 'customer_created',
           description: `Created customer ${customerData.name}${customerData.nameAr ? ` (${customerData.nameAr})` : ''}`,
           metadata: {

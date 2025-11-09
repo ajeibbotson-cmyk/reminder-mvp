@@ -37,7 +37,7 @@ jest.mock('@/lib/prisma', () => ({
     emailSequenceSteps: {
       findMany: jest.fn(),
     },
-    companies: {
+    company: {
       findUnique: jest.fn(),
     },
     $transaction: jest.fn(),
@@ -198,10 +198,10 @@ describe('GET /api/sequences/analytics', () => {
     getServerSession.mockResolvedValue(mockSession)
     
     // Setup default database responses
-    prisma.users.findUnique.mockResolvedValue(mockUser)
+    prisma.user.findUnique.mockResolvedValue(mockUser)
     prisma.sequences.findMany.mockResolvedValue(mockSequences)
     prisma.sequenceExecutions.findMany.mockResolvedValue(mockExecutions)
-    prisma.emailLogs.findMany.mockResolvedValue(mockEmailLogs)
+    prisma.emailLog.findMany.mockResolvedValue(mockEmailLogs)
     
     // Setup service responses
     sequenceExecutionService.getCompanyAnalytics.mockResolvedValue({
@@ -254,7 +254,7 @@ describe('GET /api/sequences/analytics', () => {
 
     it('should require user to have company association', async () => {
       const userWithoutCompany = { ...mockUser, company: null }
-      prisma.users.findUnique.mockResolvedValue(userWithoutCompany)
+      prisma.user.findUnique.mockResolvedValue(userWithoutCompany)
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics')
       const response = await GET(request)
@@ -290,7 +290,7 @@ describe('GET /api/sequences/analytics', () => {
 
     it('should handle role-based access control', async () => {
       const viewerUser = { ...mockUser, role: 'VIEWER' }
-      prisma.users.findUnique.mockResolvedValue(viewerUser)
+      prisma.user.findUnique.mockResolvedValue(viewerUser)
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics')
       const response = await GET(request)
@@ -360,7 +360,7 @@ describe('GET /api/sequences/analytics', () => {
 
       expect(response.status).toBe(200)
       
-      expect(prisma.emailLogs.findMany).toHaveBeenCalledWith(
+      expect(prisma.emailLog.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             stepNumber: 3
@@ -632,7 +632,7 @@ describe('GET /api/sequences/analytics', () => {
         culturalScore: 95
       }))
 
-      prisma.emailLogs.findMany.mockResolvedValue(arabicEmailLogs)
+      prisma.emailLog.findMany.mockResolvedValue(arabicEmailLogs)
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics')
       const response = await GET(request)
@@ -676,7 +676,7 @@ describe('GET /api/sequences/analytics', () => {
 
   describe('Error Handling', () => {
     it('should handle database connection errors', async () => {
-      prisma.users.findUnique.mockRejectedValue(new Error('Database connection failed'))
+      prisma.user.findUnique.mockRejectedValue(new Error('Database connection failed'))
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics')
       const response = await GET(request)
@@ -755,7 +755,7 @@ describe('GET /api/sequences/analytics', () => {
 
     it('should handle edge cases with zero executions', async () => {
       prisma.sequenceExecutions.findMany.mockResolvedValue([])
-      prisma.emailLogs.findMany.mockResolvedValue([])
+      prisma.emailLog.findMany.mockResolvedValue([])
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics')
       const response = await GET(request)

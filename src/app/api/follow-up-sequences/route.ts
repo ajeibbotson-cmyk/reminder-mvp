@@ -49,12 +49,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
-    if (!user?.companies) {
+    if (!user?.company) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: any = {
-      companyId: user.companies.id
+      companyId: user.company.id
     }
 
     if (active !== null) {
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     // Get sequences with pagination
     const [sequences, totalCount] = await Promise.all([
-      prisma.follow_up_sequences.findMany({
+      prisma.followUpSequence.findMany({
         where,
         include: {
           _count: {
@@ -95,29 +95,29 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit
       }),
-      prisma.follow_up_sequences.count({ where })
+      prisma.followUpSequence.count({ where })
     ])
 
     // Get analytics for each sequence
     const sequencesWithAnalytics = await Promise.all(
       sequences.map(async (sequence) => {
         const [totalLogs, successful, pending, failed] = await Promise.all([
-          prisma.follow_up_logs.count({
+          prisma.followUpLog.count({
             where: { sequenceId: sequence.id }
           }),
-          prisma.follow_up_logs.count({
+          prisma.followUpLog.count({
             where: {
               sequenceId: sequence.id,
               deliveryStatus: { in: ['DELIVERED', 'OPENED', 'CLICKED'] }
             }
           }),
-          prisma.follow_up_logs.count({
+          prisma.followUpLog.count({
             where: {
               sequenceId: sequence.id,
               deliveryStatus: { in: ['QUEUED', 'SENT'] }
             }
           }),
-          prisma.follow_up_logs.count({
+          prisma.followUpLog.count({
             where: {
               sequenceId: sequence.id,
               deliveryStatus: { in: ['FAILED', 'BOUNCED'] }
@@ -189,12 +189,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
-    if (!user?.companies) {
+    if (!user?.company) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -222,9 +222,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate sequence name uniqueness
-    const existingSequence = await prisma.follow_up_sequences.findFirst({
+    const existingSequence = await prisma.followUpSequence.findFirst({
       where: {
-        companyId: user.companies.id,
+        companyId: user.company.id,
         name: body.name
       }
     })
@@ -301,10 +301,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the sequence
-    const sequence = await prisma.follow_up_sequences.create({
+    const sequence = await prisma.followUpSequence.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.companies.id,
+        companyId: user.company.id,
         name: body.name.trim(),
         description: body.description?.trim(),
         steps: JSON.stringify(sanitizedSteps),
@@ -315,10 +315,10 @@ export async function POST(request: NextRequest) {
     })
 
     // Log creation activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.companies.id,
+        companyId: user.company.id,
         userId: user.id,
         type: 'FOLLOW_UP_SEQUENCE_CREATED',
         description: `Created follow-up sequence: ${body.name}`,
@@ -369,12 +369,12 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
-    if (!user?.companies) {
+    if (!user?.company) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
@@ -402,10 +402,10 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verify all sequences belong to the company
-    const existingSequences = await prisma.follow_up_sequences.findMany({
+    const existingSequences = await prisma.followUpSequence.findMany({
       where: {
         id: { in: sequenceIds },
-        companyId: user.companies.id
+        companyId: user.company.id
       },
       select: { id: true, name: true }
     })
@@ -421,10 +421,10 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update sequences
-    const updateResult = await prisma.follow_up_sequences.updateMany({
+    const updateResult = await prisma.followUpSequence.updateMany({
       where: {
         id: { in: sequenceIds },
-        companyId: user.companies.id
+        companyId: user.company.id
       },
       data: {
         active: action === 'activate',
@@ -433,10 +433,10 @@ export async function PUT(request: NextRequest) {
     })
 
     // Log bulk action
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
-        companyId: user.companies.id,
+        companyId: user.company.id,
         userId: user.id,
         type: 'FOLLOW_UP_SEQUENCE_BULK_UPDATE',
         description: `Bulk ${action} on ${updateResult.count} follow-up sequences`,

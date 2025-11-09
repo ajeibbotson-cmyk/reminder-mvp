@@ -142,7 +142,7 @@ async function handleSESEvent(event: SESDeliveryEvent): Promise<void> {
       await prisma.email_logs.update({
         where: { id: emailLog.id },
         data: {
-          delivery_status: 'SENT',
+          deliveryStatus: 'SENT',
           sentAt: new Date(event.timestamp)
         }
       })
@@ -159,8 +159,8 @@ async function handleSESEvent(event: SESDeliveryEvent): Promise<void> {
       await prisma.email_logs.update({
         where: { id: emailLog.id },
         data: {
-          delivery_status: 'DELIVERED',
-          delivered_at: new Date(event.delivery?.timestamp || event.timestamp)
+          deliveryStatus: 'DELIVERED',
+          deliveredAt: new Date(event.delivery?.timestamp || event.timestamp)
         }
       })
       break
@@ -208,7 +208,7 @@ async function handleSESEvent(event: SESDeliveryEvent): Promise<void> {
       await prisma.email_logs.update({
         where: { id: emailLog.id },
         data: {
-          delivery_status: 'FAILED',
+          deliveryStatus: 'FAILED',
           bounce_reason: event.reject?.reason || 'Email rejected by SES'
         }
       })

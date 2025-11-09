@@ -35,10 +35,10 @@ export async function GET(
     const invoiceId = params.id
 
     // Fetch invoice and verify company access
-    const invoice = await prisma.invoices.findFirst({
+    const invoice = await prisma.invoice.findFirst({
       where: {
         id: invoiceId,
-        company_id: session.user.companyId
+        companyId: session.user.companyId
       },
       select: {
         id: true,

@@ -384,7 +384,7 @@ export class UAEBusinessIntelligenceService {
    * Get business type distribution
    */
   private async getBusinessTypeDistribution(companyId: string) {
-    const distribution = await prisma.customers.groupBy({
+    const distribution = await prisma.customer.groupBy({
       by: ['businessType'],
       where: {
         companyId,
@@ -409,7 +409,7 @@ export class UAEBusinessIntelligenceService {
    */
   private async getGeographicDistribution(companyId: string) {
     // Simplified geographic distribution based on common UAE emirates
-    const customers = await prisma.customers.count({
+    const customers = await prisma.customer.count({
       where: { companyId, isActive: true }
     })
 
@@ -427,7 +427,7 @@ export class UAEBusinessIntelligenceService {
    * Get industry performance analysis
    */
   private async getIndustryPerformance(companyId: string) {
-    const customers = await prisma.customers.findMany({
+    const customers = await prisma.customer.findMany({
       where: {
         companyId,
         isActive: true
@@ -496,10 +496,10 @@ export class UAEBusinessIntelligenceService {
    */
   private async getTRNComplianceRate(companyId: string) {
     const [totalCustomers, customersWithTRN] = await Promise.all([
-      prisma.customers.count({
+      prisma.customer.count({
         where: { companyId, isActive: true }
       }),
-      prisma.customers.count({
+      prisma.customer.count({
         where: {
           companyId,
           isActive: true,
@@ -694,7 +694,7 @@ export class UAEBusinessIntelligenceService {
   private async getTotalRecordsCount(companyId: string): Promise<number> {
     const [emails, customers, invoices] = await Promise.all([
       prisma.emailLog.count({ where: { companyId } }),
-      prisma.customers.count({ where: { companyId, isActive: true } }),
+      prisma.customer.count({ where: { companyId, isActive: true } }),
       prisma.invoices.count({ where: { companyId, isActive: true } })
     ])
 

@@ -27,9 +27,9 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies) {
@@ -65,7 +65,7 @@ export async function POST(
     }
 
     // Verify invoice exists and belongs to company
-    const invoice = await prisma.invoices.findFirst({
+    const invoice = await prisma.invoice.findFirst({
       where: {
         id: body.invoiceId,
         companyId: user.companies.id
@@ -143,7 +143,7 @@ export async function POST(
 
     if (executionResult.success) {
       // Log manual execution activity
-      await prisma.activities.create({
+      await prisma.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: user.companies.id,
@@ -208,9 +208,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies) {
@@ -315,9 +315,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies) {
@@ -348,7 +348,7 @@ export async function DELETE(
     }
 
     // Verify invoice belongs to company
-    const invoice = await prisma.invoices.findFirst({
+    const invoice = await prisma.invoice.findFirst({
       where: {
         id: invoiceId,
         companyId: user.companies.id
@@ -368,7 +368,7 @@ export async function DELETE(
 
     if (stopResult) {
       // Log stop activity
-      await prisma.activities.create({
+      await prisma.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: user.companies.id,

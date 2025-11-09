@@ -1,127 +1,68 @@
+#!/usr/bin/env tsx
 /**
- * Test dashboard invoice display with Playwright
- * Full browser test including login and API calls
+ * End-to-End PDF Invoice Upload Test
+ *
+ * MANUAL TEST INSTRUCTIONS:
+ * This test requires manual interaction since we need login credentials.
+ * 
+ * How to use:
+ * 1. Update TEST_EMAIL and TEST_PASSWORD below
+ * 2. Ensure dev server is running: npm run dev
+ * 3. Run: npx tsx scripts/test-dashboard-playwright.ts
  */
 
-import { chromium } from 'playwright'
+import { chromium, Browser, Page } from 'playwright'
+import { PrismaClient } from '@prisma/client'
+import fs from 'fs'
+import path from 'path'
 
-async function testDashboard() {
-  console.log('🚀 Starting Playwright Dashboard Test\n')
+const prisma = new PrismaClient()
+const APP_URL = 'http://localhost:3000'
+
+// ⚠️ UPDATE THESE WITH YOUR TEST CREDENTIALS
+const TEST_EMAIL = 'test@example.com'
+const TEST_PASSWORD = 'your-password-here'
+
+async function main() {
+  console.log('🧪 PDF Upload E2E Test - Manual Browser Test\n')
+  console.log('⚠️  This test requires:')
+  console.log('   1. Dev server running (npm run dev)')
+  console.log('   2. Valid test account credentials')
+  console.log('   3. PDFs in test-pdfs/ directory\n')
+  console.log('The browser will open automatically.')
+  console.log('You can manually navigate and upload PDFs.')
+  console.log('Screenshots will be saved for review.\n')
 
   const browser = await chromium.launch({ headless: false })
-  const context = await browser.newContext()
-  const page = await context.newPage()
+  const page = await browser.newPage()
+
+  // Create screenshots dir
+  const screenshotsDir = 'test-screenshots'
+  if (!fs.existsSync(screenshotsDir)) fs.mkdirSync(screenshotsDir)
 
   try {
-    // Step 1: Navigate to login page
-    console.log('📍 Step 1: Navigate to login page')
-    await page.goto('http://localhost:3000/en/auth/signin')
-    await page.waitForLoadState('networkidle')
-    console.log('✓ Login page loaded\n')
+    // Navigate to upload page
+    console.log('📋 Opening upload page...')
+    await page.goto(`${APP_URL}/en/dashboard/invoices/upload-pdf`)
+    await page.screenshot({ path: `${screenshotsDir}/01-page-loaded.png` })
+    
+    console.log('✅ Browser opened')
+    console.log('📝 Please:')
+    console.log('   1. Log in if required')
+    console.log('   2. Upload test PDFs manually')
+    console.log('   3. Review extraction results')
+    console.log('   4. Check dashboard metrics')
+    console.log('\n⏳ Press Ctrl+C when done testing\n')
 
-    // Step 2: Fill in credentials
-    console.log('📝 Step 2: Enter credentials')
-    await page.fill('input[name="email"]', 'admin@testcompany.ae')
-    await page.fill('input[name="password"]', 'Test123!')
-    console.log('✓ Credentials entered\n')
+    // Keep browser open
+    await page.waitForTimeout(300000) // 5 minutes
 
-    // Step 3: Submit login form
-    console.log('🔐 Step 3: Submit login')
-    await page.click('button[type="submit"]')
-    await page.waitForURL('**/dashboard**', { timeout: 10000 })
-    console.log('✓ Login successful, redirected to dashboard\n')
-
-    // Step 4: Wait for invoices page to load
-    console.log('📊 Step 4: Navigate to invoices')
-    await page.goto('http://localhost:3000/en/dashboard/invoices')
-    await page.waitForLoadState('networkidle')
-    console.log('✓ Invoices page loaded\n')
-
-    // Step 5: Intercept API calls
-    console.log('🔍 Step 5: Check API responses')
-    const apiResponses: any[] = []
-
-    page.on('response', async (response) => {
-      if (response.url().includes('/api/invoices')) {
-        const status = response.status()
-        console.log(`  API: ${response.url()} - Status: ${status}`)
-
-        if (status === 200) {
-          try {
-            const data = await response.json()
-            apiResponses.push(data)
-            console.log(`  ✓ Response: ${data.data?.invoices?.length || 0} invoices`)
-          } catch (e) {
-            console.log(`  ✗ Failed to parse JSON`)
-          }
-        } else {
-          const text = await response.text()
-          console.log(`  ✗ Error: ${text}`)
-        }
-      }
-    })
-
-    // Trigger a page reload to capture API calls
-    await page.reload({ waitUntil: 'networkidle' })
-
-    // Step 6: Check page content
-    console.log('\n📄 Step 6: Check page content')
-
-    await page.waitForTimeout(2000) // Give time for data to render
-
-    const pageText = await page.textContent('body')
-
-    if (pageText?.includes('No invoices yet')) {
-      console.log('❌ Page shows "No invoices yet"')
-    } else if (pageText?.includes('Loading')) {
-      console.log('⏳ Page shows "Loading..."')
-    } else {
-      console.log('✓ Page has content (not showing empty state)')
-    }
-
-    // Check for invoice table
-    const hasTable = await page.locator('table').count()
-    console.log(`  Tables found: ${hasTable}`)
-
-    const hasRows = await page.locator('table tbody tr').count()
-    console.log(`  Table rows: ${hasRows}`)
-
-    // Step 7: Take screenshot
-    console.log('\n📸 Step 7: Taking screenshot')
-    await page.screenshot({ path: '/tmp/dashboard-test.png', fullPage: true })
-    console.log('✓ Screenshot saved to /tmp/dashboard-test.png\n')
-
-    // Step 8: Summary
-    console.log('📊 SUMMARY:')
-    console.log(`  API Calls: ${apiResponses.length}`)
-    if (apiResponses.length > 0) {
-      const lastResponse = apiResponses[apiResponses.length - 1]
-      console.log(`  Invoices Returned: ${lastResponse.data?.invoices?.length || 0}`)
-      console.log(`  Total Count: ${lastResponse.data?.pagination?.totalCount || 0}`)
-      console.log(`  Success: ${lastResponse.success}`)
-    }
-    console.log(`  Table Rows Rendered: ${hasRows}`)
-
-    if (hasRows > 0) {
-      console.log('\n✅ SUCCESS: Dashboard displaying invoices correctly!')
-    } else if (apiResponses.length > 0 && apiResponses[0].data?.invoices?.length > 0) {
-      console.log('\n⚠️ ISSUE: API returns data but not rendering in table')
-    } else {
-      console.log('\n❌ FAILURE: No data returned from API or rendering failed')
-    }
-
-    // Keep browser open for inspection
-    console.log('\n⏸️  Browser kept open for inspection (Ctrl+C to close)')
-    await page.waitForTimeout(60000)
   } catch (error) {
-    console.error('\n❌ Test failed:', error)
-    await page.screenshot({ path: '/tmp/dashboard-error.png', fullPage: true })
-    console.log('📸 Error screenshot saved to /tmp/dashboard-error.png')
+    console.error('Error:', error)
   } finally {
     await browser.close()
+    await prisma.$disconnect()
   }
 }
 
-testDashboard()
-  .catch(console.error)
-  .finally(() => process.exit(0))
+main().catch(console.error)

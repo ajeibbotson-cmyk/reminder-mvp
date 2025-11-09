@@ -105,7 +105,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // 3. Build where clause
     const whereClause: any = {
-      company_id: companyId
+      companyId: companyId
     }
 
     // Add status filter
@@ -115,12 +115,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Add date range filter
     if (validatedQuery.startDate || validatedQuery.endDate) {
-      whereClause.created_at = {}
+      whereClause.createdAt = {}
       if (validatedQuery.startDate) {
-        whereClause.created_at.gte = new Date(validatedQuery.startDate)
+        whereClause.createdAt.gte = new Date(validatedQuery.startDate)
       }
       if (validatedQuery.endDate) {
-        whereClause.created_at.lte = new Date(validatedQuery.endDate)
+        whereClause.createdAt.lte = new Date(validatedQuery.endDate)
       }
     }
 
@@ -128,16 +128,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (validatedQuery.search) {
       whereClause.OR = [
         { name: { contains: validatedQuery.search, mode: 'insensitive' } },
-        { email_subject: { contains: validatedQuery.search, mode: 'insensitive' } }
+        { emailSubject: { contains: validatedQuery.search, mode: 'insensitive' } }
       ]
     }
 
     // 4. Build order clause
     const orderBy: any = {}
     if (validatedQuery.sortBy === 'sent_at') {
-      orderBy.started_at = validatedQuery.sortOrder
+      orderBy.startedAt = validatedQuery.sortOrder
     } else if (validatedQuery.sortBy === 'success_rate') {
-      orderBy.success_rate = validatedQuery.sortOrder
+      orderBy.successRate = validatedQuery.sortOrder
+    } else if (validatedQuery.sortBy === 'created_at') {
+      orderBy.createdAt = validatedQuery.sortOrder
     } else {
       orderBy[validatedQuery.sortBy] = validatedQuery.sortOrder
     }
@@ -155,15 +157,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         skip,
         take,
         include: {
-          created_by_user: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
+          // Note: createdBy is a String field, not a relation (schema doesn't define users relation yet)
+          // TODO: Add proper users relation to schema and re-enable created_by_user include
           _count: {
             select: {
-              campaign_email_sends: true
+              campaignEmailSends: true
             }
           }
         }
@@ -183,16 +181,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       id: campaign.id,
       name: campaign.name,
       status: campaign.status as any,
-      totalRecipients: campaign.total_recipients,
-      sentCount: campaign.sent_count,
-      failedCount: campaign.failed_count,
-      successRate: campaign.success_rate || 0,
-      createdAt: campaign.created_at.toISOString(),
-      startedAt: campaign.started_at?.toISOString(),
-      completedAt: campaign.completed_at?.toISOString(),
+      totalRecipients: campaign.totalRecipients,
+      sentCount: campaign.sentCount,
+      failedCount: campaign.failedCount,
+      successRate: campaign.successRate || 0,
+      createdAt: campaign.createdAt.toISOString(),
+      startedAt: campaign.startedAt?.toISOString(),
+      completedAt: campaign.completedAt?.toISOString(),
       createdBy: {
-        id: campaign.created_by_user.id,
-        name: campaign.created_by_user.name
+        id: campaign.createdBy, // Just use the user ID string for now
+        name: 'Unknown' // TODO: Fetch from users table once relation is defined
       }
     }))
 
@@ -240,43 +238,43 @@ async function calculateCampaignAnalytics(companyId: string): Promise<CampaignsR
   try {
     // Get basic campaign stats
     const campaignStats = await prisma.invoiceCampaign.aggregate({
-      where: { company_id: companyId },
+      where: { companyId: companyId },
       _count: { id: true },
       _sum: {
-        sent_count: true,
-        total_recipients: true
+        sentCount: true,
+        totalRecipients: true
       },
       _avg: {
-        success_rate: true
+        successRate: true
       }
     })
 
     // Count active campaigns
     const activeCampaigns = await prisma.invoiceCampaign.count({
       where: {
-        company_id: companyId,
+        companyId: companyId,
         status: { in: ['sending', 'draft'] }
       }
     })
 
     // Get email engagement stats from tracking table
     const emailStats = await prisma.emailEventTracking.groupBy({
-      by: ['event_type'],
+      by: ['eventType'],
       where: {
-        company_id: companyId
+        companyId: companyId
       },
       _count: { id: true }
     })
 
     // Count opens and clicks
-    const openedCount = emailStats.find(stat => stat.event_type === 'opened')?._count.id || 0
-    const clickedCount = emailStats.find(stat => stat.event_type === 'clicked')?._count.id || 0
+    const openedCount = emailStats.find(stat => stat.eventType === 'opened')?._count.id || 0
+    const clickedCount = emailStats.find(stat => stat.eventType === 'clicked')?._count.id || 0
 
     return {
       totalCampaigns: campaignStats._count.id,
       activeCampaigns,
-      avgSuccessRate: Math.round(campaignStats._avg.success_rate || 0),
-      totalEmailsSent: campaignStats._sum.sent_count || 0,
+      avgSuccessRate: Math.round(campaignStats._avg.successRate || 0),
+      totalEmailsSent: campaignStats._sum.sentCount || 0,
       totalEmailsOpened: openedCount,
       totalEmailsClicked: clickedCount
     }

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Build comprehensive where clause with optimized filters for UAE business
     const where: Record<string, unknown> = {
-      company_id: companyId, // Company-level data isolation
+      companyId: companyId, // Company-level data isolation
     }
 
     // Status filtering with enum validation
@@ -74,9 +74,9 @@ export async function GET(request: NextRequest) {
 
     // Amount filtering with Decimal support
     if (filters.minAmount || filters.maxAmount) {
-      where.total_amount = {}
-      if (filters.minAmount) where.total_amount.gte = new Decimal(filters.minAmount)
-      if (filters.maxAmount) where.total_amount.lte = new Decimal(filters.maxAmount)
+      where.totalAmount = {}
+      if (filters.minAmount) where.totalAmount.gte = new Decimal(filters.minAmount)
+      if (filters.maxAmount) where.totalAmount.lte = new Decimal(filters.maxAmount)
     }
 
     // Currency filtering (default to AED for UAE)
@@ -96,12 +96,12 @@ export async function GET(request: NextRequest) {
     if (filters.search) {
       where.OR = [
         { number: { contains: filters.search, mode: 'insensitive' } },
-        { customer_name: { contains: filters.search, mode: 'insensitive' } },
-        { customer_email: { contains: filters.search, mode: 'insensitive' } },
+        { customerName: { contains: filters.search, mode: 'insensitive' } },
+        { customerEmail: { contains: filters.search, mode: 'insensitive' } },
         { description: { contains: filters.search, mode: 'insensitive' } },
-        { description_ar: { contains: filters.search, mode: 'insensitive' } },
+        { descriptionAr: { contains: filters.search, mode: 'insensitive' } },
         { notes: { contains: filters.search, mode: 'insensitive' } },
-        { notes_ar: { contains: filters.search, mode: 'insensitive' } },
+        { notesAr: { contains: filters.search, mode: 'insensitive' } },
         { trn_number: { contains: filters.search, mode: 'insensitive' } }
       ]
     }
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
     if (filters.isOverdue) {
       where.AND = [
         { status: { in: [InvoiceStatus.SENT, InvoiceStatus.OVERDUE] } },
-        { due_date: { lt: new Date() } }
+        { dueDate: { lt: new Date() } }
       ]
     }
 
@@ -124,85 +124,85 @@ export async function GET(request: NextRequest) {
 
     // Execute optimized queries in parallel for better performance
     const [invoices, totalCount, statusCounts] = await Promise.all([
-      prisma.invoices.findMany({
+      prisma.invoice.findMany({
         where,
         include: {
-          customers: {
+          customer: {
             select: {
               id: true,
               name: true,
-              name_ar: true,
+              nameAr: true,
               email: true,
               phone: true,
-              payment_terms: true
+              paymentTerms: true
             }
           },
-          companies: {
+          company: {
             select: {
               id: true,
               name: true,
               trn: true,
-              default_vat_rate: true
+              defaultVatRate: true
             }
           },
           payments: {
             select: {
               id: true,
               amount: true,
-              payment_date: true,
+              paymentDate: true,
               method: true,
               reference: true
             },
-            orderBy: { payment_date: 'desc' },
+            orderBy: { paymentDate: 'desc' },
             take: filters.includeAllPayments ? undefined : 5
           },
-          invoice_items: {
+          invoiceItems: {
             select: {
               id: true,
               description: true,
-              description_ar: true,
+              descriptionAr: true,
               quantity: true,
-              unit_price: true,
+              unitPrice: true,
               total: true,
-              vat_rate: true,
-              vat_amount: true,
-              total_with_vat: true,
-              tax_category: true
+              vatRate: true,
+              vatAmount: true,
+              totalWithVat: true,
+              taxCategory: true
             },
-            orderBy: { created_at: 'asc' }
+            orderBy: { createdAt: 'asc' }
           },
-          follow_up_logs: {
+          followUpLogs: {
             select: {
               id: true,
-              step_number: true,
-              email_address: true,
+              stepNumber: true,
+              emailAddress: true,
               subject: true,
-              sent_at: true,
-              email_opened: true,
-              response_received: true,
-              delivery_status: true
+              sentAt: true,
+              emailOpened: true,
+              responseReceived: true,
+              deliveryStatus: true
             },
-            orderBy: { sent_at: 'desc' },
+            orderBy: { sentAt: 'desc' },
             take: 3
           },
-          import_batches: {
+          importBatch: {
             select: {
               id: true,
-              original_filename: true,
+              originalFilename: true,
               status: true,
-              created_at: true
+              createdAt: true
             }
           },
-          email_logs: {
+          emailLogs: {
             select: {
               id: true,
               subject: true,
-              delivery_status: true,
-              sent_at: true,
-              delivered_at: true,
-              opened_at: true
+              deliveryStatus: true,
+              sentAt: true,
+              deliveredAt: true,
+              openedAt: true
             },
-            orderBy: { created_at: 'desc' },
+            orderBy: { createdAt: 'desc' },
             take: 3
           }
         },
@@ -211,12 +211,12 @@ export async function GET(request: NextRequest) {
         take: filters.limit
       }),
       // Total count for pagination
-      prisma.invoices.count({ where }),
+      prisma.invoice.count({ where }),
       // Status breakdown for dashboard insights
-      prisma.invoices.groupBy({
+      prisma.invoice.groupBy({
         by: ['status'],
         where: {
-          company_id: companyId
+          companyId: companyId
         },
         _count: {
           status: true
@@ -284,17 +284,17 @@ function getInvoiceOrderBy(sortBy?: string, sortOrder?: 'asc' | 'desc') {
     case 'number':
       return { number: order }
     case 'customerName':
-      return { customer_name: order }
+      return { customerName: order }
     case 'amount':
-      return { total_amount: order }
+      return { totalAmount: order }
     case 'dueDate':
-      return { due_date: order }
+      return { dueDate: order }
     case 'status':
       return { status: order }
     case 'updatedAt':
-      return { updated_at: order }
+      return { updatedAt: order }
     default:
-      return { created_at: order }
+      return { createdAt: order }
   }
 }
 
@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json()
     const {
-      invoiceNumber,
+      number: invoiceNumber, // Rename 'number' field to 'invoiceNumber' for internal use
       customerName,
       customerEmail,
       amount,
@@ -391,9 +391,9 @@ export async function POST(request: NextRequest) {
     // Create invoice and invoice item in transaction for atomicity
     const result = await prisma.$transaction(async (tx) => {
       // Check for duplicate invoice number within company
-      const existingInvoice = await tx.invoices.findFirst({
+      const existingInvoice = await tx.invoice.findFirst({
         where: {
-          company_id: companyId,
+          companyId: companyId,
           number: invoiceNumber
         }
       })
@@ -403,26 +403,26 @@ export async function POST(request: NextRequest) {
       }
 
       // Create the invoice
-      const invoice = await tx.invoices.create({
+      const invoice = await tx.invoice.create({
         data: {
           id: randomUUID(),
-          company_id: companyId,
+          companyId: companyId,
           number: invoiceNumber,
-          customer_name: customerName,
-          customer_email: customerEmail,
+          customerName: customerName,
+          customerEmail: customerEmail,
           amount: invoiceAmount,
           subtotal: invoiceAmount,
-          vat_amount: calculatedVatAmount,
-          total_amount: calculatedTotalAmount,
+          vatAmount: calculatedVatAmount,
+          totalAmount: calculatedTotalAmount,
           currency: currency,
-          due_date: parsedDueDate,
+          dueDate: parsedDueDate,
           status: 'SENT',
           description: description || `Invoice ${invoiceNumber}`,
           pdf_s3_key: pdf_s3_key || null,
           pdf_s3_bucket: pdf_s3_bucket || null,
           pdf_uploaded_at: pdf_uploaded_at ? new Date(pdf_uploaded_at) : null,
-          created_at: new Date(),
-          updated_at: new Date()
+          createdAt: new Date(),
+          updatedAt: new Date()
         }
       })
 
@@ -430,16 +430,16 @@ export async function POST(request: NextRequest) {
       const invoiceItem = await tx.invoice_items.create({
         data: {
           id: randomUUID(),
-          invoice_id: invoice.id,
+          invoiceId: invoice.id,
           description: description || `Invoice ${invoiceNumber}`,
           quantity: new Decimal(1),
-          unit_price: invoiceAmount,
+          unitPrice: invoiceAmount,
           total: invoiceAmount,
-          vat_rate: new Decimal(5.00), // UAE VAT rate
-          vat_amount: calculatedVatAmount,
-          total_with_vat: calculatedTotalAmount,
-          created_at: new Date(),
-          updated_at: new Date()
+          vatRate: new Decimal(5.00), // UAE VAT rate
+          vatAmount: calculatedVatAmount,
+          totalWithVat: calculatedTotalAmount,
+          createdAt: new Date(),
+          updatedAt: new Date()
         }
       })
 
@@ -460,11 +460,11 @@ export async function POST(request: NextRequest) {
       invoice: {
         id: result.invoice.id,
         number: result.invoice.number,
-        customer_name: result.invoice.customer_name,
-        customer_email: result.invoice.customer_email,
-        total_amount: result.invoice.total_amount?.toString(),
+        customerName: result.invoice.customer_name,
+        customerEmail: result.invoice.customer_email,
+        totalAmount: result.invoice.totalAmount?.toString(),
         currency: result.invoice.currency,
-        due_date: result.invoice.due_date,
+        dueDate: result.invoice.due_date,
         status: result.invoice.status
       }
     }, 'Invoice created successfully', 201)

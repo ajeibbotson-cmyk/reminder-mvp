@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate that all customers belong to the user's company
-    const customersToProcess = await prisma.customers.findMany({
+    const customersToProcess = await prisma.customer.findMany({
       where: {
         id: { in: bulkAction.customerIds },
         companyId: authContext.user.companyId,
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     const responseTime = Date.now() - startTime
 
     // Log bulk operation for audit
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         companyId: authContext.user.companyId,
         userId: authContext.user.id,
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
 async function performBulkUpdate(
   companyId: string,
   userId: string,
-  customers: any[],
+  customer: any[],
   updateData: any
 ) {
   const results = {
@@ -251,7 +251,7 @@ async function performBulkUpdate(
 async function performBulkArchive(
   companyId: string,
   userId: string,
-  customers: any[],
+  customer: any[],
   reason?: string
 ) {
   const results = {
@@ -367,7 +367,7 @@ async function performBulkMerge(
   }
 
   try {
-    const primaryCustomer = await prisma.customers.findUnique({
+    const primaryCustomer = await prisma.customer.findUnique({
       where: { 
         id: mergeData.primaryCustomerId,
         companyId,
@@ -382,7 +382,7 @@ async function performBulkMerge(
       throw new Error('Primary customer not found')
     }
 
-    const secondaryCustomers = await prisma.customers.findMany({
+    const secondaryCustomers = await prisma.customer.findMany({
       where: {
         id: { in: mergeData.secondaryCustomerIds },
         companyId,
@@ -464,7 +464,7 @@ async function performBulkMerge(
 }
 
 // Bulk export implementation
-async function performBulkExport(customers: any[], format: string) {
+async function performBulkExport(customer: any[], format: string) {
   const results = {
     action: 'export',
     processedCount: customers.length,

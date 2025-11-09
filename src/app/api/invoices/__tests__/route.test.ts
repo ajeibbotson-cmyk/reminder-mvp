@@ -19,11 +19,11 @@ jest.mock('@/lib/prisma', () => ({
       create: jest.fn(),
       findUnique: jest.fn(),
     },
-    customers: {
+    customer: {
       findUnique: jest.fn(),
       create: jest.fn(),
     },
-    companies: {
+    company: {
       findUnique: jest.fn(),
     },
     activities: {
@@ -129,9 +129,9 @@ describe('Invoice API Routes', () => {
       const mockTotalCount = 1
       const mockStatusCounts = [{ status: InvoiceStatus.DRAFT, _count: { status: 1 } }]
 
-      prisma.invoices.findMany.mockResolvedValue(mockInvoices)
-      prisma.invoices.count.mockResolvedValue(mockTotalCount)
-      prisma.invoices.groupBy.mockResolvedValue(mockStatusCounts)
+      prisma.invoice.findMany.mockResolvedValue(mockInvoices)
+      prisma.invoice.count.mockResolvedValue(mockTotalCount)
+      prisma.invoice.groupBy.mockResolvedValue(mockStatusCounts)
 
       const request = new NextRequest('http://localhost:3000/api/invoices?page=1&limit=20')
       const response = await GET(request)
@@ -155,15 +155,15 @@ describe('Invoice API Routes', () => {
     })
 
     it('should enforce company-level data isolation', async () => {
-      prisma.invoices.findMany.mockResolvedValue([])
-      prisma.invoices.count.mockResolvedValue(0)
-      prisma.invoices.groupBy.mockResolvedValue([])
+      prisma.invoice.findMany.mockResolvedValue([])
+      prisma.invoice.count.mockResolvedValue(0)
+      prisma.invoice.groupBy.mockResolvedValue([])
 
       const request = new NextRequest('http://localhost:3000/api/invoices?companyId=other-company')
       await GET(request)
 
       // Verify that the query used the user's company ID, not the requested one
-      expect(prisma.invoices.findMany).toHaveBeenCalledWith(
+      expect(prisma.invoice.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             companyId: 'company-1', // User's company ID
@@ -173,9 +173,9 @@ describe('Invoice API Routes', () => {
     })
 
     it('should handle advanced filtering with UAE business logic', async () => {
-      prisma.invoices.findMany.mockResolvedValue([])
-      prisma.invoices.count.mockResolvedValue(0)
-      prisma.invoices.groupBy.mockResolvedValue([])
+      prisma.invoice.findMany.mockResolvedValue([])
+      prisma.invoice.count.mockResolvedValue(0)
+      prisma.invoice.groupBy.mockResolvedValue([])
 
       const queryParams = new URLSearchParams({
         status: InvoiceStatus.SENT,
@@ -190,7 +190,7 @@ describe('Invoice API Routes', () => {
       const request = new NextRequest(`http://localhost:3000/api/invoices?${queryParams}`)
       await GET(request)
 
-      const findManyCall = prisma.invoices.findMany.mock.calls[0][0]
+      const findManyCall = prisma.invoice.findMany.mock.calls[0][0]
       const whereClause = findManyCall.where
 
       expect(whereClause.companyId).toBe('company-1')
@@ -251,7 +251,7 @@ describe('Invoice API Routes', () => {
       // Mock transaction
       prisma.$transaction.mockImplementation(async (callback) => {
         return callback({
-          customers: {
+          customer: {
             findUnique: jest.fn().mockResolvedValue(null),
             create: jest.fn().mockResolvedValue(mockCustomer),
           },
@@ -259,8 +259,8 @@ describe('Invoice API Routes', () => {
             create: jest.fn().mockResolvedValue(mockInvoice),
             findUnique: jest.fn().mockResolvedValue({
               ...mockInvoice,
-              customers: mockCustomer,
-              companies: mockCompany,
+              customer: mockCustomer,
+              company: mockCompany,
               invoiceItems: [],
             }),
           },
@@ -274,7 +274,7 @@ describe('Invoice API Routes', () => {
       })
 
       // Mock companies lookup for validation
-      prisma.companies.findUnique.mockResolvedValue(mockCompany)
+      prisma.company.findUnique.mockResolvedValue(mockCompany)
 
       const request = new NextRequest('http://localhost:3000/api/invoices', {
         method: 'POST',
@@ -300,7 +300,7 @@ describe('Invoice API Routes', () => {
 
       prisma.$transaction.mockImplementation(async (callback) => {
         return callback({
-          customers: { findUnique: jest.fn(), create: jest.fn() },
+          customer: { findUnique: jest.fn(), create: jest.fn() },
           invoices: { create: jest.fn(), findUnique: jest.fn() },
           invoiceItems: { createMany: jest.fn() },
           activities: { create: jest.fn() },
@@ -343,7 +343,7 @@ describe('Invoice API Routes', () => {
 
     it('should prevent duplicate invoice numbers within company', async () => {
       // Mock existing invoice with same number
-      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices', {
         method: 'POST',
@@ -401,7 +401,7 @@ describe('Invoice API Routes', () => {
 
     it('should create customer if not exists', async () => {
       const mockTx = {
-        customers: {
+        customer: {
           findUnique: jest.fn().mockResolvedValue(null), // Customer doesn't exist
           create: jest.fn().mockResolvedValue(mockCustomer),
         },
@@ -409,8 +409,8 @@ describe('Invoice API Routes', () => {
           create: jest.fn().mockResolvedValue(mockInvoice),
           findUnique: jest.fn().mockResolvedValue({
             ...mockInvoice,
-            customers: mockCustomer,
-            companies: mockCompany,
+            customer: mockCustomer,
+            company: mockCompany,
             invoiceItems: [],
           }),
         },
@@ -439,7 +439,7 @@ describe('Invoice API Routes', () => {
 
     it('should log comprehensive activity for audit trail', async () => {
       const mockTx = {
-        customers: { findUnique: jest.fn(), create: jest.fn() },
+        customer: { findUnique: jest.fn(), create: jest.fn() },
         invoices: { 
           create: jest.fn().mockResolvedValue(mockInvoice),
           findUnique: jest.fn().mockResolvedValue(mockInvoice),
@@ -492,7 +492,7 @@ describe('Invoice API Routes', () => {
       }
 
       const mockTx = {
-        customers: { 
+        customer: { 
           findUnique: jest.fn().mockResolvedValue(null),
           create: jest.fn().mockResolvedValue(mockCustomer),
         },
@@ -529,7 +529,7 @@ describe('Invoice API Routes', () => {
 
   describe('Error Handling', () => {
     it('should handle database connection errors', async () => {
-      prisma.invoices.findMany.mockRejectedValue(new Error('Database connection failed'))
+      prisma.invoice.findMany.mockRejectedValue(new Error('Database connection failed'))
 
       const request = new NextRequest('http://localhost:3000/api/invoices')
       const response = await GET(request)
@@ -574,7 +574,7 @@ describe('Invoice API Routes', () => {
         }
 
         const mockTx = {
-          customers: { findUnique: jest.fn(), create: jest.fn() },
+          customer: { findUnique: jest.fn(), create: jest.fn() },
           invoices: { create: jest.fn(), findUnique: jest.fn() },
           invoiceItems: { createMany: jest.fn() },
           activities: { create: jest.fn() },

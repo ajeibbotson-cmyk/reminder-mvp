@@ -22,19 +22,19 @@ export async function POST(request: NextRequest) {
     const bulkData = await validateRequestBody(request, bulkInvoiceActionSchema)
     
     // Verify all invoices belong to user's company (UAE data isolation)
-    const invoices = await prisma.invoices.findMany({
+    const invoices = await prisma.invoice.findMany({
       where: {
         id: { in: bulkData.invoiceIds },
         companyId: authContext.user.companyId // Enforce company-level security
       },
       include: {
-        customers: {
+        customer: {
           select: { id: true, name: true, nameAr: true, email: true, phone: true }
         },
         payments: {
           select: { id: true, amount: true, paymentDate: true, method: true }
         },
-        companies: {
+        company: {
           select: { id: true, name: true, trn: true, defaultVatRate: true }
         }
       }
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     results.processedCount = results.successCount + results.failureCount
 
     // Log comprehensive bulk activity for UAE audit trail
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: authContext.user.companyId,
@@ -144,21 +144,21 @@ async function handleBulkStatusUpdate(
 
       // Perform status update in transaction for UAE compliance
       const updatedInvoice = await prisma.$transaction(async (tx) => {
-        const updated = await tx.invoices.update({
+        const updated = await tx.invoice.update({
           where: { id: invoice.id },
           data: { 
             status: newStatus as any,
             updatedAt: new Date()
           },
           include: {
-            customers: {
+            customer: {
               select: { id: true, name: true, email: true }
             }
           }
         })
 
         // Log individual status change for audit trail
-        await tx.activities.create({
+        await tx.activity.create({
           data: {
             id: crypto.randomUUID(),
             companyId: user.companyId,
@@ -232,7 +232,7 @@ async function handleBulkSendReminder(
       }
 
       // Create comprehensive email log entry for UAE compliance
-      const emailLog = await prisma.emailLogs.create({
+      const emailLog = await prisma.emailLog.create({
         data: {
           id: crypto.randomUUID(),
           templateId: emailTemplateId,
@@ -304,7 +304,7 @@ async function handleBulkDelete(
     try {
       await prisma.$transaction(async (tx) => {
         // Create deletion audit record before deletion (UAE compliance)
-        await tx.activities.create({
+        await tx.activity.create({
           data: {
             id: crypto.randomUUID(),
             companyId: user.companyId,
@@ -327,24 +327,24 @@ async function handleBulkDelete(
         })
 
         // Delete related records in proper order for referential integrity
-        await tx.invoiceItems.deleteMany({
+        await tx.invoiceItem.deleteMany({
           where: { invoiceId: invoice.id }
         })
 
-        await tx.payments.deleteMany({
+        await tx.payment.deleteMany({
           where: { invoiceId: invoice.id }
         })
 
-        await tx.emailLogs.deleteMany({
+        await tx.emailLog.deleteMany({
           where: { invoiceId: invoice.id }
         })
 
-        await tx.followUpLogs.deleteMany({
+        await tx.followUpLog.deleteMany({
           where: { invoiceId: invoice.id }
         })
 
         // Finally delete the invoice
-        await tx.invoices.delete({
+        await tx.invoice.delete({
           where: { id: invoice.id }
         })
       })
@@ -369,12 +369,12 @@ async function handleBulkDelete(
 // Handle bulk export with UAE business data
 async function handleBulkExport(invoices: any[], user: any) {
   // Get comprehensive invoice data for UAE business export
-  const detailedInvoices = await prisma.invoices.findMany({
+  const detailedInvoices = await prisma.invoice.findMany({
     where: {
       id: { in: invoices.map(inv => inv.id) }
     },
     include: {
-      customers: {
+      customer: {
         select: {
           id: true,
           name: true,
@@ -405,7 +405,7 @@ async function handleBulkExport(invoices: any[], user: any) {
           reference: true
         }
       },
-      companies: {
+      company: {
         select: { name: true, trn: true, address: true }
       }
     },

@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     const suppressionCheck = await emailSuppressionService.checkSuppression(email, companyId)
     
     // Get customer preferences if available
-    const customer = await prisma.customers.findFirst({
+    const customer = await prisma.customer.findFirst({
       where: {
         email,
         companyId
@@ -161,7 +161,7 @@ async function trackUnsubscribeEvent(
  */
 async function getEmailPreferences(email: string, companyId: string) {
   try {
-    const customer = await prisma.customers.findFirst({
+    const customer = await prisma.customer.findFirst({
       where: { email, companyId }
     })
 

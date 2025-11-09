@@ -224,7 +224,7 @@ async function validateBulkStatusUpdate(
   const { prisma } = require('@/lib/prisma')
   
   // Fetch all invoices for validation
-  const invoices = await prisma.invoices.findMany({
+  const invoices = await prisma.invoice.findMany({
     where: {
       id: { in: invoiceIds },
       companyId // Enforce company isolation
@@ -346,7 +346,7 @@ function analyzeErrors(failedResults: Array<{ invoiceId: string; error?: string 
 async function getBulkOperationHistory(companyId: string) {
   const { prisma } = require('@/lib/prisma')
   
-  const recentOperations = await prisma.activities.findMany({
+  const recentOperations = await prisma.activity.findMany({
     where: {
       companyId,
       type: 'invoice_status_updated',

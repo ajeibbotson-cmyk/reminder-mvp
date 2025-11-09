@@ -213,7 +213,7 @@ export class FollowUpDetectionService {
       whereClause.totalAmount = { ...whereClause.totalAmount, lte: conditions.maxAmount }
     }
 
-    return await prisma.invoices.findMany({
+    return await prisma.invoice.findMany({
       where: whereClause,
       include: {
         company: {
@@ -308,7 +308,7 @@ export class FollowUpDetectionService {
     const sendTime = await this.calculateOptimalSendTime(invoice, firstStep, conditions)
 
     // Create follow-up log entry
-    const followUpLog = await prisma.follow_up_logs.create({
+    const followUpLog = await prisma.followUpLog.create({
       data: {
         id: crypto.randomUUID(),
         invoiceId: invoice.id,
@@ -433,7 +433,7 @@ export class FollowUpDetectionService {
     }
 
     // Check for recent payment activity
-    const recentPayments = await prisma.payments.findMany({
+    const recentPayments = await prisma.payment.findMany({
       where: {
         invoiceId: invoice.id,
         paymentDate: {
@@ -639,7 +639,7 @@ export class FollowUpDetectionService {
 
     try {
       // Get all active companies
-      const activeCompanies = await prisma.companies.findMany({
+      const activeCompanies = await prisma.company.findMany({
         where: { isActive: true },
         select: { id: true, name: true }
       })
@@ -895,7 +895,7 @@ export class FollowUpDetectionService {
           ...whereClause
         }
       }),
-      prisma.follow_up_logss.findMany({
+      prisma.followUpLogs.findMany({
         where: {
           ...whereClause,
           deliveryStatus: { not: 'FAILED' }

@@ -46,16 +46,16 @@ export async function PATCH(request: NextRequest) {
     const { invoiceIds, status, reason, forceUpdate } = bulkUpdateSchema.parse(body)
 
     // Validate that all invoices belong to the user's company
-    const invoicesCheck = await prisma.invoices.findMany({
+    const invoicesCheck = await prisma.invoice.findMany({
       where: {
         id: { in: invoiceIds },
-        company_id: authContext.user.companyId
+        companyId: authContext.user.companyId
       },
       select: {
         id: true,
         status: true,
         number: true,
-        customer_name: true
+        customerName: true
       }
     })
 
@@ -92,20 +92,20 @@ export async function PATCH(request: NextRequest) {
           }
 
           // Update invoice status
-          await tx.invoices.update({
+          await tx.invoice.update({
             where: { id: invoice.id },
             data: {
               status,
-              updated_at: new Date()
+              updatedAt: new Date()
             }
           })
 
           // Log the status change activity
-          await tx.activities.create({
+          await tx.activity.create({
             data: {
               id: crypto.randomUUID(),
-              company_id: authContext.user.companyId,
-              user_id: authContext.user.id,
+              companyId: authContext.user.companyId,
+              userId: authContext.user.id,
               type: 'invoice_status_bulk_updated',
               description: `Bulk updated invoice ${invoice.number} status from ${invoice.status} to ${status}`,
               metadata: {
@@ -145,11 +145,11 @@ export async function PATCH(request: NextRequest) {
       }
 
       // Create summary activity log
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
           id: crypto.randomUUID(),
-          company_id: authContext.user.companyId,
-          user_id: authContext.user.id,
+          companyId: authContext.user.companyId,
+          userId: authContext.user.id,
           type: 'invoice_bulk_operation_completed',
           description: `Bulk status update completed: ${result.successCount} successful, ${result.failureCount} failed`,
           metadata: {

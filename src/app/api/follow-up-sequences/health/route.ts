@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies) {
@@ -140,9 +140,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies || user.role !== 'ADMIN') {
@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the test activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.companies.id,
@@ -263,9 +263,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies || user.role !== 'ADMIN') {
@@ -295,7 +295,7 @@ export async function PUT(request: NextRequest) {
     if (metric === 'all' || metric === 'volume') {
       // Volume metrics
       const [invoicesProcessed, emailsSent, sequencesTriggered] = await Promise.all([
-        prisma.invoices.count({
+        prisma.invoice.count({
           where: {
             companyId: user.companies.id,
             updatedAt: { gte: startDate }
@@ -307,7 +307,7 @@ export async function PUT(request: NextRequest) {
             sentAt: { gte: startDate }
           }
         }),
-        prisma.activities.count({
+        prisma.activity.count({
           where: {
             companyId: user.companies.id,
             type: 'FOLLOW_UP_TRIGGERED',
@@ -332,14 +332,14 @@ export async function PUT(request: NextRequest) {
     if (metric === 'all' || metric === 'compliance') {
       // UAE compliance metrics
       const [complianceViolations, rescheduledEmails, holidaySkips] = await Promise.all([
-        prisma.activities.count({
+        prisma.activity.count({
           where: {
             companyId: user.companies.id,
             type: 'COMPLIANCE_VIOLATION',
             createdAt: { gte: startDate }
           }
         }),
-        prisma.activities.count({
+        prisma.activity.count({
           where: {
             companyId: user.companies.id,
             type: 'EMAIL_RESCHEDULED',
@@ -347,7 +347,7 @@ export async function PUT(request: NextRequest) {
             createdAt: { gte: startDate }
           }
         }),
-        prisma.activities.count({
+        prisma.activity.count({
           where: {
             companyId: user.companies.id,
             type: 'HOLIDAY_SKIP',
@@ -438,7 +438,7 @@ async function performStressTest(companyId: string) {
     // Test 1: Database load
     const dbStartTime = Date.now()
     await Promise.all([
-      prisma.invoices.findMany({ where: { companyId }, take: 100 }),
+      prisma.invoice.findMany({ where: { companyId }, take: 100 }),
       prisma.follow_up_sequences.findMany({ where: { companyId } }),
       prisma.follow_up_logs.findMany({ where: { invoice: { companyId } }, take: 100 })
     ])
@@ -451,7 +451,7 @@ async function performStressTest(companyId: string) {
     const concurrentStartTime = Date.now()
     const concurrentPromises = Array.from({ length: 10 }, async (_, i) => {
       await new Promise(resolve => setTimeout(resolve, Math.random() * 100))
-      return await prisma.activities.count({
+      return await prisma.activity.count({
         where: { companyId, type: 'FOLLOW_UP_TRIGGERED' }
       })
     })

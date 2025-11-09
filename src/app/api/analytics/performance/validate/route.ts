@@ -339,7 +339,7 @@ export async function POST(request: NextRequest) {
         // Parallel load of all dashboard components
         const [analytics, customers, queue] = await Promise.all([
           fetch(`${process.env.NEXTAUTH_URL}/api/analytics/consolidation/dashboard?period=30d`),
-          prisma.customers.findMany({
+          prisma.customer.findMany({
             where: { companyId: session.user.companyId },
             take: 50
           }),

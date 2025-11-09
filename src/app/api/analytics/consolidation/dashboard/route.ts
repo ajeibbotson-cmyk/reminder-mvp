@@ -185,7 +185,7 @@ async function getConsolidationAnalytics(
   // For now, return mock data to prevent API failures
   const result = [{
     total_consolidations: BigInt(0),
-    total_amount: 0,
+    totalAmount: 0,
     avg_invoices_per_consolidation: 0,
     email_savings_percentage: 0,
     payment_success_rate: 0,
@@ -211,8 +211,8 @@ async function getConsolidationAnalytics(
   // Calculate response rate separately
   const responseRateData = await prisma.customer_consolidated_reminders.aggregate({
     where: {
-      company_id: companyId,
-      created_at: {
+      companyId: companyId,
+      createdAt: {
         gte: startDate,
         lte: endDate
       }
@@ -229,7 +229,7 @@ async function getConsolidationAnalytics(
 
   return {
     totalConsolidations: Number(data.total_consolidations),
-    totalAmount: Number(data.total_amount),
+    totalAmount: Number(data.totalAmount),
     avgInvoicesPerConsolidation: Number(data.avg_invoices_per_consolidation),
     emailSavingsPercentage: Number(data.email_savings_percentage),
     paymentSuccessRate: Number(data.payment_success_rate),

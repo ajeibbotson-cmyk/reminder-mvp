@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Record the email click event
-    const updateResult = await prisma.emailLogs.updateMany({
+    const updateResult = await prisma.emailLog.updateMany({
       where: {
         id: emailLogId,
         clickedAt: null // Only update if not already clicked
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       console.log(`🖱️ Email clicked: ${emailLogId}, Link: ${linkType || 'unknown'}`)
 
       // Get email details for additional logging
-      const emailLog = await prisma.emailLogs.findUnique({
+      const emailLog = await prisma.emailLog.findUnique({
         where: { id: emailLogId },
         select: {
           id: true,
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       if (emailLog) {
         // Log activity for consolidated email clicks
         if (emailLog.consolidatedReminderId) {
-          await prisma.activities.create({
+          await prisma.activity.create({
             data: {
               id: crypto.randomUUID(),
               companyId: emailLog.companyId,
@@ -90,14 +90,14 @@ export async function GET(request: NextRequest) {
 
         // Update consolidation effectiveness metrics
         if (emailLog.consolidatedReminderId) {
-          const currentMetrics = await prisma.customerConsolidatedReminders.findUnique({
+          const currentMetrics = await prisma.customerConsolidatedReminder.findUnique({
             where: { id: emailLog.consolidatedReminderId },
             select: { effectivenessMetrics: true }
           })
 
           const metrics = currentMetrics?.effectivenessMetrics as any || {}
 
-          await prisma.customerConsolidatedReminders.update({
+          await prisma.customerConsolidatedReminder.update({
             where: { id: emailLog.consolidatedReminderId },
             data: {
               effectivenessMetrics: {
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
         // Track specific link types
         if (linkType === 'payment' && emailLog.consolidatedReminderId) {
           // This indicates potential payment intent
-          await prisma.activities.create({
+          await prisma.activity.create({
             data: {
               id: crypto.randomUUID(),
               companyId: emailLog.companyId,

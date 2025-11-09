@@ -252,7 +252,7 @@ async function getWorkflowStatus(authContext: any) {
   // Get recent workflow activities and statistics
   const { prisma } = require('@/lib/prisma')
   
-  const recentWorkflowActivities = await prisma.activities.findMany({
+  const recentWorkflowActivities = await prisma.activity.findMany({
     where: {
       companyId: authContext.user.companyId,
       type: 'payment_workflow_processed',
@@ -264,7 +264,7 @@ async function getWorkflowStatus(authContext: any) {
     take: 20
   })
 
-  const workflowStats = await prisma.activities.groupBy({
+  const workflowStats = await prisma.activity.groupBy({
     by: ['metadata'],
     where: {
       companyId: authContext.user.companyId,

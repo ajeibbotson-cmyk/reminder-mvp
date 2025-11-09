@@ -320,7 +320,7 @@ function validateReconciliationAction(action: string, reconciliation: any) {
 
 async function performAutoReconciliation(reconciliation: any, authContext: any): Promise<ReconciliationResult> {
   // Update invoice status to PAID
-  await prisma.invoices.update({
+  await prisma.invoice.update({
     where: { id: reconciliation.invoiceId },
     data: { status: InvoiceStatus.PAID }
   })
@@ -346,7 +346,7 @@ async function performManualReconciliation(
   // Apply adjustment if specified
   if (actionData.adjustmentAmount && Math.abs(actionData.adjustmentAmount) > 0) {
     // Create adjustment payment record
-    await prisma.payments.create({
+    await prisma.payment.create({
       data: {
         id: crypto.randomUUID(),
         invoiceId: reconciliation.invoiceId,
@@ -365,7 +365,7 @@ async function performManualReconciliation(
   // Update invoice status
   const newStatus = reconciliation.isFullyPaid ? InvoiceStatus.PAID : reconciliation.suggestedInvoiceStatus
   
-  await prisma.invoices.update({
+  await prisma.invoice.update({
     where: { id: reconciliation.invoiceId },
     data: { status: newStatus }
   })
@@ -387,7 +387,7 @@ async function markDiscrepancy(
   authContext: any
 ): Promise<ReconciliationResult> {
   // Log discrepancy for review
-  await prisma.activities.create({
+  await prisma.activity.create({
     data: {
       id: crypto.randomUUID(),
       companyId: authContext.user.companyId,
@@ -428,7 +428,7 @@ async function approveOverpayment(
 
   // For small overpayments, mark as resolved
   if (overpaymentAmount <= 0.02) {
-    await prisma.invoices.update({
+    await prisma.invoice.update({
       where: { id: reconciliation.invoiceId },
       data: { 
         status: InvoiceStatus.PAID,
@@ -447,7 +447,7 @@ async function approveOverpayment(
   }
 
   // For larger overpayments, create credit note or mark for refund
-  await prisma.activities.create({
+  await prisma.activity.create({
     data: {
       id: crypto.randomUUID(),
       companyId: authContext.user.companyId,
@@ -464,7 +464,7 @@ async function approveOverpayment(
     }
   })
 
-  await prisma.invoices.update({
+  await prisma.invoice.update({
     where: { id: reconciliation.invoiceId },
     data: { status: InvoiceStatus.PAID }
   })

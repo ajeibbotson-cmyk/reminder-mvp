@@ -141,7 +141,7 @@ export type UAEBusinessType = typeof UAE_BUSINESS_TYPES[number]
 
 // Customer validation schemas
 export const createCustomerSchema = z.object({
-  companyId: z.string().min(1, 'Company ID is required'),
+  companyId: z.string().min(1, 'Company ID is required').optional(), // Made optional - auto-injected from session
   name: z.string().min(1, 'Customer name is required').max(200, 'Customer name is too long'),
   nameAr: z.string().max(200, 'Arabic name is too long').optional(),
   businessName: z.string().max(200, 'Business name is too long').optional(),

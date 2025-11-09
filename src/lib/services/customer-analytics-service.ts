@@ -132,7 +132,7 @@ export class CustomerAnalyticsService {
    * Get customer behavior data
    */
   private async getCustomerBehaviorData(companyId: string, dateRange: AnalyticsDateRange): Promise<CustomerBehaviorData[]> {
-    const customers = await prisma.customers.findMany({
+    const customers = await prisma.customer.findMany({
       where: {
         companyId,
         isActive: true
@@ -215,7 +215,7 @@ export class CustomerAnalyticsService {
       })
 
       // Update customer risk score in database
-      await prisma.customers.update({
+      await prisma.customer.update({
         where: { id: customer.id },
         data: {
           riskScore: new Decimal(riskScore),
@@ -270,7 +270,7 @@ export class CustomerAnalyticsService {
    * Get risk distribution
    */
   private async getRiskDistribution(companyId: string) {
-    const customers = await prisma.customers.findMany({
+    const customers = await prisma.customer.findMany({
       where: {
         companyId,
         isActive: true
@@ -359,7 +359,7 @@ export class CustomerAnalyticsService {
    */
   private async getPaymentPatterns(companyId: string, dateRange: AnalyticsDateRange) {
     // Get payment methods distribution
-    const paymentMethods = await prisma.payments.groupBy({
+    const paymentMethods = await prisma.payment.groupBy({
       by: ['method'],
       where: {
         paymentDate: {
@@ -379,7 +379,7 @@ export class CustomerAnalyticsService {
     })
 
     // Get payment timing patterns
-    const invoicesWithPayments = await prisma.invoices.findMany({
+    const invoicesWithPayments = await prisma.invoice.findMany({
       where: {
         companyId,
         status: 'PAID',
@@ -447,7 +447,7 @@ export class CustomerAnalyticsService {
         continue
       }
 
-      const monthlyInvoices = await prisma.invoices.findMany({
+      const monthlyInvoices = await prisma.invoice.findMany({
         where: {
           companyId,
           status: 'PAID',
@@ -526,7 +526,7 @@ export class CustomerAnalyticsService {
    * Get total customer count for performance metadata
    */
   private async getTotalCustomerCount(companyId: string): Promise<number> {
-    return prisma.customers.count({
+    return prisma.customer.count({
       where: {
         companyId,
         isActive: true
@@ -558,7 +558,7 @@ export class CustomerAnalyticsService {
    * Get customers at risk of churn
    */
   async getChurnRiskCustomers(companyId: string) {
-    const highRiskCustomers = await prisma.customers.findMany({
+    const highRiskCustomers = await prisma.customer.findMany({
       where: {
         companyId,
         isActive: true,

@@ -357,7 +357,7 @@ export class PaymentReconciliationService {
       }
     }>
   }> {
-    const invoice = await prisma.invoices.findUnique({
+    const invoice = await prisma.invoice.findUnique({
       where: { 
         id: invoiceId,
         companyId

@@ -53,7 +53,7 @@ export async function GET(
     const searchParams = request.nextUrl.searchParams
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
-    const sortBy = searchParams.get('sortBy') || 'due_date'
+    const sortBy = searchParams.get('sortBy') || 'dueDate'
     const sortOrder = searchParams.get('sortOrder') || 'asc'
     const search = searchParams.get('search') || ''
 
@@ -64,11 +64,11 @@ export async function GET(
 
     // Build where clause
     const whereClause: any = {
-      company_id: companyId,
+      companyId: companyId,
       status: {
         in: ['SENT', 'OVERDUE']
       },
-      is_active: true
+      isActive: true
     }
 
     // Add date filtering based on bucket definition (SQL filtering - Option C)
@@ -80,7 +80,7 @@ export async function GET(
       const minDate = new Date(today)
       minDate.setDate(minDate.getDate() - bucketDef.min)
 
-      whereClause.due_date = {
+      whereClause.dueDate = {
         lte: minDate
       }
     } else {
@@ -91,7 +91,7 @@ export async function GET(
       const maxDate = new Date(today)
       maxDate.setDate(maxDate.getDate() - bucketDef.min)
 
-      whereClause.due_date = {
+      whereClause.dueDate = {
         gte: minDate,
         lte: maxDate
       }
@@ -101,13 +101,13 @@ export async function GET(
     if (search) {
       whereClause.OR = [
         {
-          customer_name: {
+          customerName: {
             contains: search,
             mode: 'insensitive'
           }
         },
         {
-          customer_email: {
+          customerEmail: {
             contains: search,
             mode: 'insensitive'
           }
@@ -123,20 +123,20 @@ export async function GET(
 
     // Get invoices with pagination
     const [invoices, totalCount] = await Promise.all([
-      prisma.invoices.findMany({
+      prisma.invoice.findMany({
         where: whereClause,
         select: {
           id: true,
           number: true,
-          customer_name: true,
-          customer_email: true,
+          customerName: true,
+          customerEmail: true,
           amount: true,
-          total_amount: true,
+          totalAmount: true,
           currency: true,
-          due_date: true,
+          dueDate: true,
           status: true,
-          last_reminder_sent: true,
-          created_at: true,
+          lastReminderSent: true,
+          createdAt: true,
           notes: true
         },
         orderBy: {
@@ -145,18 +145,18 @@ export async function GET(
         skip: offset,
         take: limit
       }),
-      prisma.invoices.count({
+      prisma.invoice.count({
         where: whereClause
       })
     ])
 
     // Map invoices and add computed fields (no filtering needed, SQL already filtered)
     const bucketInvoices = invoices.map(invoice => {
-      const daysOverdue = calculateDaysOverdue(new Date(invoice.due_date))
-      const amount = Number(invoice.total_amount || invoice.amount || 0)
+      const daysOverdue = calculateDaysOverdue(new Date(invoice.dueDate))
+      const amount = Number(invoice.totalAmount || invoice.amount || 0)
 
       // Calculate reminder eligibility
-      const lastReminder = invoice.last_reminder_sent ? new Date(invoice.last_reminder_sent) : null
+      const lastReminder = invoice.lastReminderSent ? new Date(invoice.lastReminderSent) : null
       const daysSinceLastReminder = lastReminder ?
         Math.floor((new Date().getTime() - lastReminder.getTime()) / (1000 * 60 * 60 * 24)) : 999
 
@@ -167,19 +167,19 @@ export async function GET(
       return {
         id: invoice.id,
         number: invoice.number,
-        customerName: invoice.customer_name,
-        customerEmail: invoice.customer_email,
+        customerName: invoice.customerName,
+        customerEmail: invoice.customerEmail,
         amount,
         currency: invoice.currency || 'AED',
-        dueDate: invoice.due_date,
+        dueDate: invoice.dueDate,
         status: invoice.status,
         daysOverdue,
-        lastReminderSent: invoice.last_reminder_sent,
+        lastReminderSent: invoice.lastReminderSent,
         daysSinceLastReminder,
         canSendReminder,
         needsUrgentAttention,
         isHighValue,
-        createdAt: invoice.created_at,
+        createdAt: invoice.createdAt,
         notes: invoice.notes,
         // Suggested actions based on bucket and invoice characteristics
         suggestedActions: getSuggestedActions(bucketId, daysOverdue, amount, canSendReminder)

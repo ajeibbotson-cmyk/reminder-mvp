@@ -121,7 +121,7 @@ describe('Payment API Integration Tests', () => {
       status: InvoiceStatus.SENT,
       dueDate: new Date('2024-01-10'),
       payments: [],
-      customers: {
+      customer: {
         name: 'Test Customer',
         email: 'test@example.com'
       }
@@ -285,17 +285,17 @@ describe('Payment API Integration Tests', () => {
         }
       ]
 
-      prisma.payments.findMany.mockResolvedValue(mockPayments)
-      prisma.payments.count.mockResolvedValue(1)
+      prisma.payment.findMany.mockResolvedValue(mockPayments)
+      prisma.payment.count.mockResolvedValue(1)
       
       // Mock payment statistics
-      prisma.payments.aggregate.mockResolvedValue({
+      prisma.payment.aggregate.mockResolvedValue({
         _sum: { amount: 1000 },
         _avg: { amount: 1000 },
         _count: { id: 1 }
       })
       
-      prisma.payments.groupBy.mockResolvedValue([{
+      prisma.payment.groupBy.mockResolvedValue([{
         method: PaymentMethod.BANK_TRANSFER,
         _sum: { amount: 1000 },
         _count: { id: 1 }
@@ -317,14 +317,14 @@ describe('Payment API Integration Tests', () => {
     })
 
     it('should filter payments by invoice ID', async () => {
-      prisma.payments.findMany.mockResolvedValue([])
-      prisma.payments.count.mockResolvedValue(0)
-      prisma.payments.aggregate.mockResolvedValue({
+      prisma.payment.findMany.mockResolvedValue([])
+      prisma.payment.count.mockResolvedValue(0)
+      prisma.payment.aggregate.mockResolvedValue({
         _sum: { amount: null },
         _avg: { amount: null },
         _count: { id: 0 }
       })
-      prisma.payments.groupBy.mockResolvedValue([])
+      prisma.payment.groupBy.mockResolvedValue([])
 
       const request = createMockRequest({}, 'GET', {
         invoiceId: 'specific-invoice'
@@ -332,7 +332,7 @@ describe('Payment API Integration Tests', () => {
 
       const response = await PaymentsGet(request)
 
-      expect(prisma.payments.findMany).toHaveBeenCalledWith(
+      expect(prisma.payment.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             invoiceId: 'specific-invoice'
@@ -529,11 +529,11 @@ describe('Payment API Integration Tests', () => {
           currency: 'AED',
           status: InvoiceStatus.SENT,
           dueDate: new Date('2024-01-20'),
-          companies: {
+          company: {
             id: 'company-123',
             name: 'Test Company'
           },
-          customers: {
+          customer: {
             name: 'Test Customer',
             email: 'test@example.com'
           },
@@ -549,7 +549,7 @@ describe('Payment API Integration Tests', () => {
         }
       }
 
-      prisma.payments.findUnique.mockResolvedValue(mockPayment)
+      prisma.payment.findUnique.mockResolvedValue(mockPayment)
 
       const request = createMockRequest({}, 'GET')
       const response = await PaymentGet(request, { params: { id: 'payment-123' } })
@@ -577,7 +577,7 @@ describe('Payment API Integration Tests', () => {
           totalAmount: new Decimal(2000),
           currency: 'AED',
           status: InvoiceStatus.SENT,
-          companies: { id: 'company-123' },
+          company: { id: 'company-123' },
           payments: [{ id: 'payment-123', amount: new Decimal(1000) }]
         }
       }
@@ -623,7 +623,7 @@ describe('Payment API Integration Tests', () => {
           totalAmount: new Decimal(2000),
           currency: 'AED',
           status: InvoiceStatus.PAID,
-          companies: { id: 'company-123' },
+          company: { id: 'company-123' },
           payments: [{ id: 'payment-123', amount: new Decimal(2000) }]
         }
       }

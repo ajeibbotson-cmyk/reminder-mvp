@@ -19,18 +19,18 @@ export async function GET(request: NextRequest) {
 
     // Base where clause
     const baseWhere = {
-      company_id: authContext.user.companyId,
-      created_at: { gte: startDate }
+      companyId: authContext.user.companyId,
+      createdAt: { gte: startDate }
     }
 
     // Add filters
     if (templateId) {
-      Object.assign(baseWhere, { template_id: templateId })
+      Object.assign(baseWhere, { templateId: templateId })
     }
 
     if (templateType) {
       Object.assign(baseWhere, {
-        email_templates: { template_id: templateType }
+        email_templates: { templateId: templateType }
       })
     }
 
@@ -178,13 +178,13 @@ async function getOverallStats(whereClause: any) {
     totalUnsubscribed,
     arabicEmails
   ] = await Promise.all([
-    prisma.email_logs.count({ where: { ...whereClause, delivery_status: { not: 'QUEUED' } } }),
-    prisma.email_logs.count({ where: { ...whereClause, delivery_status: 'DELIVERED' } }),
-    prisma.email_logs.count({ where: { ...whereClause, opened_at: { not: null } } }),
+    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: { not: 'QUEUED' } } }),
+    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: 'DELIVERED' } }),
+    prisma.email_logs.count({ where: { ...whereClause, openedAt: { not: null } } }),
     prisma.email_logs.count({ where: { ...whereClause, clicked_at: { not: null } } }),
-    prisma.email_logs.count({ where: { ...whereClause, delivery_status: 'BOUNCED' } }),
-    prisma.email_logs.count({ where: { ...whereClause, delivery_status: 'COMPLAINED' } }),
-    prisma.email_logs.count({ where: { ...whereClause, delivery_status: 'UNSUBSCRIBED' } }),
+    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: 'BOUNCED' } }),
+    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: 'COMPLAINED' } }),
+    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: 'UNSUBSCRIBED' } }),
     prisma.email_logs.count({ where: { ...whereClause, language: 'ARABIC' } })
   ])
 
@@ -220,9 +220,9 @@ async function getDailyStats(whereClause: any, daysBack: number) {
   const emailLogs = await prisma.email_logs.findMany({
     where: whereClause,
     select: {
-      created_at: true,
-      delivery_status: true,
-      opened_at: true,
+      createdAt: true,
+      deliveryStatus: true,
+      openedAt: true,
       clicked_at: true
     }
   })
@@ -257,19 +257,19 @@ async function getDailyStats(whereClause: any, daysBack: number) {
 async function getTemplatePerformance(companyId: string, startDate: Date) {
   const templates = await prisma.email_templates.findMany({
     where: {
-      company_id: companyId,
-      email_logs: {
+      companyId: companyId,
+      emailLogs: {
         some: {
-          created_at: { gte: startDate }
+          createdAt: { gte: startDate }
         }
       }
     },
     include: {
-      email_logs: {
-        where: { created_at: { gte: startDate } },
+      emailLogs: {
+        where: { createdAt: { gte: startDate } },
         select: {
-          delivery_status: true,
-          opened_at: true,
+          deliveryStatus: true,
+          openedAt: true,
           clicked_at: true
         }
       }
@@ -320,10 +320,10 @@ async function getRecipientEngagement(whereClause: any) {
 async function getBounceAnalysis(whereClause: any) {
   const bounces = await prisma.email_bounce_tracking.findMany({
     where: {
-      email_logs: whereClause
+      emailLogs: whereClause
     },
     include: {
-      email_logs: {
+      emailLogs: {
         select: {
           recipient_email: true,
           bounce_reason: true
@@ -358,7 +358,7 @@ async function getUAEBusinessHoursStats(whereClause: any) {
     where: whereClause,
     select: {
       uae_send_time: true,
-      sent_at: true
+      sentAt: true
     }
   })
 

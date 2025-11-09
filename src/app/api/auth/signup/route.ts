@@ -42,24 +42,24 @@ export async function POST(request: NextRequest) {
     // Create company and user in a transaction using direct connection
     const result = await authPrisma.$transaction(async (tx) => {
       // Create company
-      const newCompany = await tx.companies.create({
+      const newCompany = await tx.company.create({
         data: {
           id: randomUUID(),
           name: company,
-          updated_at: new Date(),
+          updatedAt: new Date(),
         },
       });
 
       // Create user
-      const newUser = await tx.users.create({
+      const newUser = await tx.user.create({
         data: {
           id: randomUUID(),
           email,
           name,
           password: hashedPassword,
-          company_id: newCompany.id,
+          companyId: newCompany.id,
           role: "ADMIN", // First user is admin
-          updated_at: new Date(),
+          updatedAt: new Date(),
         },
       });
 

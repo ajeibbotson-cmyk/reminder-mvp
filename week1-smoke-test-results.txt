@@ -1,0 +1,99 @@
+═══════════════════════════════════════════════
+   REMINDER MVP - API SMOKE TESTS
+   Week 1 Discovery Sprint
+   Base URL: http://localhost:3000
+═══════════════════════════════════════════════
+
+🔧 Setting up test user...
+✅ Found existing test user: smoke-test@example.com
+   Company ID: cdc6776f-882a-49eb-98b1-302bdfa35c17
+
+
+📋 Testing Invoice APIs...
+
+❌ POST /api/invoices (894ms)
+❌ GET /api/invoices (79ms)
+⏭️ GET /api/invoices/[id]
+   Error: No invoice created to test with
+❌ POST /api/invoices/import (1761805908631ms)
+   Error: CSV import failed
+
+
+📧 Testing Campaign APIs...
+
+⏭️ POST /api/campaigns
+   Error: No invoice available to create campaign
+
+
+💰 Testing Payment APIs...
+
+⏭️ POST /api/payments
+   Error: No invoice available to record payment
+
+
+👥 Testing Customer APIs...
+
+❌ POST /api/customers (443ms)
+❌ GET /api/customers (58ms)
+⏭️ PUT /api/customers/[id]
+   Error: No customer created to test with
+
+
+📊 Testing Analytics APIs...
+
+❌ GET /api/analytics/dashboard (307ms)
+❌ GET /api/analytics/collection-rate (442ms)
+
+
+═══════════════════════════════════════════════
+   SMOKE TEST SUMMARY
+═══════════════════════════════════════════════
+
+Total Tests: 11
+✅ Passed: 0 (0%)
+❌ Failed: 7 (64%)
+⏭️  Skipped: 4 (36%)
+
+📊 Success Rate: 0% (excluding skipped)
+
+🚨 CRITICAL: <60% endpoints working - Major backend issues need fixing
+
+❌ Failed Tests:
+
+   POST /api/invoices
+   Status Code: 401
+   Error: undefined
+
+   GET /api/invoices
+   Status Code: 401
+   Error: undefined
+
+   POST /api/invoices/import
+   Status Code: 405
+   Error: CSV import failed
+
+   POST /api/customers
+   Status Code: 401
+   Error: undefined
+
+   GET /api/customers
+   Status Code: 401
+   Error: undefined
+
+   GET /api/analytics/dashboard
+   Status Code: 401
+   Error: undefined
+
+   GET /api/analytics/collection-rate
+   Status Code: 404
+   Error: undefined
+
+📝 Next Steps:
+   1. Review failed endpoints above
+   2. Check API route implementations
+   3. Verify database schema matches API expectations
+   4. Create GitHub issues for each failing endpoint
+   5. Re-run smoke tests after fixes
+
+═══════════════════════════════════════════════
+

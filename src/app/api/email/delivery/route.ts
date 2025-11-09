@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
           invoices: {
             select: { id: true, number: true, customerName: true }
           },
-          customers: {
+          customer: {
             select: { id: true, name: true, email: true }
           },
           followUpLogs: {
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Log activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: authContext.user.companyId,

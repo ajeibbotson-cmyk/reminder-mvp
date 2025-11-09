@@ -292,11 +292,11 @@ describe('GET /api/sequences/analytics/[id]', () => {
     getServerSession.mockResolvedValue(mockSession)
     
     // Setup default database responses
-    prisma.users.findUnique.mockResolvedValue(mockUser)
+    prisma.user.findUnique.mockResolvedValue(mockUser)
     prisma.sequences.findUnique.mockResolvedValue(mockSequence)
     prisma.sequenceExecutions.findMany.mockResolvedValue(mockExecutions)
     prisma.sequenceStepExecutions.findMany.mockResolvedValue(mockStepExecutions)
-    prisma.emailLogs.findMany.mockResolvedValue(mockEmailLogs)
+    prisma.emailLog.findMany.mockResolvedValue(mockEmailLogs)
   })
 
   afterEach(() => {
@@ -318,7 +318,7 @@ describe('GET /api/sequences/analytics/[id]', () => {
 
     it('should require user to have company association', async () => {
       const userWithoutCompany = { ...mockUser, company: null }
-      prisma.users.findUnique.mockResolvedValue(userWithoutCompany)
+      prisma.user.findUnique.mockResolvedValue(userWithoutCompany)
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics/seq-12345')
       const response = await GET(request, { params: { id: 'seq-12345' } })
@@ -424,7 +424,7 @@ describe('GET /api/sequences/analytics/[id]', () => {
 
     it('should handle sequences with no executions', async () => {
       prisma.sequenceExecutions.findMany.mockResolvedValue([])
-      prisma.emailLogs.findMany.mockResolvedValue([])
+      prisma.emailLog.findMany.mockResolvedValue([])
 
       const request = new NextRequest('http://localhost:3000/api/sequences/analytics/seq-12345')
       const response = await GET(request, { params: { id: 'seq-12345' } })

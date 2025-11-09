@@ -51,13 +51,13 @@ const mockInvoice = {
   trnNumber: '123456789012345',
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
-  customers: {
+  customer: {
     id: 'customer-1',
     name: 'Test Customer',
     email: 'customer@example.ae',
     phone: '+971501234567',
   },
-  companies: mockCompany,
+  company: mockCompany,
   invoiceItems: [
     {
       id: 'item-1',
@@ -100,7 +100,7 @@ describe('Individual Invoice API Routes', () => {
 
   describe('GET /api/invoices/[id]', () => {
     it('should return invoice with comprehensive UAE business data', async () => {
-      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1')
       const response = await GET(request, { params: { id: 'invoice-1' } })
@@ -123,7 +123,7 @@ describe('Individual Invoice API Routes', () => {
         companyId: 'other-company',
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(invoiceFromOtherCompany)
+      prisma.invoice.findUnique.mockResolvedValue(invoiceFromOtherCompany)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1')
       const response = await GET(request, { params: { id: 'invoice-1' } })
@@ -134,7 +134,7 @@ describe('Individual Invoice API Routes', () => {
     })
 
     it('should return 404 for non-existent invoice', async () => {
-      prisma.invoices.findUnique.mockResolvedValue(null)
+      prisma.invoice.findUnique.mockResolvedValue(null)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/non-existent')
       const response = await GET(request, { params: { id: 'non-existent' } })
@@ -151,7 +151,7 @@ describe('Individual Invoice API Routes', () => {
         status: InvoiceStatus.SENT,
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(overdueInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(overdueInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1')
       const response = await GET(request, { params: { id: 'invoice-1' } })
@@ -170,7 +170,7 @@ describe('Individual Invoice API Routes', () => {
         ],
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(invoiceWithPayments)
+      prisma.invoice.findUnique.mockResolvedValue(invoiceWithPayments)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1')
       const response = await GET(request, { params: { id: 'invoice-1' } })
@@ -195,10 +195,10 @@ describe('Individual Invoice API Routes', () => {
     it('should update invoice with UAE business validation', async () => {
       const updatedInvoice = { ...mockInvoice, ...updateData }
       
-      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
       
       const mockTx = {
-        customers: {
+        customer: {
           upsert: jest.fn().mockResolvedValue({}),
         },
         invoices: {
@@ -236,7 +236,7 @@ describe('Individual Invoice API Routes', () => {
         companyId: 'other-company',
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(invoiceFromOtherCompany)
+      prisma.invoice.findUnique.mockResolvedValue(invoiceFromOtherCompany)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'PUT',
@@ -257,7 +257,7 @@ describe('Individual Invoice API Routes', () => {
         status: InvoiceStatus.PAID,
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(paidInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(paidInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'PUT',
@@ -279,7 +279,7 @@ describe('Individual Invoice API Routes', () => {
         payments: [{ id: 'payment-1', amount: 500 }],
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(invoiceWithPayments)
+      prisma.invoice.findUnique.mockResolvedValue(invoiceWithPayments)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'PUT',
@@ -299,7 +299,7 @@ describe('Individual Invoice API Routes', () => {
       const { validateUAETRN } = require('@/lib/vat-calculator')
       validateUAETRN.mockReturnValue(false)
 
-      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'PUT',
@@ -315,7 +315,7 @@ describe('Individual Invoice API Routes', () => {
     })
 
     it('should handle invoice number uniqueness validation', async () => {
-      prisma.invoices.findUnique
+      prisma.invoice.findUnique
         .mockResolvedValueOnce(mockInvoice) // First call - original invoice
         .mockResolvedValueOnce({ // Second call - duplicate check
           id: 'other-invoice',
@@ -354,10 +354,10 @@ describe('Individual Invoice API Routes', () => {
         ],
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
       
       const mockTx = {
-        customers: { upsert: jest.fn() },
+        customer: { upsert: jest.fn() },
         invoices: { update: jest.fn().mockResolvedValue(mockInvoice) },
         invoiceItems: {
           deleteMany: jest.fn(),
@@ -394,7 +394,7 @@ describe('Individual Invoice API Routes', () => {
         emailLogs: [],
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(draftInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(draftInvoice)
       
       const mockTx = {
         invoiceItems: { deleteMany: jest.fn() },
@@ -439,7 +439,7 @@ describe('Individual Invoice API Routes', () => {
         status: InvoiceStatus.SENT,
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(sentInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(sentInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'DELETE',
@@ -459,7 +459,7 @@ describe('Individual Invoice API Routes', () => {
         payments: [{ id: 'payment-1', amount: 500 }],
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(invoiceWithPayments)
+      prisma.invoice.findUnique.mockResolvedValue(invoiceWithPayments)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'DELETE',
@@ -479,7 +479,7 @@ describe('Individual Invoice API Routes', () => {
         createdAt: new Date('2023-01-01'), // Over 90 days old
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(oldInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(oldInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'DELETE',
@@ -499,7 +499,7 @@ describe('Individual Invoice API Routes', () => {
         followUpLogs: [{ id: 'log-1', sentAt: new Date() }],
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(invoiceWithFollowUps)
+      prisma.invoice.findUnique.mockResolvedValue(invoiceWithFollowUps)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'DELETE',
@@ -520,7 +520,7 @@ describe('Individual Invoice API Routes', () => {
         vatAmount: 47.62,
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(vatInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(vatInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'DELETE',
@@ -540,7 +540,7 @@ describe('Individual Invoice API Routes', () => {
         companyId: 'other-company',
       }
       
-      prisma.invoices.findUnique.mockResolvedValue(invoiceFromOtherCompany)
+      prisma.invoice.findUnique.mockResolvedValue(invoiceFromOtherCompany)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1', {
         method: 'DELETE',
@@ -566,7 +566,7 @@ describe('Individual Invoice API Routes', () => {
         })
         canManageInvoices.mockReturnValue(true)
         
-        prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+        prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
 
         const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1')
         const response = await GET(request, { params: { id: 'invoice-1' } })
@@ -582,7 +582,7 @@ describe('Individual Invoice API Routes', () => {
         user: { ...mockUser, role: UserRole.VIEWER },
       })
       
-      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1')
       const response = await GET(request, { params: { id: 'invoice-1' } })

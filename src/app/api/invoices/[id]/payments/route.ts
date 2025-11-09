@@ -68,7 +68,7 @@ export async function POST(
 
     const result = await prisma.$transaction(async (tx) => {
       // Fetch invoice with company isolation
-      const invoice = await tx.invoices.findUnique({
+      const invoice = await tx.invoice.findUnique({
         where: { 
           id: invoiceId,
           companyId: authContext.user.companyId // Enforce company isolation
@@ -83,7 +83,7 @@ export async function POST(
               reference: true
             }
           },
-          customers: {
+          customer: {
             select: {
               id: true,
               name: true,
@@ -125,7 +125,7 @@ export async function POST(
       }
 
       // Create payment record
-      const payment = await tx.payments.create({
+      const payment = await tx.payment.create({
         data: {
           id: crypto.randomUUID(),
           invoiceId: invoice.id,
@@ -168,7 +168,7 @@ export async function POST(
       }
 
       // Log payment activity for audit trail
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: authContext.user.companyId,
@@ -204,7 +204,7 @@ export async function POST(
       }
 
       // Fetch updated invoice for response
-      const updatedInvoice = await tx.invoices.findUnique({
+      const updatedInvoice = await tx.invoice.findUnique({
         where: { id: invoice.id },
         include: {
           payments: {
@@ -219,7 +219,7 @@ export async function POST(
             },
             orderBy: { paymentDate: 'desc' }
           },
-          customers: {
+          customer: {
             select: {
               id: true,
               name: true,
@@ -292,7 +292,7 @@ export async function GET(
     const { id: invoiceId } = params
 
     // Fetch invoice with payments and company isolation
-    const invoice = await prisma.invoices.findUnique({
+    const invoice = await prisma.invoice.findUnique({
       where: { 
         id: invoiceId,
         companyId: authContext.user.companyId // Enforce company isolation
@@ -310,7 +310,7 @@ export async function GET(
           },
           orderBy: { paymentDate: 'desc' }
         },
-        customers: {
+        customer: {
           select: {
             id: true,
             name: true,
@@ -330,7 +330,7 @@ export async function GET(
     const reconciliation = calculatePaymentReconciliation(invoiceTotal, totalPaid)
 
     // Get payment activity history
-    const paymentActivities = await prisma.activities.findMany({
+    const paymentActivities = await prisma.activity.findMany({
       where: {
         companyId: authContext.user.companyId,
         type: 'payment_recorded',
@@ -453,7 +453,7 @@ async function schedulePaymentNotification(
   // Calculate next business hour for sending notifications
   const sendTime = getNextBusinessHourSendTime()
   
-  await tx.emailLogs.create({
+  await tx.emailLog.create({
     data: {
       id: crypto.randomUUID(),
       companyId,

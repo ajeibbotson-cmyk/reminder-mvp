@@ -22,7 +22,8 @@ import {
   X,
   Building2,
   Mail,
-  Upload
+  Upload,
+  Layers
 } from 'lucide-react'
 
 interface DashboardLayoutProps {
@@ -44,6 +45,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       href: '/dashboard',
       icon: LayoutDashboard,
       current: pathname === '/dashboard'
+    },
+    {
+      name: 'Buckets',
+      href: '/dashboard/buckets',
+      icon: Layers,
+      current: pathname.startsWith('/dashboard/buckets')
     },
     {
       name: t('navigation.invoices'),

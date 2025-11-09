@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
     // Start transaction to ensure data consistency
     const result = await prisma.$transaction(async (tx) => {
       // 1. Fetch invoice with current payments to validate payment
-      const invoice = await tx.invoices.findUnique({
-        where: { 
+      const invoice = await tx.invoice.findUnique({
+        where: {
           id: paymentData.invoiceId,
           companyId: authContext.user.companyId // Enforce company isolation
         },
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
           payments: {
             select: { amount: true, paymentDate: true, method: true, reference: true }
           },
-          customers: {
+          customer: {
             select: { name: true, email: true }
           }
         }
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 3. Create payment record
-      const payment = await tx.payments.create({
+      const payment = await tx.payment.create({
         data: {
           id: crypto.randomUUID(),
           invoiceId: paymentData.invoiceId,
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 7. Log payment activity for audit trail
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: authContext.user.companyId,
@@ -240,7 +240,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause with company isolation
     const whereClause: any = {
-      invoices: {
+      invoice: {
         companyId: authContext.user.companyId
       }
     }
@@ -267,10 +267,10 @@ export async function GET(request: NextRequest) {
 
     // Fetch payments with pagination
     const [payments, totalCount] = await Promise.all([
-      prisma.payments.findMany({
+      prisma.payment.findMany({
         where: whereClause,
         include: {
-          invoices: includeInvoiceDetails ? {
+          invoice: includeInvoiceDetails ? {
             select: {
               id: true,
               number: true,
@@ -288,7 +288,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit
       }),
-      prisma.payments.count({ where: whereClause })
+      prisma.payment.count({ where: whereClause })
     ])
 
     // Calculate payment statistics
@@ -300,23 +300,23 @@ export async function GET(request: NextRequest) {
       invoiceId: payment.invoiceId,
       amount: payment.amount,
       formattedAmount: formatUAECurrency(
-        new Decimal(payment.amount), 
-        includeInvoiceDetails && payment.invoices ? payment.invoices.currency : 'AED'
+        new Decimal(payment.amount),
+        includeInvoiceDetails && payment.invoice ? payment.invoice.currency : 'AED'
       ),
       paymentDate: payment.paymentDate,
       method: payment.method,
       reference: payment.reference,
       notes: payment.notes,
       createdAt: payment.createdAt,
-      invoice: includeInvoiceDetails && payment.invoices ? {
-        id: payment.invoices.id,
-        number: payment.invoices.number,
-        customerName: payment.invoices.customerName,
-        customerEmail: payment.invoices.customerEmail,
-        totalAmount: payment.invoices.totalAmount || payment.invoices.amount,
-        currency: payment.invoices.currency,
-        status: payment.invoices.status,
-        dueDate: payment.invoices.dueDate
+      invoice: includeInvoiceDetails && payment.invoice ? {
+        id: payment.invoice.id,
+        number: payment.invoice.number,
+        customerName: payment.invoice.customerName,
+        customerEmail: payment.invoice.customerEmail,
+        totalAmount: payment.invoice.totalAmount || payment.invoice.amount,
+        currency: payment.invoice.currency,
+        status: payment.invoice.status,
+        dueDate: payment.invoice.dueDate
       } : undefined
     }))
 
@@ -472,23 +472,35 @@ function getPaymentNextActions(paymentSummary: any, currentStatus: InvoiceStatus
  * Get payment statistics for the company
  */
 async function getPaymentStatistics(companyId: string, baseWhereClause: any) {
-  const stats = await prisma.payments.aggregate({
-    where: {
-      ...baseWhereClause,
-      invoices: { companyId }
-    },
+  // To avoid SQL ambiguity with 'amount' column in JOIN, we need to:
+  // 1. First get all invoice IDs for the company
+  // 2. Then filter payments by those invoice IDs (no JOIN needed)
+  const companyInvoices = await prisma.invoice.findMany({
+    where: { companyId: companyId },
+    select: { id: true }
+  })
+
+  const invoiceIds = companyInvoices.map(inv => inv.id)
+
+  // Create a modified where clause that uses invoiceId IN instead of relation filter
+  const statsWhereClause = {
+    ...baseWhereClause,
+    invoiceId: { in: invoiceIds }
+  }
+  // Remove the relation filter if it exists
+  delete statsWhereClause.invoice
+
+  const stats = await prisma.payment.aggregate({
+    where: statsWhereClause,
     _sum: { amount: true },
     _avg: { amount: true },
     _count: { id: true }
   })
 
   // Get payment method breakdown
-  const methodBreakdown = await prisma.payments.groupBy({
+  const methodBreakdown = await prisma.payment.groupBy({
     by: ['method'],
-    where: {
-      ...baseWhereClause,
-      invoices: { companyId }
-    },
+    where: statsWhereClause,
     _sum: { amount: true },
     _count: { id: true }
   })

@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from "@/lib/auth"
+import { requireRole } from '@/lib/auth-utils'
+import { UserRole } from '@prisma/client'
 import { kpiCalculationEngine } from '@/lib/services/kpi-calculation-engine'
 import { AnalyticsFilters } from '@/lib/types/analytics'
 import { z } from 'zod'
@@ -28,16 +28,9 @@ const analyticsFiltersSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.company_id) {
-      return NextResponse.json(
-        { error: 'Unauthorized access' },
-        { status: 401 }
-      )
-    }
-
-    const companyId = session.user.companies_id
+    // Authenticate user using requireRole (consistent with other API routes)
+    const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.VIEWER])
+    const companyId = authContext.user.companyId
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)

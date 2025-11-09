@@ -42,10 +42,10 @@ jest.mock('@/lib/prisma', () => ({
     followUpSequences: {
       findFirst: jest.fn(),
     },
-    companies: {
+    company: {
       findUnique: jest.fn(),
     },
-    customers: {
+    customer: {
       findUnique: jest.fn(),
     },
     invoices: {
@@ -232,9 +232,9 @@ describe('Consolidation API Endpoints', () => {
         .mockResolvedValue(mockSequence)
       ;(sequenceExecutionService.startConsolidatedSequenceExecution as jest.Mock)
         .mockResolvedValue(mockExecutionResult)
-      ;(prisma.customerConsolidatedReminders.update as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.update as jest.Mock)
         .mockResolvedValue(mockConsolidation)
-      ;(prisma.activities.create as jest.Mock)
+      ;(prisma.activity.create as jest.Mock)
         .mockResolvedValue({})
 
       const requestBody = {
@@ -430,9 +430,9 @@ describe('Consolidation API Endpoints', () => {
         { id: 'inv-2', number: 'INV-002', amount: 3000, dueDate: new Date('2024-01-15') }
       ]
 
-      ;(prisma.customerConsolidatedReminders.findFirst as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.findFirst as jest.Mock)
         .mockResolvedValue(mockConsolidation)
-      ;(prisma.invoices.findMany as jest.Mock)
+      ;(prisma.invoice.findMany as jest.Mock)
         .mockResolvedValue(mockInvoices)
 
       const response = await getConsolidation(
@@ -449,7 +449,7 @@ describe('Consolidation API Endpoints', () => {
     })
 
     it('should return 404 for non-existent consolidation', async () => {
-      ;(prisma.customerConsolidatedReminders.findFirst as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.findFirst as jest.Mock)
         .mockResolvedValue(null)
 
       const response = await getConsolidation(
@@ -482,11 +482,11 @@ describe('Consolidation API Endpoints', () => {
         customer: { id: 'cust-1', name: 'Test Customer', email: 'test@example.com' }
       }
 
-      ;(prisma.customerConsolidatedReminders.findFirst as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.findFirst as jest.Mock)
         .mockResolvedValue(mockExistingConsolidation)
-      ;(prisma.customerConsolidatedReminders.update as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.update as jest.Mock)
         .mockResolvedValue(mockUpdatedConsolidation)
-      ;(prisma.activities.create as jest.Mock)
+      ;(prisma.activity.create as jest.Mock)
         .mockResolvedValue({})
 
       const updateData = {
@@ -518,7 +518,7 @@ describe('Consolidation API Endpoints', () => {
         scheduledFor: new Date()
       }
 
-      ;(prisma.customerConsolidatedReminders.findFirst as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.findFirst as jest.Mock)
         .mockResolvedValue(mockSentConsolidation)
 
       const updateData = {
@@ -558,15 +558,15 @@ describe('Consolidation API Endpoints', () => {
         { id: 'email-1', deliveryStatus: 'QUEUED' }
       ]
 
-      ;(prisma.customerConsolidatedReminders.findFirst as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.findFirst as jest.Mock)
         .mockResolvedValue(mockConsolidation)
-      ;(prisma.emailLogs.findMany as jest.Mock)
+      ;(prisma.emailLog.findMany as jest.Mock)
         .mockResolvedValue(mockScheduledEmails)
-      ;(prisma.emailLogs.update as jest.Mock)
+      ;(prisma.emailLog.update as jest.Mock)
         .mockResolvedValue({})
-      ;(prisma.customerConsolidatedReminders.delete as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.delete as jest.Mock)
         .mockResolvedValue(mockConsolidation)
-      ;(prisma.activities.create as jest.Mock)
+      ;(prisma.activity.create as jest.Mock)
         .mockResolvedValue({})
 
       const response = await deleteConsolidation(
@@ -589,7 +589,7 @@ describe('Consolidation API Endpoints', () => {
         customer: { id: 'cust-1', name: 'Test Customer', email: 'test@example.com' }
       }
 
-      ;(prisma.customerConsolidatedReminders.findFirst as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.findFirst as jest.Mock)
         .mockResolvedValue(mockSentConsolidation)
 
       const response = await deleteConsolidation(
@@ -617,7 +617,7 @@ describe('Consolidation API Endpoints', () => {
       }
 
       ;(getServerSession as jest.Mock).mockResolvedValue(otherCompanySession)
-      ;(prisma.customerConsolidatedReminders.findFirst as jest.Mock)
+      ;(prisma.customerConsolidatedReminder.findFirst as jest.Mock)
         .mockResolvedValue(null) // Should not find consolidation from different company
 
       const response = await getConsolidation(
@@ -630,7 +630,7 @@ describe('Consolidation API Endpoints', () => {
       expect(data.error).toBe('Consolidation not found')
 
       // Verify the query included company isolation
-      expect(prisma.customerConsolidatedReminders.findFirst).toHaveBeenCalledWith({
+      expect(prisma.customerConsolidatedReminder.findFirst).toHaveBeenCalledWith({
         where: {
           id: 'cons-123',
           companyId: 'comp-456' // Should filter by the requesting user's company

@@ -112,7 +112,7 @@ export async function GET(
     const campaign = await prisma.invoiceCampaign.findFirst({
       where: {
         id: campaignId,
-        company_id: companyId // Multi-tenant security
+        companyId: companyId // Multi-tenant security
       },
       include: {
         created_by_user: {
@@ -121,7 +121,7 @@ export async function GET(
             name: true
           }
         },
-        campaign_email_sends: {
+        campaignEmailSends: {
           include: {
             invoice: {
               select: {
@@ -138,7 +138,7 @@ export async function GET(
             }
           },
           orderBy: {
-            created_at: 'desc'
+            createdAt: 'desc'
           }
         }
       }
@@ -245,7 +245,7 @@ async function calculateEngagementMetrics(campaignId: string) {
       by: ['event_type'],
       where: {
         campaign_email_send: {
-          campaign_id: campaignId
+          campaignId: campaignId
         }
       },
       _count: { id: true }

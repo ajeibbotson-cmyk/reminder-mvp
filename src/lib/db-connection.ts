@@ -140,5 +140,8 @@ export const checkDatabaseHealth = async (): Promise<{
 // Authentication-specific client (always use direct connection for auth)
 export const getAuthPrisma = () => getDirectPrisma()
 
-// Default export for backward compatibility (tries pooled first, falls back to direct)
-export const prisma = getPooledPrisma()
+// Default export for backward compatibility
+// CRITICAL FIX: Use direct connection because pooler (port 6543) has connectivity issues
+// The pooler connection fails with "Can't reach database server" error
+// Direct connection (port 5432) works reliably
+export const prisma = getDirectPrisma()

@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // 4. Process all companies in the system
-      const companies = await prisma.companies.findMany({
+      const companies = await prisma.company.findMany({
         select: { id: true, name: true },
         where: { deletedAt: null } // Only active companies
       })
@@ -431,7 +431,7 @@ async function sendAdminNotification(summary: any) {
  * Get system-wide overdue statistics
  */
 async function getOverdueStatistics() {
-  const stats = await prisma.invoices.aggregate({
+  const stats = await prisma.invoice.aggregate({
     where: {
       status: InvoiceStatus.SENT,
       dueDate: { lt: new Date() }
@@ -440,7 +440,7 @@ async function getOverdueStatistics() {
     _sum: { totalAmount: true, amount: true }
   })
 
-  const totalOverdueInvoices = await prisma.invoices.count({
+  const totalOverdueInvoices = await prisma.invoice.count({
     where: { status: InvoiceStatus.OVERDUE }
   })
 

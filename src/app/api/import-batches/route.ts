@@ -20,12 +20,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch import batches for the company
-    const batches = await prisma.import_batches.findMany({
+    const batches = await prisma.importBatch.findMany({
       where: {
-        company_id: companyId
+        companyId: companyId
       },
       orderBy: {
-        created_at: 'desc'
+        createdAt: 'desc'
       },
       take: 50 // Limit to recent 50 batches
     })
@@ -46,15 +46,16 @@ export async function POST(request: NextRequest) {
     const { fileName, fileSize, totalRecords, fileType } = body
 
     // Create new import batch
-    const batch = await prisma.import_batches.create({
+    const batch = await prisma.importBatch.create({
       data: {
-        company_id: authContext.user.companyId,
-        file_name: fileName,
-        file_size: fileSize,
-        total_records: totalRecords,
-        file_type: fileType || 'CSV',
+        companyId: authContext.user.companyId,
+        userId: authContext.user.id,
+        filename: fileName,
+        originalFilename: fileName,
+        fileSize: fileSize,
+        totalRecords: totalRecords || 0,
         status: 'PENDING',
-        created_by: authContext.user.id
+        updatedAt: new Date()
       }
     })
 

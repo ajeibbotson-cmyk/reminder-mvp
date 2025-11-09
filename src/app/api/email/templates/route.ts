@@ -66,20 +66,20 @@ export async function GET(request: NextRequest) {
       templates.map(async (template) => {
         // Get recent usage stats
         const [sentCount, deliveredCount, openedCount] = await Promise.all([
-          prisma.emailLogs.count({
+          prisma.emailLog.count({
             where: { 
               templateId: template.id,
               createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } // Last 30 days
             }
           }),
-          prisma.emailLogs.count({
+          prisma.emailLog.count({
             where: {
               templateId: template.id,
               deliveryStatus: 'DELIVERED',
               createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
             }
           }),
-          prisma.emailLogs.count({
+          prisma.emailLog.count({
             where: {
               templateId: template.id,
               openedAt: { not: null },
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Log activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: authContext.user.companyId,

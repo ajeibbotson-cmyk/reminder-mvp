@@ -158,7 +158,7 @@ export function useBucketDetails(
   const {
     page = 1,
     limit = 20,
-    sortBy = 'due_date',
+    sortBy = 'dueDate',
     sortOrder = 'asc',
     search = '',
     enabled = true

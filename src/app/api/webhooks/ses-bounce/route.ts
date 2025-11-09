@@ -78,8 +78,8 @@ async function handleBounceNotification(message: any) {
         await prisma.email_logs.update({
           where: { id: emailLog.id },
           data: {
-            delivery_status: 'BOUNCED',
-            bounced_at: new Date(timestamp),
+            deliveryStatus: 'BOUNCED',
+            bouncedAt: new Date(timestamp),
             bounce_reason: `${bounce_type}: ${diagnostic_code || status}`
           }
         })
@@ -137,7 +137,7 @@ async function handleComplaintNotification(message: any) {
         await prisma.email_logs.update({
           where: { id: emailLog.id },
           data: {
-            delivery_status: 'COMPLAINED',
+            deliveryStatus: 'COMPLAINED',
             complainedAt: new Date(timestamp),
             complaintFeedback: complaintFeedbackType || 'Spam complaint'
           }
@@ -184,10 +184,10 @@ async function handleDeliveryNotification(message: any) {
         where: {
           aws_message_id: mail.messageId,
           recipient_email: emailAddress,
-          delivery_status: 'SENT' // Only update if still in SENT status
+          deliveryStatus: 'SENT' // Only update if still in SENT status
         },
         data: {
-          delivery_status: 'DELIVERED',
+          deliveryStatus: 'DELIVERED',
           deliveredAt: new Date(timestamp)
         }
       })
@@ -208,7 +208,7 @@ async function handleDeliveryNotification(message: any) {
 async function suppressEmailAddress(emailAddress: string, companyId: string, reason: string) {
   try {
     // Check if customer exists and update their email status
-    const customer = await prisma.customers.findFirst({
+    const customer = await prisma.customer.findFirst({
       where: {
         email: emailAddress,
         companyId
@@ -221,7 +221,7 @@ async function suppressEmailAddress(emailAddress: string, companyId: string, rea
       const existingNotes = customer.notes || ''
       const newNotes = existingNotes ? `${existingNotes}\n${suppressionNote}` : suppressionNote
 
-      await prisma.customers.update({
+      await prisma.customer.update({
         where: { id: customer.id },
         data: {
           notes: newNotes

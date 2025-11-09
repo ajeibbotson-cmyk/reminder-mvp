@@ -42,15 +42,15 @@ export async function GET(
     const { id } = await params
 
     // Fetch payment with invoice details and company isolation
-    const payment = await prisma.payments.findUnique({
+    const payment = await prisma.payment.findUnique({
       where: { id },
       include: {
         invoices: {
           include: {
-            companies: {
+            company: {
               select: { id: true, name: true }
             },
-            customers: {
+            customer: {
               select: { name: true, email: true }
             },
             payments: {
@@ -158,12 +158,12 @@ export async function PATCH(
     // Process update in transaction
     const result = await prisma.$transaction(async (tx) => {
       // 1. Fetch current payment with invoice
-      const currentPayment = await tx.payments.findUnique({
+      const currentPayment = await tx.payment.findUnique({
         where: { id },
         include: {
           invoices: {
             include: {
-              companies: { select: { id: true } },
+              company: { select: { id: true } },
               payments: { select: { id: true, amount: true } }
             }
           }
@@ -199,13 +199,13 @@ export async function PATCH(
       }
 
       // 3. Update payment
-      const updatedPayment = await tx.payments.update({
+      const updatedPayment = await tx.payment.update({
         where: { id },
         data: updateData
       })
 
       // 4. Recalculate invoice payment status
-      const allPayments = await tx.payments.findMany({
+      const allPayments = await tx.payment.findMany({
         where: { invoiceId: invoice.id },
         select: { amount: true }
       })
@@ -251,7 +251,7 @@ export async function PATCH(
       }
 
       // 6. Log update activity
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: authContext.user.companyId,
@@ -343,12 +343,12 @@ export async function DELETE(
     // Process deletion in transaction
     const result = await prisma.$transaction(async (tx) => {
       // 1. Fetch payment with invoice details
-      const payment = await tx.payments.findUnique({
+      const payment = await tx.payment.findUnique({
         where: { id },
         include: {
           invoices: {
             include: {
-              companies: { select: { id: true } },
+              company: { select: { id: true } },
               payments: { select: { id: true, amount: true } }
             }
           }
@@ -374,7 +374,7 @@ export async function DELETE(
       const newRemainingAmount = invoiceTotal.minus(remainingPayments)
 
       // 3. Delete the payment
-      await tx.payments.delete({ where: { id } })
+      await tx.payment.delete({ where: { id } })
 
       // 4. Update invoice status if necessary
       let statusUpdateResult = null
@@ -395,7 +395,7 @@ export async function DELETE(
       }
 
       // 5. Log deletion activity
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: authContext.user.companyId,

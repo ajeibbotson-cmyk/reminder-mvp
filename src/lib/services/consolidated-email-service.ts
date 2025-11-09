@@ -411,7 +411,7 @@ export class ConsolidatedEmailService {
    */
 
   private async getCustomerDetails(customerId: string) {
-    return await prisma.customers.findUnique({
+    return await prisma.customer.findUnique({
       where: { id: customerId },
       include: {
         companies: {
@@ -427,7 +427,7 @@ export class ConsolidatedEmailService {
   }
 
   private async getInvoiceDetails(invoiceIds: string[], companyId: string) {
-    return await prisma.invoices.findMany({
+    return await prisma.invoice.findMany({
       where: {
         id: { in: invoiceIds },
         companyId,
@@ -578,7 +578,7 @@ export class ConsolidatedEmailService {
     options: { companyId: string; language: string; customMessage?: string }
   ): Promise<EmailTemplateVariables> {
     // Get company details
-    const company = await prisma.companies.findUnique({
+    const company = await prisma.company.findUnique({
       where: { id: options.companyId }
     })
 

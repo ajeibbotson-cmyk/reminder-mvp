@@ -17,10 +17,10 @@ export async function GET(
     const { id } = await params
 
     // Fetch invoice with comprehensive UAE business data
-    const invoice = await prisma.invoices.findUnique({
+    const invoice = await prisma.invoice.findUnique({
       where: { id },
       include: {
-        customers: {
+        customer: {
           select: {
             id: true,
             name: true,
@@ -32,7 +32,7 @@ export async function GET(
             notesAr: true
           }
         },
-        companies: {
+        company: {
           select: {
             id: true,
             name: true,
@@ -54,7 +54,7 @@ export async function GET(
           },
           orderBy: { paymentDate: 'desc' }
         },
-        invoice_items: {
+        invoiceItems: {
           select: {
             id: true,
             description: true,
@@ -92,7 +92,7 @@ export async function GET(
             errorSummary: true
           }
         },
-        email_logs: {
+        emailLogs: {
           select: {
             id: true,
             subject: true,
@@ -180,13 +180,13 @@ export async function PUT(
     const updateData = await validateRequestBody(request, updateInvoiceSchema)
 
     // First check if invoice exists and user has access
-    const existingInvoice = await prisma.invoices.findUnique({
+    const existingInvoice = await prisma.invoice.findUnique({
       where: { id },
       include: {
-        invoice_items: true,
+        invoiceItems: true,
         payments: true,
-        customers: true,
-        companies: true
+        customer: true,
+        company: true
       }
     })
 
@@ -209,7 +209,7 @@ export async function PUT(
 
     // Check invoice number uniqueness if being updated
     if (updateData.number && updateData.number !== existingInvoice.number) {
-      const duplicateInvoice = await prisma.invoices.findUnique({
+      const duplicateInvoice = await prisma.invoice.findUnique({
         where: {
           companyId_number: {
             companyId: existingInvoice.companyId,
@@ -236,7 +236,7 @@ export async function PUT(
         if (updateData.customerNotesAr) customerData.notesAr = updateData.customerNotesAr
 
         if (Object.keys(customerData).length > 0) {
-          await tx.customers.upsert({
+          await tx.customer.upsert({
             where: {
               email_companyId: {
                 email: updateData.customerEmail || existingInvoice.customerEmail,
@@ -271,7 +271,7 @@ export async function PUT(
       }
 
       // Update invoice with comprehensive UAE fields
-      const invoice = await tx.invoices.update({
+      const invoice = await tx.invoice.update({
         where: { id },
         data: {
           // Basic invoice fields
@@ -304,7 +304,7 @@ export async function PUT(
           })
         },
         include: {
-          customers: {
+          customer: {
             select: {
               id: true,
               name: true,
@@ -314,7 +314,7 @@ export async function PUT(
               paymentTerms: true
             }
           },
-          companies: {
+          company: {
             select: {
               id: true,
               name: true,
@@ -332,7 +332,7 @@ export async function PUT(
             },
             orderBy: { paymentDate: 'desc' }
           },
-          invoice_items: {
+          invoiceItems: {
             select: {
               id: true,
               description: true,
@@ -387,7 +387,7 @@ export async function PUT(
         updateData[key] !== existingInvoice[key as keyof typeof existingInvoice]
       )
       
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: authContext.user.companyId,
@@ -466,12 +466,12 @@ export async function DELETE(
     const { id } = await params
 
     // First check if invoice exists and user has access
-    const existingInvoice = await prisma.invoices.findUnique({
+    const existingInvoice = await prisma.invoice.findUnique({
       where: { id },
       include: {
         payments: true,
         followUpLogs: true,
-        email_logs: true,
+        emailLogs: true,
         importBatches: {
           select: { id: true, status: true }
         }
@@ -512,12 +512,12 @@ export async function DELETE(
       })
 
       // Delete the invoice
-      await tx.invoices.delete({
+      await tx.invoice.delete({
         where: { id }
       })
 
       // Log comprehensive deletion activity for UAE audit requirements
-      await tx.activities.create({
+      await tx.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: authContext.user.companyId,

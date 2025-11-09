@@ -269,10 +269,10 @@ async function executeInvoiceSearch(whereClause: any, searchQuery: any) {
     orderBy = { [searchQuery.sortBy]: searchQuery.sortOrder }
   }
 
-  return await prisma.invoices.findMany({
+  return await prisma.invoice.findMany({
     where: whereClause,
     include: {
-      customers: {
+      customer: {
         select: {
           id: true,
           name: true,
@@ -306,7 +306,7 @@ async function executeInvoiceSearch(whereClause: any, searchQuery: any) {
 }
 
 async function getSearchCount(whereClause: any) {
-  return await prisma.invoices.count({ where: whereClause })
+  return await prisma.invoice.count({ where: whereClause })
 }
 
 async function buildFacetData(whereClause: any, facets: string[], companyId: string) {
@@ -315,7 +315,7 @@ async function buildFacetData(whereClause: any, facets: string[], companyId: str
   for (const facet of facets) {
     switch (facet) {
       case 'status':
-        const statusFacets = await prisma.invoices.groupBy({
+        const statusFacets = await prisma.invoice.groupBy({
           by: ['status'],
           where: whereClause,
           _count: { status: true }
@@ -330,7 +330,7 @@ async function buildFacetData(whereClause: any, facets: string[], companyId: str
         break
 
       case 'currency':
-        const currencyFacets = await prisma.invoices.groupBy({
+        const currencyFacets = await prisma.invoice.groupBy({
           by: ['currency'],
           where: whereClause,
           _count: { currency: true }
@@ -345,7 +345,7 @@ async function buildFacetData(whereClause: any, facets: string[], companyId: str
         break
 
       case 'paymentMethod':
-        const paymentMethodFacets = await prisma.payments.groupBy({
+        const paymentMethodFacets = await prisma.payment.groupBy({
           by: ['method'],
           where: {
             invoices: whereClause
@@ -362,7 +362,7 @@ async function buildFacetData(whereClause: any, facets: string[], companyId: str
         break
 
       case 'customer':
-        const customerFacets = await prisma.invoices.groupBy({
+        const customerFacets = await prisma.invoice.groupBy({
           by: ['customerName'],
           where: whereClause,
           _count: { customerName: true },
@@ -491,7 +491,7 @@ async function generateSearchSuggestions(query: string, companyId: string): Prom
   const suggestions = []
   
   // Generate completion suggestions based on existing invoice data
-  const customerSuggestions = await prisma.invoices.findMany({
+  const customerSuggestions = await prisma.invoice.findMany({
     where: {
       companyId,
       customerName: {
@@ -513,7 +513,7 @@ async function generateSearchSuggestions(query: string, companyId: string): Prom
   }
   
   // Generate invoice number suggestions
-  const invoiceNumberSuggestions = await prisma.invoices.findMany({
+  const invoiceNumberSuggestions = await prisma.invoice.findMany({
     where: {
       companyId,
       number: {
@@ -541,7 +541,7 @@ async function generateDidYouMeanSuggestion(query: string, companyId: string): P
   if (query.length < 3) return undefined
   
   // Check for common misspellings in invoice context
-  const commonTerms = await prisma.invoices.findMany({
+  const commonTerms = await prisma.invoice.findMany({
     where: { companyId },
     select: { customerName: true, number: true },
     take: 100
@@ -632,7 +632,7 @@ function getAppliedFilters(searchQuery: any): string[] {
 
 async function logSearchActivity(userId: string, companyId: string, searchQuery: any, result: SearchResult) {
   try {
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId,

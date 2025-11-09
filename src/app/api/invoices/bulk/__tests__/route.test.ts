@@ -47,13 +47,13 @@ const mockInvoices = [
     status: InvoiceStatus.DRAFT,
     dueDate: new Date('2024-01-15'),
     createdAt: new Date('2024-01-01'),
-    customers: {
+    customer: {
       id: 'customer-1',
       name: 'Customer 1',
       email: 'customer1@example.ae',
     },
     payments: [],
-    companies: mockCompany,
+    company: mockCompany,
   },
   {
     id: 'invoice-2',
@@ -67,13 +67,13 @@ const mockInvoices = [
     status: InvoiceStatus.SENT,
     dueDate: new Date('2024-01-20'),
     createdAt: new Date('2024-01-02'),
-    customers: {
+    customer: {
       id: 'customer-2',
       name: 'Customer 2',
       email: 'customer2@example.ae',
     },
     payments: [],
-    companies: mockCompany,
+    company: mockCompany,
   },
   {
     id: 'invoice-3',
@@ -87,13 +87,13 @@ const mockInvoices = [
     status: InvoiceStatus.PAID,
     dueDate: new Date('2024-01-10'),
     createdAt: new Date('2023-12-15'),
-    customers: {
+    customer: {
       id: 'customer-3',
       name: 'Customer 3',
       email: 'customer3@example.ae',
     },
     payments: [{ id: 'payment-1', amount: 2000 }],
-    companies: mockCompany,
+    company: mockCompany,
   },
 ]
 
@@ -150,7 +150,7 @@ describe('Bulk Invoice Operations API', () => {
       it('should update status for multiple invoices with UAE validation', async () => {
         const eligibleInvoices = [mockInvoices[0], mockInvoices[1]] // DRAFT and SENT
         
-        prisma.invoices.findMany.mockResolvedValue(eligibleInvoices)
+        prisma.invoice.findMany.mockResolvedValue(eligibleInvoices)
         
         const mockTx = {
           invoices: {
@@ -197,7 +197,7 @@ describe('Bulk Invoice Operations API', () => {
       it('should handle invalid status transitions', async () => {
         const invalidInvoices = [mockInvoices[2]] // PAID invoice
         
-        prisma.invoices.findMany.mockResolvedValue(invalidInvoices)
+        prisma.invoice.findMany.mockResolvedValue(invalidInvoices)
         
         prisma.$transaction.mockImplementation(async (callback) => callback({
           activities: { create: jest.fn() },
@@ -226,7 +226,7 @@ describe('Bulk Invoice Operations API', () => {
       it('should validate payment requirements for PAID status', async () => {
         const unpaidInvoice = [mockInvoices[1]] // SENT invoice with no payments
         
-        prisma.invoices.findMany.mockResolvedValue(unpaidInvoice)
+        prisma.invoice.findMany.mockResolvedValue(unpaidInvoice)
         
         prisma.$transaction.mockImplementation(async (callback) => callback({
           activities: { create: jest.fn() },
@@ -262,7 +262,7 @@ describe('Bulk Invoice Operations API', () => {
           },
         ]
         
-        prisma.invoices.findMany.mockResolvedValue(draftInvoices)
+        prisma.invoice.findMany.mockResolvedValue(draftInvoices)
         
         const mockTx = {
           activities: {
@@ -318,7 +318,7 @@ describe('Bulk Invoice Operations API', () => {
       it('should prevent deletion of non-draft invoices', async () => {
         const nonDraftInvoices = [mockInvoices[1]] // SENT invoice
         
-        prisma.invoices.findMany.mockResolvedValue(nonDraftInvoices)
+        prisma.invoice.findMany.mockResolvedValue(nonDraftInvoices)
         
         prisma.$transaction.mockImplementation(async (callback) => callback({
           activities: { create: jest.fn() },
@@ -348,7 +348,7 @@ describe('Bulk Invoice Operations API', () => {
           payments: [{ id: 'payment-1', amount: 500 }],
         }]
         
-        prisma.invoices.findMany.mockResolvedValue(invoiceWithPayments)
+        prisma.invoice.findMany.mockResolvedValue(invoiceWithPayments)
         
         prisma.$transaction.mockImplementation(async (callback) => callback({
           activities: { create: jest.fn() },
@@ -378,7 +378,7 @@ describe('Bulk Invoice Operations API', () => {
           payments: [],
         }]
         
-        prisma.invoices.findMany.mockResolvedValue(oldInvoice)
+        prisma.invoice.findMany.mockResolvedValue(oldInvoice)
         
         prisma.$transaction.mockImplementation(async (callback) => callback({
           activities: { create: jest.fn() },
@@ -411,7 +411,7 @@ describe('Bulk Invoice Operations API', () => {
           contentEn: 'Reminder for {{invoiceNumber}}',
         }
         
-        prisma.invoices.findMany.mockResolvedValue(eligibleInvoices)
+        prisma.invoice.findMany.mockResolvedValue(eligibleInvoices)
         
         const mockTx = {
           emailTemplates: {
@@ -456,7 +456,7 @@ describe('Bulk Invoice Operations API', () => {
       it('should skip ineligible invoices for reminders', async () => {
         const ineligibleInvoices = [mockInvoices[2]] // PAID invoice
         
-        prisma.invoices.findMany.mockResolvedValue(ineligibleInvoices)
+        prisma.invoice.findMany.mockResolvedValue(ineligibleInvoices)
         
         const mockTx = {
           emailTemplates: {
@@ -488,7 +488,7 @@ describe('Bulk Invoice Operations API', () => {
       })
 
       it('should validate email template access', async () => {
-        prisma.invoices.findMany.mockResolvedValue([mockInvoices[1]])
+        prisma.invoice.findMany.mockResolvedValue([mockInvoices[1]])
         
         const mockTx = {
           emailTemplates: {
@@ -524,7 +524,7 @@ describe('Bulk Invoice Operations API', () => {
       it('should export invoice data with UAE business fields', async () => {
         const invoicesForExport = mockInvoices
         
-        prisma.invoices.findMany
+        prisma.invoice.findMany
           .mockResolvedValueOnce(invoicesForExport) // Initial query
           .mockResolvedValueOnce(invoicesForExport.map(inv => ({ // Detailed query
             ...inv,
@@ -575,7 +575,7 @@ describe('Bulk Invoice Operations API', () => {
           { ...mockInvoices[0], companyId: 'other-company' },
         ]
         
-        prisma.invoices.findMany.mockResolvedValue(invoicesFromOtherCompany)
+        prisma.invoice.findMany.mockResolvedValue(invoicesFromOtherCompany)
 
         const request = new NextRequest('http://localhost:3000/api/invoices/bulk', {
           method: 'POST',
@@ -596,7 +596,7 @@ describe('Bulk Invoice Operations API', () => {
       })
 
       it('should only query invoices from user company', async () => {
-        prisma.invoices.findMany.mockResolvedValue([mockInvoices[0]])
+        prisma.invoice.findMany.mockResolvedValue([mockInvoices[0]])
         
         prisma.$transaction.mockImplementation(async (callback) => callback({
           invoices: { update: jest.fn() },
@@ -615,7 +615,7 @@ describe('Bulk Invoice Operations API', () => {
 
         await POST(request)
 
-        expect(prisma.invoices.findMany).toHaveBeenCalledWith({
+        expect(prisma.invoice.findMany).toHaveBeenCalledWith({
           where: expect.objectContaining({
             companyId: 'company-1',
           }),
@@ -665,7 +665,7 @@ describe('Bulk Invoice Operations API', () => {
       })
 
       it('should handle unsupported actions', async () => {
-        prisma.invoices.findMany.mockResolvedValue([mockInvoices[0]])
+        prisma.invoice.findMany.mockResolvedValue([mockInvoices[0]])
 
         const request = new NextRequest('http://localhost:3000/api/invoices/bulk', {
           method: 'POST',
@@ -685,7 +685,7 @@ describe('Bulk Invoice Operations API', () => {
       })
 
       it('should handle database errors gracefully', async () => {
-        prisma.invoices.findMany.mockRejectedValue(new Error('Database error'))
+        prisma.invoice.findMany.mockRejectedValue(new Error('Database error'))
 
         const request = new NextRequest('http://localhost:3000/api/invoices/bulk', {
           method: 'POST',

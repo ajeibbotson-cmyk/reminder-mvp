@@ -46,12 +46,12 @@ const mockInvoice = {
   status: InvoiceStatus.DRAFT,
   dueDate: new Date('2024-01-15'),
   createdAt: new Date('2024-01-01'),
-  customers: {
+  customer: {
     id: 'customer-1',
     name: 'Test Customer',
     email: 'customer@example.ae',
   },
-  companies: mockCompany,
+  company: mockCompany,
   payments: [],
 }
 
@@ -74,13 +74,13 @@ describe('Invoice Status Management API', () => {
       const updatedInvoice = {
         ...mockInvoice,
         status: InvoiceStatus.SENT,
-        customers: mockInvoice.customers,
-        companies: mockInvoice.companies,
+        customer: mockInvoice.customers,
+        company: mockInvoice.companies,
         payments: [],
         invoiceItems: [],
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
       
       const mockTx = {
         invoices: {
@@ -134,7 +134,7 @@ describe('Invoice Status Management API', () => {
         status: InvoiceStatus.PAID,
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(paidInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(paidInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1/status', {
         method: 'PATCH',
@@ -161,7 +161,7 @@ describe('Invoice Status Management API', () => {
         ],
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(sentInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(sentInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1/status', {
         method: 'PATCH',
@@ -191,12 +191,12 @@ describe('Invoice Status Management API', () => {
       const paidInvoice = {
         ...sentInvoice,
         status: InvoiceStatus.PAID,
-        customers: mockInvoice.customers,
-        companies: mockInvoice.companies,
+        customer: mockInvoice.customers,
+        company: mockInvoice.companies,
         invoiceItems: [],
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(sentInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(sentInvoice)
       
       const mockTx = {
         payments: {
@@ -234,7 +234,7 @@ describe('Invoice Status Management API', () => {
         status: InvoiceStatus.OVERDUE,
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(overdueInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(overdueInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1/status', {
         method: 'PATCH',
@@ -259,7 +259,7 @@ describe('Invoice Status Management API', () => {
         status: InvoiceStatus.SENT,
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(sentInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(sentInvoice)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1/status', {
         method: 'PATCH',
@@ -283,13 +283,13 @@ describe('Invoice Status Management API', () => {
         ...mockInvoice,
         status: InvoiceStatus.SENT,
         dueDate: new Date('2023-12-01'), // Past due
-        customers: mockInvoice.customers,
-        companies: mockInvoice.companies,
+        customer: mockInvoice.customers,
+        company: mockInvoice.companies,
         payments: [],
         invoiceItems: [],
       }
 
-      prisma.invoices.findUnique.mockResolvedValue({
+      prisma.invoice.findUnique.mockResolvedValue({
         ...mockInvoice,
         dueDate: new Date('2023-12-01'), // Past due
       })
@@ -329,7 +329,7 @@ describe('Invoice Status Management API', () => {
         companyId: 'other-company',
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(invoiceFromOtherCompany)
+      prisma.invoice.findUnique.mockResolvedValue(invoiceFromOtherCompany)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/invoice-1/status', {
         method: 'PATCH',
@@ -350,13 +350,13 @@ describe('Invoice Status Management API', () => {
       const updatedInvoice = {
         ...mockInvoice,
         status: InvoiceStatus.SENT,
-        customers: mockInvoice.customers,
-        companies: mockInvoice.companies,
+        customer: mockInvoice.customers,
+        company: mockInvoice.companies,
         payments: [],
         invoiceItems: [],
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
       
       const mockTx = {
         invoices: {
@@ -407,13 +407,13 @@ describe('Invoice Status Management API', () => {
       const updatedInvoice = {
         ...mockInvoice,
         status: InvoiceStatus.SENT,
-        customers: mockInvoice.customers,
-        companies: mockInvoice.companies,
+        customer: mockInvoice.customers,
+        company: mockInvoice.companies,
         payments: [],
         invoiceItems: [],
       }
 
-      prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+      prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
       
       const mockTx = {
         invoices: {
@@ -479,13 +479,13 @@ describe('Invoice Status Management API', () => {
         const updatedInvoice = {
           ...mockInvoice,
           status: testCase.status,
-          customers: mockInvoice.customers,
-          companies: mockInvoice.companies,
+          customer: mockInvoice.customers,
+          company: mockInvoice.companies,
           payments: testCase.status === InvoiceStatus.PAID ? [{ amount: 1000 }] : [],
           invoiceItems: [],
         }
 
-        prisma.invoices.findUnique.mockResolvedValue(mockInvoice)
+        prisma.invoice.findUnique.mockResolvedValue(mockInvoice)
         
         const mockTx = {
           payments: {
@@ -542,7 +542,7 @@ describe('Invoice Status Management API', () => {
     })
 
     it('should return 404 for non-existent invoice', async () => {
-      prisma.invoices.findUnique.mockResolvedValue(null)
+      prisma.invoice.findUnique.mockResolvedValue(null)
 
       const request = new NextRequest('http://localhost:3000/api/invoices/non-existent/status', {
         method: 'PATCH',

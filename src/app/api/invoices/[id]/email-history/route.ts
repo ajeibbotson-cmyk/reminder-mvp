@@ -20,9 +20,9 @@ export async function GET(
     const { id: invoiceId } = await params
 
     // Get user and company info
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies) {
@@ -30,10 +30,10 @@ export async function GET(
     }
 
     // Verify invoice belongs to company
-    const invoice = await prisma.invoices.findFirst({
+    const invoice = await prisma.invoice.findFirst({
       where: {
         id: invoiceId,
-        company_id: user.companies.id
+        companyId: user.companies.id
       }
     })
 
@@ -44,19 +44,19 @@ export async function GET(
     // Get email history for this invoice
     const emailHistory = await prisma.email_logs.findMany({
       where: {
-        invoice_id: invoiceId,
-        company_id: user.companies.id
+        invoiceId: invoiceId,
+        companyId: user.companies.id
       },
       include: {
         email_templates: {
           select: {
             id: true,
             name: true,
-            template_id: true
+            templateId: true
           }
         }
       },
-      orderBy: { created_at: 'desc' }
+      orderBy: { createdAt: 'desc' }
     })
 
     // Format the response data

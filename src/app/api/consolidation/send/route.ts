@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
         // Override template if specified
         if (templateOverride) {
-          await prisma.customerConsolidatedReminders.update({
+          await prisma.customerConsolidatedReminder.update({
             where: { id: consolidation.id },
             data: { templateId: templateOverride }
           })
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
           ? new Date(scheduledFor)
           : consolidation.scheduledFor || new Date()
 
-        await prisma.customerConsolidatedReminders.update({
+        await prisma.customerConsolidatedReminder.update({
           where: { id: consolidation.id },
           data: { scheduledFor: effectiveScheduledFor }
         })
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
           })
 
           // Update consolidation with execution info
-          await prisma.customerConsolidatedReminders.update({
+          await prisma.customerConsolidatedReminder.update({
             where: { id: consolidation.id },
             data: {
               deliveryStatus: scheduledFor ? 'QUEUED' : 'SENT',
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the bulk operation
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: session.user.companyId,

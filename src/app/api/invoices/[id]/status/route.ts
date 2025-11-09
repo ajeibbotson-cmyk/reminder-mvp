@@ -69,10 +69,10 @@ export async function PATCH(
     )
 
     // Fetch the updated invoice with full details for response
-    const updatedInvoice = await prisma.invoices.findUnique({
+    const updatedInvoice = await prisma.invoice.findUnique({
       where: { id },
       include: {
-        customers: {
+        customer: {
           select: {
             id: true,
             name: true,
@@ -82,7 +82,7 @@ export async function PATCH(
             paymentTerms: true
           }
         },
-        companies: {
+        company: {
           select: {
             id: true,
             name: true,
@@ -188,7 +188,7 @@ export async function GET(
     const { id } = await params
 
     // Get invoice with full details
-    const invoice = await prisma.invoices.findUnique({
+    const invoice = await prisma.invoice.findUnique({
       where: { 
         id,
         companyId: authContext.user.companyId // Enforce company isolation
@@ -204,7 +204,7 @@ export async function GET(
           },
           orderBy: { paymentDate: 'desc' }
         },
-        customers: {
+        customer: {
           select: {
             id: true,
             name: true,
@@ -220,7 +220,7 @@ export async function GET(
     }
 
     // Get status change history from audit trail
-    const statusHistory = await prisma.activities.findMany({
+    const statusHistory = await prisma.activity.findMany({
       where: {
         companyId: authContext.user.companyId,
         type: 'invoice_status_updated',

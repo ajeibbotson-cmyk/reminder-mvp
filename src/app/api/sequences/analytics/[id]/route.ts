@@ -95,9 +95,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user?.companies) {
@@ -500,7 +500,7 @@ function buildCustomerAnalytics(executionLogs: any[]) {
 /**
  * Calculate conversion rate for customer segment
  */
-function calculateSegmentConversionRate(customers: any[]): number {
+function calculateSegmentConversionRate(customer: any[]): number {
   if (customers.length === 0) return 0
   
   const totalExecutions = customers.reduce((sum, c) => sum + c.executions, 0)

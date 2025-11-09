@@ -110,7 +110,7 @@ export class PaymentAnalyticsService {
    * Calculate period-specific payment metrics
    */
   private async calculatePeriodMetrics(companyId: string, dateRange: AnalyticsDateRange) {
-    const invoiceMetrics = await prisma.invoices.aggregate({
+    const invoiceMetrics = await prisma.invoice.aggregate({
       where: {
         companyId,
         createdAt: {
@@ -156,7 +156,7 @@ export class PaymentAnalyticsService {
    * Calculate payment delays considering UAE business days
    */
   private async calculatePaymentDelays(companyId: string, dateRange: AnalyticsDateRange) {
-    const paidInvoices = await prisma.invoices.findMany({
+    const paidInvoices = await prisma.invoice.findMany({
       where: {
         companyId,
         status: 'PAID',
@@ -227,7 +227,7 @@ export class PaymentAnalyticsService {
    */
   private async getOnTimePayments(companyId: string, dateRange: AnalyticsDateRange) {
     const [totalDue, onTime] = await Promise.all([
-      prisma.invoices.count({
+      prisma.invoice.count({
         where: {
           companyId,
           dueDate: {
@@ -238,7 +238,7 @@ export class PaymentAnalyticsService {
           status: { in: ['PAID', 'OVERDUE'] }
         }
       }),
-      prisma.invoices.count({
+      prisma.invoice.count({
         where: {
           companyId,
           dueDate: {
@@ -268,7 +268,7 @@ export class PaymentAnalyticsService {
    * Get overdue payment metrics
    */
   private async getOverdueMetrics(companyId: string, dateRange: AnalyticsDateRange) {
-    const overdueInvoices = await prisma.invoices.findMany({
+    const overdueInvoices = await prisma.invoice.findMany({
       where: {
         companyId,
         status: 'OVERDUE',
@@ -318,7 +318,7 @@ export class PaymentAnalyticsService {
     )
 
     const [totalSales, totalReceivables] = await Promise.all([
-      prisma.invoices.aggregate({
+      prisma.invoice.aggregate({
         where: {
           companyId,
           createdAt: {
@@ -329,7 +329,7 @@ export class PaymentAnalyticsService {
         },
         _sum: { totalAmount: true }
       }),
-      prisma.invoices.aggregate({
+      prisma.invoice.aggregate({
         where: {
           companyId,
           status: { in: ['SENT', 'OVERDUE'] },
@@ -353,7 +353,7 @@ export class PaymentAnalyticsService {
    */
   private async calculateCollectionRate(companyId: string, dateRange: AnalyticsDateRange) {
     const [totalInvoiced, totalCollected] = await Promise.all([
-      prisma.invoices.aggregate({
+      prisma.invoice.aggregate({
         where: {
           companyId,
           createdAt: {
@@ -364,14 +364,14 @@ export class PaymentAnalyticsService {
         },
         _sum: { totalAmount: true }
       }),
-      prisma.payments.aggregate({
+      prisma.payment.aggregate({
         where: {
           paymentDate: {
             gte: dateRange.startDate,
             lte: dateRange.endDate
           },
-          invoices: {
-            companyId
+          invoice: {
+            companyId: companyId
           }
         },
         _sum: { amount: true }

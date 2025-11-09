@@ -89,22 +89,22 @@ export function EmailCampaignModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<CampaignFormData>({
     campaignName: `Payment Reminder - ${new Date().toLocaleDateString()}`,
-    emailSubject: 'Payment Reminder: Outstanding Invoice',
-    emailContent: `Dear {customer_name},
+    emailSubject: 'Payment Reminder: Outstanding Invoice {{invoiceNumber}}',
+    emailContent: `Dear {{customerName}},
 
 We hope this message finds you well. This is a friendly reminder regarding the following outstanding invoice:
 
-Invoice Number: {invoice_number}
-Amount: {invoice_amount}
-Due Date: {due_date}
-Days Overdue: {days_overdue}
+Invoice Number: {{invoiceNumber}}
+Amount: {{amount}}
+Due Date: {{dueDate}}
+Days Overdue: {{daysPastDue}}
 
 We kindly request that you arrange payment at your earliest convenience. If you have any questions or require assistance, please don't hesitate to contact us.
 
 Thank you for your business and cooperation.
 
 Best regards,
-{company_name} Team`,
+{{companyName}} Team`,
     language: 'ENGLISH',
     sendingOptions: {
       respectBusinessHours: true,
@@ -155,21 +155,21 @@ Best regards,
   })) : fallbackTemplates
 
   const mergeTagOptions = [
-    { tag: '{customer_name}', description: 'Customer full name' },
-    { tag: '{invoice_number}', description: 'Invoice number' },
-    { tag: '{invoice_amount}', description: 'Formatted invoice amount' },
-    { tag: '{due_date}', description: 'Original due date' },
-    { tag: '{days_overdue}', description: 'Number of days overdue' },
-    { tag: '{company_name}', description: 'Your company name' },
-    { tag: '{current_date}', description: 'Today\'s date' },
-    { tag: '{payment_link}', description: 'Payment portal link (if available)' }
+    { tag: '{{customerName}}', description: 'Customer full name' },
+    { tag: '{{invoiceNumber}}', description: 'Invoice number' },
+    { tag: '{{amount}}', description: 'Formatted invoice amount' },
+    { tag: '{{dueDate}}', description: 'Original due date' },
+    { tag: '{{daysPastDue}}', description: 'Number of days overdue' },
+    { tag: '{{companyName}}', description: 'Your company name' },
+    { tag: '{{customerEmail}}', description: 'Customer email address' }
   ]
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/campaigns/from-invoices', {
+      // Step 1: Create campaign
+      const createResponse = await fetch('/api/campaigns/from-invoices', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -184,18 +184,45 @@ Best regards,
         }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to create campaign')
+      if (!createResponse.ok) {
+        const error = await createResponse.json()
+        throw new Error(error.error || 'Failed to create campaign')
       }
 
-      const result = await response.json()
-      console.log('Campaign created:', result)
+      const createResult = await createResponse.json()
+      console.log('Campaign created:', createResult)
+
+      // Step 2: Send campaign immediately (unless scheduled)
+      if (!formData.sendingOptions.scheduleFor && createResult.readyToSend) {
+        const sendResponse = await fetch(`/api/campaigns/${createResult.campaign.id}/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ confirmSend: true })
+        })
+
+        if (!sendResponse.ok) {
+          const error = await sendResponse.json()
+          console.error('Failed to send campaign:', error)
+          throw new Error(error.error || 'Campaign created but failed to send')
+        }
+
+        const sendResult = await sendResponse.json()
+        console.log('Campaign sent:', sendResult)
+
+        alert(`✅ Success! Sent ${sendResult.sentCount || 0} emails to customers.`)
+      } else if (formData.sendingOptions.scheduleFor) {
+        alert(`✅ Campaign scheduled for ${new Date(formData.sendingOptions.scheduleFor).toLocaleString()}`)
+      } else {
+        alert('⚠️ Campaign created but requires manual validation before sending.')
+      }
 
       // Show success message and close
       onClose()
     } catch (error) {
-      console.error('Error creating campaign:', error)
-      // Handle error - show toast or error message
+      console.error('Error with campaign:', error)
+      alert(`❌ Error: ${error instanceof Error ? error.message : 'Failed to process campaign'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -542,18 +569,19 @@ Best regards,
                       <div className="text-sm text-gray-600">Subject:</div>
                       <div className="font-medium">
                         {formData.emailSubject
-                          .replace('{invoice_number}', invoiceDetails[0].number)
-                          .replace('{customer_name}', invoiceDetails[0].customerName)}
+                          .replace(/\{\{invoiceNumber\}\}/g, invoiceDetails[0].number)
+                          .replace(/\{\{customerName\}\}/g, invoiceDetails[0].customerName)}
                       </div>
                     </div>
                     <div className="whitespace-pre-wrap text-sm">
                       {formData.emailContent
-                        .replace('{customer_name}', invoiceDetails[0].customerName)
-                        .replace('{invoice_number}', invoiceDetails[0].number)
-                        .replace('{invoice_amount}', formatCurrency(invoiceDetails[0].amount, invoiceDetails[0].currency))
-                        .replace('{days_overdue}', invoiceDetails[0].daysOverdue.toString())
-                        .replace('{company_name}', 'Your Company')
-                        .replace('{current_date}', new Date().toLocaleDateString())}
+                        .replace(/\{\{customerName\}\}/g, invoiceDetails[0].customerName)
+                        .replace(/\{\{invoiceNumber\}\}/g, invoiceDetails[0].number)
+                        .replace(/\{\{amount\}\}/g, formatCurrency(invoiceDetails[0].amount, invoiceDetails[0].currency))
+                        .replace(/\{\{daysPastDue\}\}/g, invoiceDetails[0].daysOverdue.toString())
+                        .replace(/\{\{dueDate\}\}/g, new Date().toLocaleDateString())
+                        .replace(/\{\{companyName\}\}/g, 'Your Company')
+                        .replace(/\{\{customerEmail\}\}/g, invoiceDetails[0].customerEmail)}
                     </div>
                   </div>
                 </CardContent>
