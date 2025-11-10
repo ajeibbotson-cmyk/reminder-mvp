@@ -71,7 +71,7 @@ test.describe('Complete Invoice Workflow E2E Tests - Sprint 1.5', () => {
 
     // ==================== INVOICE CREATION (DRAFT) ====================
     await test.step('Create new invoice in DRAFT status', async () => {
-      await page.getByTestId('desktop-nav-invoices').click(
+      await page.getByTestId('desktop-nav-invoices').click();
       await expect(page).toHaveURL(/\/dashboard\/invoices/)
       
       await page.click('text=New Invoice')

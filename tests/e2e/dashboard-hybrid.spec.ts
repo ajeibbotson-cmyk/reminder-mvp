@@ -145,7 +145,7 @@ test.describe('Bucket Configuration Page', () => {
     await page.waitForURL('**/dashboard')
 
     // Navigate to buckets config page
-    await page.getByTestId('desktop-nav-buckets').click(
+    await page.getByTestId('desktop-nav-buckets').click();
     await page.waitForURL('**/dashboard/buckets')
   })
 
