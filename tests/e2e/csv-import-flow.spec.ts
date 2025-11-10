@@ -16,7 +16,7 @@ test.describe('CSV Import Flow', () => {
 
   test('should access CSV import interface', async ({ page }) => {
     // Navigate to invoices
-    await page.click('a:has-text("Invoices")');
+    await page.getByTestId('desktop-nav-invoices').click();
     await page.waitForTimeout(1000);
 
     // Click Upload/Import button
@@ -46,7 +46,7 @@ test.describe('CSV Import Flow', () => {
     await page.waitForTimeout(2000);
 
     // Look for file upload area
-    const uploadArea = page.locator('text=/upload|drop|select/i, input[type="file"]');
+    const uploadArea = page.locator('text=/upload|drop|select/i').or(page.locator('input[type="file"]'));
 
     if (await uploadArea.count() > 0) {
       console.log('✓ File upload interface present');

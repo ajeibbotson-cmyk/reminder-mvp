@@ -80,7 +80,7 @@ Sign in to your account
                 data-testid="password-input"
               />
             </div>
-            <Button type="submit" variant="premium" size="lg" className="w-full" disabled={isLoading}>
+            <Button type="submit" variant="premium" size="lg" className="w-full" disabled={isLoading} data-testid="signin-button">
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>

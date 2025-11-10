@@ -71,7 +71,7 @@ test.describe('Complete Invoice Workflow E2E Tests - Sprint 1.5', () => {
 
     // ==================== INVOICE CREATION (DRAFT) ====================
     await test.step('Create new invoice in DRAFT status', async () => {
-      await page.click('text=Invoices')
+      await page.getByTestId('desktop-nav-invoices').click(
       await expect(page).toHaveURL(/\/dashboard\/invoices/)
       
       await page.click('text=New Invoice')
@@ -181,7 +181,7 @@ test.describe('Complete Invoice Workflow E2E Tests - Sprint 1.5', () => {
 
     // ==================== VERIFICATION AND CLEANUP ====================
     await test.step('Verify final invoice state in list view', async () => {
-      await page.click('text=Invoices')
+      await page.getByTestId('desktop-nav-invoices').click(
       await expect(page).toHaveURL(/\/dashboard\/invoices$/)
       
       // Find our invoice in the list
@@ -485,7 +485,7 @@ test.describe('Complete Invoice Workflow E2E Tests - Sprint 1.5', () => {
       await page.click('[data-testid="mobile-menu-button"]')
       await expect(page.locator('[data-testid="mobile-sidebar"]')).toBeVisible()
       
-      await page.click('text=Invoices')
+      await page.getByTestId('desktop-nav-invoices').click(
       await expect(page).toHaveURL(/\/dashboard\/invoices/)
     })
 

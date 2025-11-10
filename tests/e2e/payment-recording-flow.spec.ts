@@ -16,7 +16,7 @@ test.describe('Payment Recording Flow', () => {
 
   test('should allow recording payment on invoice', async ({ page }) => {
     // Navigate to invoices
-    await page.click('a:has-text("Invoices")');
+    await page.getByTestId('desktop-nav-invoices').click();
     await page.waitForTimeout(2000);
 
     // Look for invoice row or card

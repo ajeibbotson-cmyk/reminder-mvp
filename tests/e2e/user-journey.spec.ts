@@ -76,7 +76,7 @@ test.describe('UAEPay User Journey', () => {
     await expect(sidebar).toBeVisible();
     
     // Test mobile navigation
-    await page.click('text=Invoices');
+    await page.getByTestId('desktop-nav-invoices').click(;
     await expect(page).toHaveURL(/\/en\/dashboard\/invoices/);
   });
 

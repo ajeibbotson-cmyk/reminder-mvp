@@ -50,7 +50,7 @@ test.describe('Smoke Tests', () => {
     await page.waitForURL('**/en/dashboard');
 
     // Navigate to invoices
-    await page.click('a:has-text("Invoices")');
+    await page.getByTestId('desktop-nav-invoices').click();
     await page.waitForURL('**/en/dashboard/invoices');
     console.log('✓ Invoices page accessible');
   });
@@ -81,7 +81,7 @@ test.describe('Smoke Tests', () => {
     await page.waitForURL('**/en/dashboard');
 
     // Navigate to upload
-    await page.click('a:has-text("Invoices")');
+    await page.getByTestId('desktop-nav-invoices').click();
     await page.waitForTimeout(1000);
 
     const uploadButton = page.locator('button:has-text("Upload")');
@@ -118,7 +118,7 @@ test.describe('Critical Path Smoke Test', () => {
     console.log('✓ Step 1: Authentication');
 
     // 2. Access invoices
-    await page.click('a:has-text("Invoices")');
+    await page.getByTestId('desktop-nav-invoices').click();
     await page.waitForURL('**/en/dashboard/invoices');
     console.log('✓ Step 2: Invoice list accessible');
 

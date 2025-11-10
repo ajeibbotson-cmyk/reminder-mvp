@@ -19,7 +19,7 @@ test.describe('PDF Upload to Chase Flow', () => {
 
   test('should upload PDF, extract data, and enable chasing', async ({ page }) => {
     // Navigate to PDF upload
-    await page.click('a:has-text("Invoices")');
+    await page.getByTestId('desktop-nav-invoices').click();
     await page.waitForTimeout(1000);
 
     // Click Upload button
@@ -53,7 +53,7 @@ test.describe('PDF Upload to Chase Flow', () => {
 
   test('should show invoice list after upload', async ({ page }) => {
     // Navigate to invoices
-    await page.click('a:has-text("Invoices")');
+    await page.getByTestId('desktop-nav-invoices').click();
     await page.waitForURL('**/en/dashboard/invoices');
     await page.waitForTimeout(2000);
 
@@ -76,7 +76,7 @@ test.describe('PDF Upload to Chase Flow', () => {
 
   test('should allow sending reminder from invoice', async ({ page }) => {
     // Navigate to invoices
-    await page.click('a:has-text("Invoices")');
+    await page.getByTestId('desktop-nav-invoices').click();
     await page.waitForTimeout(2000);
 
     // Look for invoice action buttons
