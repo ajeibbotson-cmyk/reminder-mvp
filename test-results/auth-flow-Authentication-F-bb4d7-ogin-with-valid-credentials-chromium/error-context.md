@@ -10,10 +10,10 @@
       - generic [ref=e8]:
         - generic [ref=e9]:
           - generic [ref=e10]: Email
-          - textbox "Email" [ref=e11]: smoke-test@example.com
+          - textbox "Email" [ref=e11]
         - generic [ref=e12]:
           - generic [ref=e13]: Password
-          - textbox "Password" [ref=e14]: SmokeTest123!
+          - textbox "Password" [ref=e14]
         - button "Sign In" [ref=e15]
       - link "Forgot your password?" [ref=e17] [cursor=pointer]:
         - /url: /auth/forgot-password

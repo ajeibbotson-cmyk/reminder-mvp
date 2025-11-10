@@ -26,16 +26,7 @@
     - img [ref=e23]
     - button "Open Tanstack query devtools" [ref=e71] [cursor=pointer]:
       - img [ref=e72] [cursor=pointer]
-  - generic [ref=e124] [cursor=pointer]:
-    - button "Open Next.js Dev Tools" [ref=e125] [cursor=pointer]:
-      - img [ref=e126] [cursor=pointer]
-    - generic [ref=e129] [cursor=pointer]:
-      - button "Open issues overlay" [ref=e130] [cursor=pointer]:
-        - generic [ref=e131] [cursor=pointer]:
-          - generic [ref=e132] [cursor=pointer]: "0"
-          - generic [ref=e133] [cursor=pointer]: "1"
-        - generic [ref=e134] [cursor=pointer]: Issue
-      - button "Collapse issues badge" [ref=e135] [cursor=pointer]:
-        - img [ref=e136] [cursor=pointer]
-  - alert [ref=e138]
+  - button "Open Next.js Dev Tools" [ref=e125] [cursor=pointer]:
+    - img [ref=e126] [cursor=pointer]
+  - alert [ref=e129]
 ```

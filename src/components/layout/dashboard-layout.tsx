@@ -42,51 +42,51 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigation = [
     {
       name: t('navigation.dashboard'),
-      href: '/dashboard',
+      href: `/${locale}/dashboard`,
       icon: LayoutDashboard,
-      current: pathname === '/dashboard'
+      current: pathname === `/${locale}/dashboard`
     },
     {
       name: 'Buckets',
-      href: '/dashboard/buckets',
+      href: `/${locale}/dashboard/buckets`,
       icon: Layers,
-      current: pathname.startsWith('/dashboard/buckets')
+      current: pathname.startsWith(`/${locale}/dashboard/buckets`)
     },
     {
       name: t('navigation.invoices'),
-      href: '/dashboard/invoices',
+      href: `/${locale}/dashboard/invoices`,
       icon: FileText,
-      current: pathname.startsWith('/dashboard/invoices') && !pathname.startsWith('/dashboard/invoices/import')
+      current: pathname.startsWith(`/${locale}/dashboard/invoices`) && !pathname.startsWith(`/${locale}/dashboard/invoices/import`)
     },
     {
       name: 'Email Templates',
-      href: '/dashboard/email-templates',
+      href: `/${locale}/dashboard/email-templates`,
       icon: Mail,
-      current: pathname.startsWith('/dashboard/email-templates')
+      current: pathname.startsWith(`/${locale}/dashboard/email-templates`)
     },
     {
       name: t('navigation.customers'),
-      href: '/dashboard/customers',
+      href: `/${locale}/dashboard/customers`,
       icon: Users,
-      current: pathname.startsWith('/dashboard/customers')
+      current: pathname.startsWith(`/${locale}/dashboard/customers`)
     },
     {
       name: t('navigation.followUps'),
-      href: '/dashboard/follow-ups',
+      href: `/${locale}/dashboard/follow-ups`,
       icon: MessageSquare,
-      current: pathname.startsWith('/dashboard/follow-ups')
+      current: pathname.startsWith(`/${locale}/dashboard/follow-ups`)
     },
     {
       name: t('navigation.reports'),
-      href: '/dashboard/reports',
+      href: `/${locale}/dashboard/reports`,
       icon: BarChart3,
-      current: pathname.startsWith('/dashboard/reports')
+      current: pathname.startsWith(`/${locale}/dashboard/reports`)
     },
     {
       name: t('navigation.settings'),
-      href: '/dashboard/settings',
+      href: `/${locale}/dashboard/settings`,
       icon: Settings,
-      current: pathname.startsWith('/dashboard/settings')
+      current: pathname.startsWith(`/${locale}/dashboard/settings`)
     }
   ]
 
