@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const authPrisma = getAuthPrisma();
 
     // Check if user already exists
-    const existingUser = await authPrisma.users.findUnique({
+    const existingUser = await authPrisma.user.findUnique({
       where: { email },
     });
 
