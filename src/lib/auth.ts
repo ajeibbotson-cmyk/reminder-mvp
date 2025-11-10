@@ -7,6 +7,8 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  // Trust Vercel's host header for CSRF validation
+  trustHost: true,
   // Use VERCEL_ENV or NEXTAUTH_URL presence to detect production
   useSecureCookies: process.env.VERCEL_ENV === "production" || process.env.NEXTAUTH_URL?.includes("vercel.app"),
   cookies: {
