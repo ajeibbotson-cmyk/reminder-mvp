@@ -128,6 +128,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <Link
                 key={item.name}
                 href={item.href}
+                data-testid={`mobile-nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                 className={cn(
                   'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
                   item.current
@@ -164,6 +165,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Link
                   key={item.name}
                   href={item.href}
+                  data-testid={`desktop-nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                   className={cn(
                     'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
                     item.current

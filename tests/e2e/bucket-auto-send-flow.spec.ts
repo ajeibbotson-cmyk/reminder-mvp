@@ -5,18 +5,11 @@ import { test, expect } from '@playwright/test';
  * Tests automated reminder system - THE core automation feature
  */
 test.describe('Bucket Auto-Send System', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login
-    await page.goto('/en/auth/signin');
-    await page.fill('input[name="email"]', 'smoke-test@example.com');
-    await page.fill('input[name="password"]', 'SmokeTest123!');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/en/dashboard');
-  });
-
   test('should display bucket dashboard with invoice categorization', async ({ page }) => {
+    // Start from dashboard (already authenticated via storageState)
+    await page.goto('/en/dashboard');
     // Navigate to buckets
-    const bucketsLink = page.locator('a:has-text("Buckets")');
+    const bucketsLink = page.getByTestId('desktop-nav-buckets');
     await expect(bucketsLink).toBeVisible();
     await bucketsLink.click();
 
@@ -47,8 +40,11 @@ test.describe('Bucket Auto-Send System', () => {
   });
 
   test('should allow bucket configuration for auto-send', async ({ page }) => {
+    // Start from dashboard (already authenticated via storageState)
+    await page.goto('/en/dashboard');
+
     // Navigate to buckets
-    await page.click('a:has-text("Buckets")');
+    await page.getByTestId('desktop-nav-buckets').click();
     await page.waitForTimeout(2000);
 
     // Look for Configure button
@@ -82,7 +78,10 @@ test.describe('Bucket Auto-Send System', () => {
   });
 
   test('should show email template preview in bucket config', async ({ page }) => {
-    await page.click('a:has-text("Buckets")');
+    // Start from dashboard (already authenticated via storageState)
+    await page.goto('/en/dashboard');
+
+    await page.getByTestId('desktop-nav-buckets').click();
     await page.waitForTimeout(2000);
 
     const configureButton = page.locator('button:has-text("Configure")').first();
@@ -105,7 +104,10 @@ test.describe('Bucket Auto-Send System', () => {
   });
 
   test('should allow manual campaign trigger from bucket', async ({ page }) => {
-    await page.click('a:has-text("Buckets")');
+    // Start from dashboard (already authenticated via storageState)
+    await page.goto('/en/dashboard');
+
+    await page.getByTestId('desktop-nav-buckets').click();
     await page.waitForTimeout(2000);
 
     // Look for "Email" or "Send" button on bucket cards
@@ -130,7 +132,10 @@ test.describe('Bucket Auto-Send System', () => {
   });
 
   test('should respect UAE business hours in bucket config', async ({ page }) => {
-    await page.click('a:has-text("Buckets")');
+    // Start from dashboard (already authenticated via storageState)
+    await page.goto('/en/dashboard');
+
+    await page.getByTestId('desktop-nav-buckets').click();
     await page.waitForTimeout(2000);
 
     const configureButton = page.locator('button:has-text("Configure")').first();

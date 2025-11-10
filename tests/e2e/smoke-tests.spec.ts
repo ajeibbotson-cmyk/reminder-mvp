@@ -64,7 +64,7 @@ test.describe('Smoke Tests', () => {
     await page.waitForURL('**/en/dashboard');
 
     // Navigate to buckets
-    const bucketsLink = page.locator('a:has-text("Buckets")');
+    const bucketsLink = page.getByTestId('desktop-nav-buckets');
     if (await bucketsLink.isVisible()) {
       await bucketsLink.click();
       await page.waitForURL('**/en/dashboard/buckets');
@@ -132,7 +132,7 @@ test.describe('Critical Path Smoke Test', () => {
 
     // 4. Navigate back and check buckets
     await page.goto('/en/dashboard');
-    const bucketsLink = page.locator('a:has-text("Buckets")');
+    const bucketsLink = page.getByTestId('desktop-nav-buckets');
     if (await bucketsLink.isVisible()) {
       await bucketsLink.click();
       await page.waitForURL('**/en/dashboard/buckets');

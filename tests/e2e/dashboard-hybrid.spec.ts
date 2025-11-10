@@ -48,7 +48,7 @@ test.describe('Hybrid Dashboard', () => {
 
   test('should have Buckets navigation item', async ({ page }) => {
     // Check for Buckets nav link
-    const bucketsNav = page.locator('a:has-text("Buckets")')
+    const bucketsNav = page.getByTestId('desktop-nav-buckets')
     await expect(bucketsNav).toBeVisible()
 
     // Click Buckets navigation
