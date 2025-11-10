@@ -64,6 +64,7 @@ Sign in to your account
                 required
                 disabled={isLoading}
                 placeholder="Enter your email"
+                data-testid="email-input"
               />
             </div>
             <div className="space-y-2">
@@ -76,6 +77,7 @@ Sign in to your account
                 required
                 disabled={isLoading}
                 placeholder="Enter your password"
+                data-testid="password-input"
               />
             </div>
             <Button type="submit" variant="premium" size="lg" className="w-full" disabled={isLoading}>
