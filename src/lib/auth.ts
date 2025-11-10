@@ -7,6 +7,20 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production"
+        ? `__Secure-next-auth.session-token`
+        : `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -16,6 +30,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          console.log('🔴 Auth: Missing email or password')
           return null
         }
 
@@ -23,6 +38,7 @@ export const authOptions: NextAuthOptions = {
           // Use direct connection for authentication
           const authPrisma = getAuthPrisma()
 
+          console.log(`🔍 Auth: Looking up user: ${credentials.email}`)
           const user = await authPrisma.user.findUnique({
           where: {
             email: credentials.email
@@ -33,14 +49,21 @@ export const authOptions: NextAuthOptions = {
         })
 
         if (!user) {
+          console.log('🔴 Auth: User not found')
           return null
         }
+
+        console.log(`✅ Auth: User found: ${user.email} (ID: ${user.id})`)
+        console.log(`🔑 Auth: Has password hash: ${!!user.password}, Length: ${user.password?.length || 0}`)
 
         // For now, we'll implement basic password checking
         // In production, passwords should be hashed
         const isPasswordValid = await compare(credentials.password, user.password || "")
 
+        console.log(`🔐 Auth: Password valid: ${isPasswordValid}`)
+
         if (!isPasswordValid) {
+          console.log('🔴 Auth: Password comparison failed')
           return null
         }
 
