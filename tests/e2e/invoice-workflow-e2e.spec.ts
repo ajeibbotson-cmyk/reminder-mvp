@@ -181,7 +181,7 @@ test.describe('Complete Invoice Workflow E2E Tests - Sprint 1.5', () => {
 
     // ==================== VERIFICATION AND CLEANUP ====================
     await test.step('Verify final invoice state in list view', async () => {
-      await page.getByTestId('desktop-nav-invoices').click(
+      await page.getByTestId('desktop-nav-invoices').click();
       await expect(page).toHaveURL(/\/dashboard\/invoices$/)
       
       // Find our invoice in the list
@@ -484,8 +484,8 @@ test.describe('Complete Invoice Workflow E2E Tests - Sprint 1.5', () => {
       // Mobile dashboard navigation
       await page.click('[data-testid="mobile-menu-button"]')
       await expect(page.locator('[data-testid="mobile-sidebar"]')).toBeVisible()
-      
-      await page.getByTestId('desktop-nav-invoices').click(
+
+      await page.getByTestId('desktop-nav-invoices').click();
       await expect(page).toHaveURL(/\/dashboard\/invoices/)
     })
 
