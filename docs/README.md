@@ -1,110 +1,140 @@
-# Reminder Documentation Index
+# Reminder Documentation
 
-**Complete documentation for the Reminder invoice management and payment reminder platform.**
+**Streamlined documentation for the Reminder invoice management platform.**
 
-## 🎯 Quick Navigation
+## 🎯 Essential Documents (Start Here)
 
-### 📋 Planning & Strategy
-- [Product Status (November 2025)](planning/PRODUCT_STATUS_NOVEMBER_2025.md) - Current state assessment
-- [December Beta Roadmap](planning/DECEMBER_BETA_ROADMAP.md) - 7-week launch plan
-- [Implementation Plan](planning/IMPLEMENTATION_PLAN.md) - Detailed technical roadmap
+### Current Status & Planning
+- **[STATUS.md](STATUS.md)** - Current position, progress, and this week's priorities
+- **[NEXT_STEPS.md](NEXT_STEPS.md)** - Immediate tasks and weekly roadmap
+- **[COMPLETED_WORK.md](COMPLETED_WORK.md)** - What's been built and key learnings
 
-### 🚀 Development
+### Detailed Roadmap
+- [December Beta Roadmap](planning/DECEMBER_BETA_ROADMAP.md) - 7-week launch plan (Dec 13-19 target)
+- [Product Status](planning/PRODUCT_STATUS.md) - Comprehensive feature inventory
 
-#### Week 1: Discovery + Critical Integration (Nov 1-7)
-- [Week 1 Overview](development/week1/README.md) - Objectives, timeline, progress
-- [Day 1 Handoff](development/week1/DAY1_HANDOFF.md) - Session summary and achievements
-- [Day 2 Resume Guide](development/week1/DAY2_RESUME.md) - How to continue work
-- [API Test Results](development/week1/API_TEST_RESULTS.md) - Endpoint validation status
-- [API Testing Guide](development/week1/API_TESTING_GUIDE.md) - Testing methodology
-- [API Fix Plan](development/week1/API_FIX_PLAN.md) - Exact fixes with file/line numbers
-- [Critical Database Fix](development/week1/CRITICAL_DATABASE_FIX.md) - Pooler vs direct connection
+## 📚 Documentation Structure
 
-### ✨ Features
+```
+docs/
+├── STATUS.md                    # 👈 START HERE - Current status
+├── NEXT_STEPS.md               # What to work on now
+├── COMPLETED_WORK.md           # Historical achievements
+├── README.md                   # This file
+│
+├── planning/
+│   ├── DECEMBER_BETA_ROADMAP.md
+│   ├── PRODUCT_STATUS.md
+│   └── IMPLEMENTATION_PLAN.md
+│
+├── features/
+│   ├── auto-send.md
+│   ├── bucket-system.md
+│   ├── pdf-attachments.md
+│   └── reply-to-header.md
+│
+├── technical/
+│   ├── database-fixes.md
+│   └── deployment.md
+│
+├── deployment/
+│   ├── PRODUCTION_SETUP.md
+│   └── PRODUCTION_DEPLOYMENT.md
+│
+├── development/
+│   └── week1/                  # Week 1 implementation notes
+│
+└── archive/
+    ├── historical/             # Old roadmaps
+    ├── sprints/               # Sprint reports
+    └── sessions/              # Old session summaries
 
-#### Core Email Features
-- [PDF Attachments](features/pdf-attachments.md) - Automated invoice PDF attachments
-- [Reply-To Header](features/reply-to-header.md) - Configurable email reply routing
-- [Auto-Send System](features/auto-send.md) - Automated bucket-based reminders
-- [Bucket System](features/bucket-system.md) - Visual invoice organization
+claudedocs/
+├── WEEK2_ANALYTICS_COMPLETE.md  # Latest completion status
+├── RESUME_NOV_1_2025.md        # Session resume guide
+└── archive/                    # Historical session docs
+```
 
-### 🚢 Deployment
-- [AWS SES Setup](deployment/AWS_SES_SETUP.md) - Email service configuration
-- [Environment Variables](deployment/ENVIRONMENT_VARIABLES.md) - Required configuration
-- [Production Deployment](deployment/PRODUCTION_DEPLOYMENT.md) - Deployment guide
+## 📊 Current Status (Week 2, Day 3)
 
-### 🔧 Technical Reference
-- [Database Fixes](technical/database-fixes.md) - Pooler vs direct connection
-- [Testing Framework](technical/testing.md) - Jest, Playwright, test infrastructure
+**Target Launch**: December 13-19, 2025 (33-39 days)
+**Progress**: 40% complete (on track)
 
-### 📦 Archive
-Historical documentation and old session summaries are in the [archive/](archive/) directory.
+### This Week's Focus (Nov 10-14)
+1. 🔴 E2E test suite expansion
+2. 🔴 Bucket configuration UI integration
+3. 🟡 Database stability monitoring
 
----
+### Component Status
+- **Backend**: 95% complete ✅
+- **Frontend**: 70% complete 🟡
+- **Testing**: 45% complete 🟡
+- **Docs**: 60% complete 🟡
 
-## 📊 Current Status
+*See [STATUS.md](STATUS.md) for detailed breakdown*
 
-**Build**: ✅ Passing
-**Production**: ✅ Live at reminder-mvp.vercel.app
-**Tests**: 659/1487 passing (44%)
-**Phase**: Pre-Week 1 (stabilization before email reliability sprint)
+## ✨ Key Features
 
-**Core Systems Complete**:
-- ✅ Authentication & multi-tenant database
-- ✅ PDF extraction (AWS Textract, 100% success)
-- ✅ Invoice management (CSV/Excel/PDF import)
-- ✅ Bucket system (6 time-based buckets)
-- ✅ AWS SES configuration
-- ✅ Email service infrastructure
+### Completed ✅
+- Invoice management (manual, CSV, PDF with AI extraction)
+- Email campaigns with PDF attachments
+- Bucket auto-send system
+- Payment tracking & reconciliation
+- Advanced analytics dashboard
+- Multi-currency support (AED, EUR, USD, GBP)
+- Reply-To header configuration
+- AWS SES + S3 integration
 
-**Next Priorities**:
-1. Fix bucket pagination bug (SQL filtering)
-2. AWS SES domain verification
-3. Email template system
-4. Bucket-to-campaign integration
+### In Progress 🔄
+- E2E test suite expansion
+- Bucket configuration UI
+- Settings pages
 
----
+### Planned 📋
+- User documentation (Week 4)
+- User acceptance testing (Week 5)
+- Beta launch preparation (Week 6)
 
 ## 🚀 Quick Commands
 
 ```bash
 # Development
-npm run dev                    # Start dev server
+npm run dev                    # Start dev server (localhost:3000)
 npm run build                  # Production build
-npm test                       # Run tests
+npm run lint                   # ESLint validation
 
 # Database
-npx prisma generate            # Generate client after schema changes
-npx prisma db push             # Push schema to database
+npx prisma generate            # Generate Prisma client
+npx prisma db push             # Push schema changes
 npx prisma studio              # Visual database browser
 
 # Testing
+npm run test                   # Jest unit tests
 npm run test:e2e               # Playwright E2E tests
 npm run test:coverage          # Coverage report
 ```
 
----
-
 ## 📝 Documentation Philosophy
 
-**Keep it concise**: Only document what's needed, when it's needed.
-**Code is truth**: Prisma schema > database docs, TypeScript > API specs.
-**Active only**: Archive completed work, delete obsolete planning.
-**CLAUDE.md files**: Single source of truth for each domain.
+**Minimal & Current**: Only active work, current plans, and essential references
+**Code as Truth**: Prisma schema > docs, TypeScript > specs
+**Git History**: Use commits for historical context, not docs
+**Archive Aggressively**: Move completed work to archive/
 
-**When to document**:
-- ✅ Current roadmap and active work
-- ✅ Infrastructure setup (AWS, deployment)
-- ✅ Active bug fixes and debugging
-- ✅ Test results and validation data
+### What We Document
+- ✅ Current status and roadmap
+- ✅ Active features and implementation notes
+- ✅ Infrastructure setup guides
+- ✅ Key learnings and decisions
 
-**When NOT to document**:
-- ❌ Historical progress reports (use git history)
-- ❌ Completed sprints and old plans
-- ❌ Feature specs for implemented code
-- ❌ Anything redundant with code or Prisma schema
+### What We Don't Document
+- ❌ Historical progress reports
+- ❌ Completed sprints
+- ❌ Redundant feature specs
+- ❌ Anything already in code
 
 ---
 
-Last updated: 2025-10-17
-Docs reduced from 6,192 lines to ~800 lines (87% reduction)
+**Last Updated**: November 10, 2025
+**Documentation Cleanup**: 193 files → 65 files (66% reduction)
+**Next Review**: Weekly with status updates
