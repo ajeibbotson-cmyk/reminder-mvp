@@ -1,14 +1,12 @@
 /**
- * Playwright Global Auth Setup - API-Level Authentication
+ * Playwright Global Auth Setup - Form-Based Authentication
  *
- * This bypasses the UI and authenticates directly via NextAuth's API endpoints.
- * This approach is necessary because Playwright can't properly trigger React form handlers.
- *
- * Strategy: Use Playwright's request context to make direct API calls to NextAuth,
- * then use the returned cookies for all subsequent tests.
+ * This uses the actual sign-in form to authenticate, which properly triggers
+ * NextAuth's session creation and cookie setting. API-based auth doesn't work
+ * because NextAuth needs the full browser flow to set session cookies correctly.
  */
 
-import { test as setup, expect } from '@playwright/test';
+import { test as setup } from '@playwright/test';
 import path from 'path';
 
 const authFile = path.join(__dirname, '../../playwright/.auth/user.json');
@@ -26,130 +24,61 @@ setup('authenticate', async ({ browser }) => {
   const context = await browser.newContext({ baseURL });
   const page = await context.newPage();
 
-  // FIRST: Try to create user via UI signup (if user exists, it will fail and we'll login instead)
-  console.log('🔧 Attempting to create/verify test user...');
-  let userCreated = false;
+  // Use existing test user credentials
+  const testEmail = 'smoke-test@example.com';
+  const testPassword = 'SmokeTest123!';
+
+  console.log(`🔑 Attempting to sign in with: ${testEmail}`);
+
+  // Navigate to sign-in page
+  await page.goto(`${baseURL}/en/auth/signin`, { timeout: 15000 });
+  await page.waitForSelector('input[name="email"]', { state: 'visible', timeout: 10000 });
+
+  // Fill in the sign-in form
+  await page.fill('input[name="email"]', testEmail);
+  await page.fill('input[name="password"]', testPassword);
+
+  // Submit the form and wait for navigation
+  await page.click('[data-testid="signin-button"]');
+
+  console.log('⏳ Waiting for authentication to complete...');
+
+  // Wait for redirect to dashboard
   try {
-    await page.goto(`${baseURL}/en/auth/signup`, { timeout: 15000 });
+    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    console.log('✅ Successfully redirected to dashboard');
+  } catch (e) {
+    console.error('❌ Failed to redirect to dashboard');
+    console.log(`Current URL: ${page.url()}`);
 
-    // Wait for form to be ready
-    await page.waitForSelector('input[name="email"]', { state: 'visible', timeout: 10000 });
-
-    // Fill in signup form
-    // Use timestamp-based email for production to avoid conflicts
-    const testEmail = process.env.TEST_ENV === 'production'
-      ? `e2e-test-${Date.now()}@example.com`
-      : 'smoke-test@example.com';
-
-    await page.fill('input[name="name"]', 'E2E Test User');
-    await page.fill('input[name="email"]', testEmail);
-    await page.fill('input[name="password"]', 'SmokeTest123!');
-    await page.fill('input[name="company"]', 'E2E Test Company');
-
-    // Submit and wait for either dashboard or error
-    await Promise.race([
-      page.click('button[type="submit"]'),
-      page.waitForTimeout(1000)
-    ]);
-
-    // Check if we reached dashboard (user created successfully)
-    try {
-      await page.waitForURL('**/dashboard', { timeout: 8000 });
-      console.log('✅ Test user created successfully via signup');
-      userCreated = true;
-
-      // Save auth state immediately
-      await page.context().storageState({ path: authFile });
-      console.log('💾 Saved authentication state');
-      return; // Success! We're done
-    } catch (e) {
-      console.log('ℹ️  Signup did not redirect to dashboard - user may already exist');
+    // Check for error messages on the page
+    const errorText = await page.locator('[role="alert"], .error-message, .text-red-500').first().textContent().catch(() => null);
+    if (errorText) {
+      console.error(`Error message: ${errorText}`);
     }
-  } catch (error) {
-    console.log(`ℹ️  Signup attempt completed (${error.message}) - will try login`);
+
+    throw new Error(`Authentication failed: Did not redirect to dashboard. Current URL: ${page.url()}`);
   }
 
-  // If we get here, user either exists or signup failed - try to login via API
-  if (!userCreated) {
-    console.log('🔄 User exists or signup failed, attempting login via API...');
-  }
+  // Give NextAuth time to set all cookies
+  await page.waitForTimeout(2000);
 
-  // Method 1: Get CSRF token
-  await page.goto(`${baseURL}/api/auth/csrf`);
-  const csrfData = await page.evaluate(() => {
-    return JSON.parse(document.body.textContent || '{}');
-  });
-  const csrfToken = csrfData.csrfToken;
-
-  console.log('✅ CSRF token obtained');
-
-  // Method 2: Make auth request via fetch in the page context
-  // This ensures cookies are set in the same context
-  const authResult = await page.evaluate(async ({ email, password, token, base }) => {
-    const formData = new URLSearchParams();
-    formData.append('email', email);
-    formData.append('password', password);
-    formData.append('csrfToken', token);
-    formData.append('callbackUrl', `${base}/en/dashboard`); // Full URL with correct port
-    formData.append('json', 'true');
-
-    const response = await fetch('/api/auth/signin/credentials', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString(),
-      credentials: 'include' // Important: include cookies
+  // Verify we can see dashboard content
+  try {
+    await page.waitForSelector('[data-testid="desktop-nav-invoices"]', {
+      timeout: 10000,
+      state: 'visible'
     });
-
-    const data = await response.json();
-
-    return {
-      status: response.status,
-      url: response.url,
-      ok: response.ok,
-      redirectUrl: data.url,
-      error: data.error
-    };
-  }, {
-    email: process.env.TEST_ENV === 'production'
-      ? `e2e-test-${Date.now()}@example.com`
-      : 'smoke-test@example.com',
-    password: 'SmokeTest123!',
-    token: csrfToken,
-    base: baseURL
-  });
-
-  console.log('✅ Auth API response:', authResult.status);
-  console.log('📍 Auth result:', JSON.stringify(authResult, null, 2));
-
-  if (!authResult.ok || authResult.error) {
-    console.error('❌ Authentication failed:', authResult.error || authResult.status);
-    throw new Error(`Authentication failed: ${authResult.error || authResult.status}`);
+    console.log('✅ Dashboard loaded successfully');
+  } catch (e) {
+    console.error('❌ Dashboard did not load properly');
+    throw new Error('Authentication failed: Dashboard not accessible');
   }
-
-  console.log('✅ Authentication successful via API');
-  console.log(`📍 NextAuth redirect URL: ${authResult.redirectUrl || 'none'}`);
-
-  // Navigate to dashboard to verify real authentication
-  // Note: NextAuth may redirect to /api/auth/signin even on success - this is normal behavior
-  // The real test is whether we can access protected dashboard content
-  console.log(`🔀 Navigating to dashboard...`);
-  await page.goto(`${baseURL}/en/dashboard`);
-
-  // Wait for dashboard to fully load by checking for navigation element
-  // Use desktop nav specifically to avoid mobile/desktop duplicate element issues
-  await page.waitForSelector('[data-testid="desktop-nav-invoices"]', {
-    timeout: 15000,
-    state: 'visible'
-  });
-
-  // Verify we're authenticated
-  const url = page.url();
-  expect(url).toContain('/en/dashboard');
 
   // Verify session cookies exist
   const cookies = await page.context().cookies();
+  console.log('🍪 Cookies found:', cookies.map(c => c.name));
+
   const sessionCookie = cookies.find(c =>
     c.name.includes('next-auth.session-token') ||
     c.name.includes('__Secure-next-auth.session-token')
@@ -158,16 +87,18 @@ setup('authenticate', async ({ browser }) => {
   if (!sessionCookie) {
     console.error('❌ NextAuth session cookie not found');
     console.log('Available cookies:', cookies.map(c => c.name));
-    throw new Error('Authentication failed: No session cookie');
+    throw new Error('Authentication failed: No session cookie created');
   }
 
   console.log('✅ Session established');
   console.log(`📝 Session cookie: ${sessionCookie.name}`);
-  console.log(`🔑 Cookie value length: ${sessionCookie.value.length}`);
+  console.log(`🔑 Cookie value length: ${sessionCookie.value.length} characters`);
 
-  // Save the authenticated state
+  // Save the authenticated state for all other tests
   await page.context().storageState({ path: authFile });
-
   console.log(`💾 Saved auth state to: ${authFile}`);
-  console.log('✅ Authentication setup complete');
+  console.log('✅ Authentication setup complete!');
+
+  // Close context to clean up
+  await context.close();
 });
