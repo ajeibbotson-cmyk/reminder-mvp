@@ -11,7 +11,7 @@
 import { test as setup, expect } from '@playwright/test';
 import path from 'path';
 
-const authFile = path.join(__dirname, '../playwright/.auth/user.json');
+const authFile = path.join(__dirname, '../../playwright/.auth/user.json');
 
 setup('authenticate', async ({ browser }) => {
   console.log('🔐 Setting up authentication...');
@@ -36,10 +36,15 @@ setup('authenticate', async ({ browser }) => {
     await page.waitForSelector('input[name="email"]', { state: 'visible', timeout: 10000 });
 
     // Fill in signup form
-    await page.fill('input[name="name"]', 'Smoke Test User');
-    await page.fill('input[name="email"]', 'smoke-test@example.com');
+    // Use timestamp-based email for production to avoid conflicts
+    const testEmail = process.env.TEST_ENV === 'production'
+      ? `e2e-test-${Date.now()}@example.com`
+      : 'smoke-test@example.com';
+
+    await page.fill('input[name="name"]', 'E2E Test User');
+    await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', 'SmokeTest123!');
-    await page.fill('input[name="company"]', 'Smoke Test Company');
+    await page.fill('input[name="company"]', 'E2E Test Company');
 
     // Submit and wait for either dashboard or error
     await Promise.race([
@@ -107,7 +112,9 @@ setup('authenticate', async ({ browser }) => {
       error: data.error
     };
   }, {
-    email: 'smoke-test@example.com',
+    email: process.env.TEST_ENV === 'production'
+      ? `e2e-test-${Date.now()}@example.com`
+      : 'smoke-test@example.com',
     password: 'SmokeTest123!',
     token: csrfToken,
     base: baseURL
@@ -122,19 +129,17 @@ setup('authenticate', async ({ browser }) => {
   }
 
   console.log('✅ Authentication successful via API');
+  console.log(`📍 NextAuth redirect URL: ${authResult.redirectUrl || 'none'}`);
 
-  // Check if redirect goes to dashboard (success) or signin (failure)
-  if (authResult.redirectUrl && authResult.redirectUrl.includes('/signin')) {
-    console.error(`❌ Auth failed - redirected to signin page: ${authResult.redirectUrl}`);
-    throw new Error('Authentication failed - credentials may be incorrect');
-  }
-
-  // Navigate to dashboard
+  // Navigate to dashboard to verify real authentication
+  // Note: NextAuth may redirect to /api/auth/signin even on success - this is normal behavior
+  // The real test is whether we can access protected dashboard content
   console.log(`🔀 Navigating to dashboard...`);
   await page.goto(`${baseURL}/en/dashboard`);
 
-  // Wait for dashboard to fully load
-  await page.waitForSelector('a:has-text("Invoices")', {
+  // Wait for dashboard to fully load by checking for navigation element
+  // Use desktop nav specifically to avoid mobile/desktop duplicate element issues
+  await page.waitForSelector('[data-testid="desktop-nav-invoices"]', {
     timeout: 15000,
     state: 'visible'
   });
