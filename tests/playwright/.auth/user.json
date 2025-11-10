@@ -1,0 +1,45 @@
+{
+  "cookies": [
+    {
+      "name": "__Host-next-auth.csrf-token",
+      "value": "adf8a3d1d76a5cd726090ceb6215ed7b5aecb283d9b8c0f8873cc2e5b5639d57%7Cec9d043c82505cd6617727837aa1ac066b280d4166db70eb92c99564e355518a",
+      "domain": "reminder-mvp.vercel.app",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-next-auth.callback-url",
+      "value": "https%3A%2F%2Freminder-mvp.vercel.app%2Fen%2Fauth%2Fsignup",
+      "domain": "reminder-mvp.vercel.app",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-next-auth.session-token",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..CWoyd3p2OpZyuc3d.71eW5MpDKAinsUqbY4vK8Yz5MLRDu4Sc_TmEYEuKI8xp5ruHTu-CMxOZ0289ODQ74emmbkaK22ibv1tsK_8sTDb_lmEUQ9sBv1fmzY6j7XDHkuOajRL1Q7WXkBSKabZnyrfxq2WkX-HEbQXYPxqBPRFymWsMyNHQJ8vfssF-UlQOwzmIQmYaIKHilVe4MXkop3lawX_kjzXnD4xo0Dn563uyfYolyTQ3Wx_i-5ytkzENgQhu2ZMjykL0V2pm7_L2ChKOFU3GHMg2b_KkH18U4rK84Gh7OQf6Vd1qsCoBhCvm4OxQlqvnI18defbzgQbzz1D98JmRGioD82s-bcIMuP2HKLvHNQrJ4O9xE3x5TNd9y14p4lD8LU3zrd53f1xmN_JI6oyKK_m7BMRtuzKv.YSrqbaXNXxZ9_Ozb1Svv5Q",
+      "domain": "reminder-mvp.vercel.app",
+      "path": "/",
+      "expires": 1765365799.561794,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://reminder-mvp.vercel.app",
+      "localStorage": [
+        {
+          "name": "nextauth.message",
+          "value": "{\"event\":\"session\",\"data\":{\"trigger\":\"getSession\"},\"timestamp\":1762773793}"
+        }
+      ]
+    }
+  ]
+}

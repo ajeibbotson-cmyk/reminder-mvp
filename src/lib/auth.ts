@@ -7,17 +7,18 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
-  useSecureCookies: process.env.NODE_ENV === "production",
+  // Use VERCEL_ENV or NEXTAUTH_URL presence to detect production
+  useSecureCookies: process.env.VERCEL_ENV === "production" || process.env.NEXTAUTH_URL?.includes("vercel.app"),
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === "production"
+      name: (process.env.VERCEL_ENV === "production" || process.env.NEXTAUTH_URL?.includes("vercel.app"))
         ? `__Secure-next-auth.session-token`
         : `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.VERCEL_ENV === "production" || process.env.NEXTAUTH_URL?.includes("vercel.app"),
       },
     },
   },
