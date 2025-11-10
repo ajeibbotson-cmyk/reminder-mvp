@@ -11,7 +11,7 @@ test.describe('CSV Import Flow', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/en/dashboard');
   });
 
   test('should access CSV import interface', async ({ page }) => {

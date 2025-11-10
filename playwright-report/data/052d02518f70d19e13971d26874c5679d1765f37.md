@@ -1,0 +1,111 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - heading "Invoice Import" [level=1] [ref=e5]:
+          - img [ref=e6]
+          - text: Invoice Import
+        - paragraph [ref=e9]: Upload and import your invoices from CSV, Excel, or PDF files
+      - button "Back to Invoices" [ref=e11]:
+        - img
+        - text: Back to Invoices
+    - generic [ref=e12]:
+      - generic [ref=e14]:
+        - img [ref=e15]
+        - text: Import Progress
+      - generic [ref=e20]:
+        - img [ref=e22]
+        - generic [ref=e25]:
+          - generic [ref=e26]: Choose Method
+          - generic [ref=e27]: Select upload method
+    - tabpanel [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - heading "Choose Upload Method" [level=2] [ref=e32]:
+            - img [ref=e33]
+            - text: Choose Upload Method
+          - paragraph [ref=e36]: Select how you'd like to upload your invoices to get started
+        - generic [ref=e37]:
+          - generic [ref=e38] [cursor=pointer]:
+            - generic [ref=e39] [cursor=pointer]:
+              - generic [ref=e41] [cursor=pointer]:
+                - img [ref=e43] [cursor=pointer]
+                - generic [ref=e46] [cursor=pointer]:
+                  - generic [ref=e47] [cursor=pointer]: Spreadsheet Import
+                  - generic [ref=e48] [cursor=pointer]: Recommended
+              - generic [ref=e49] [cursor=pointer]: Upload CSV or Excel files for bulk invoice import
+            - generic [ref=e50] [cursor=pointer]:
+              - generic [ref=e51] [cursor=pointer]:
+                - heading "Supported Formats" [level=4] [ref=e52] [cursor=pointer]
+                - generic [ref=e53] [cursor=pointer]:
+                  - generic [ref=e54] [cursor=pointer]: CSV
+                  - generic [ref=e55] [cursor=pointer]: XLS
+                  - generic [ref=e56] [cursor=pointer]: XLSX
+              - generic [ref=e57] [cursor=pointer]:
+                - heading "Key Features" [level=4] [ref=e58] [cursor=pointer]
+                - list [ref=e59] [cursor=pointer]:
+                  - listitem [ref=e60] [cursor=pointer]:
+                    - generic [ref=e62] [cursor=pointer]: Bulk import multiple invoices
+                  - listitem [ref=e63] [cursor=pointer]:
+                    - generic [ref=e65] [cursor=pointer]: Field mapping and validation
+                  - listitem [ref=e66] [cursor=pointer]:
+                    - generic [ref=e68] [cursor=pointer]: Preview before import
+                  - listitem [ref=e69] [cursor=pointer]:
+                    - generic [ref=e71] [cursor=pointer]: Error reporting and correction
+              - button "Select This Method" [ref=e72]
+          - generic [ref=e73] [cursor=pointer]:
+            - generic [ref=e74] [cursor=pointer]:
+              - generic [ref=e76] [cursor=pointer]:
+                - img [ref=e78] [cursor=pointer]
+                - generic [ref=e82] [cursor=pointer]: PDF Upload
+              - generic [ref=e83] [cursor=pointer]: Upload individual PDF invoices with AI-powered data extraction
+            - generic [ref=e84] [cursor=pointer]:
+              - generic [ref=e85] [cursor=pointer]:
+                - heading "Supported Formats" [level=4] [ref=e86] [cursor=pointer]
+                - generic [ref=e88] [cursor=pointer]: PDF
+              - generic [ref=e89] [cursor=pointer]:
+                - heading "Key Features" [level=4] [ref=e90] [cursor=pointer]
+                - list [ref=e91] [cursor=pointer]:
+                  - listitem [ref=e92] [cursor=pointer]:
+                    - generic [ref=e94] [cursor=pointer]: AI-powered data extraction
+                  - listitem [ref=e95] [cursor=pointer]:
+                    - generic [ref=e97] [cursor=pointer]: Single invoice processing
+                  - listitem [ref=e98] [cursor=pointer]:
+                    - generic [ref=e100] [cursor=pointer]: Review and edit extracted data
+                  - listitem [ref=e101] [cursor=pointer]:
+                    - generic [ref=e103] [cursor=pointer]: High accuracy recognition
+              - button "Select This Method" [ref=e104]
+        - alert [ref=e105]:
+          - img [ref=e106]
+          - generic [ref=e109]:
+            - strong [ref=e110]: Need help choosing?
+            - text: For multiple invoices, use Spreadsheet Import. For single PDF invoices, use PDF Upload for automatic data extraction.
+    - generic [ref=e111]:
+      - generic [ref=e113]:
+        - img [ref=e114]
+        - text: Import History
+      - generic [ref=e119]:
+        - img [ref=e120]
+        - paragraph [ref=e123]: No imports yet
+        - paragraph [ref=e124]: Upload your first invoice file to get started
+  - region "Notifications alt+T"
+  - generic [ref=e125]:
+    - img [ref=e127]
+    - button "Open Tanstack query devtools" [ref=e175] [cursor=pointer]:
+      - img [ref=e176] [cursor=pointer]
+  - generic [ref=e228] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e229] [cursor=pointer]:
+      - img [ref=e230] [cursor=pointer]
+    - generic [ref=e233] [cursor=pointer]:
+      - button "Open issues overlay" [ref=e234] [cursor=pointer]:
+        - generic [ref=e235] [cursor=pointer]:
+          - generic [ref=e236] [cursor=pointer]: "0"
+          - generic [ref=e237] [cursor=pointer]: "1"
+        - generic [ref=e238] [cursor=pointer]: Issue
+      - button "Collapse issues badge" [ref=e239] [cursor=pointer]:
+        - img [ref=e240] [cursor=pointer]
+  - alert [ref=e242]
+```

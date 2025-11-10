@@ -18,7 +18,7 @@ test.describe('Authentication Flow', () => {
     await page.click('button[type="submit"]');
 
     // Should redirect to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await page.waitForURL('**/en/dashboard', { timeout: 10000 });
 
     // Verify dashboard loaded
     const dashboard = page.locator('h1, h2').first();
@@ -34,7 +34,7 @@ test.describe('Authentication Flow', () => {
     // Should show error message (don't redirect)
     await page.waitForTimeout(2000);
     const currentUrl = page.url();
-    expect(currentUrl).toContain('/auth/signin');
+    expect(currentUrl).toContain('/en/auth/signin');
   });
 
   test('should logout successfully', async ({ page }) => {
@@ -42,7 +42,7 @@ test.describe('Authentication Flow', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/en/dashboard');
 
     // Find and click logout button (may be in dropdown or menu)
     const logoutButton = page.locator('button:has-text("Sign Out"), button:has-text("Logout"), a:has-text("Sign Out")');
@@ -51,8 +51,8 @@ test.describe('Authentication Flow', () => {
       await logoutButton.first().click();
 
       // Should redirect to signin
-      await page.waitForURL('**/auth/signin', { timeout: 5000 });
-      expect(page.url()).toContain('/auth/signin');
+      await page.waitForURL('**/en/auth/signin', { timeout: 5000 });
+      expect(page.url()).toContain('/en/auth/signin');
     }
   });
 });

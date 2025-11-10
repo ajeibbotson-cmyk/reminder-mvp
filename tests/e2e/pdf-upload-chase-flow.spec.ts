@@ -14,7 +14,7 @@ test.describe('PDF Upload to Chase Flow', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/en/dashboard');
   });
 
   test('should upload PDF, extract data, and enable chasing', async ({ page }) => {
@@ -27,7 +27,7 @@ test.describe('PDF Upload to Chase Flow', () => {
     await uploadButton.first().click();
 
     // Should navigate to upload page
-    await page.waitForURL('**/upload-pdf', { timeout: 10000 });
+    await page.waitForURL('**/en/dashboard/invoices/upload-pdf', { timeout: 10000 });
 
     // Verify upload interface is visible
     const uploadArea = page.locator('text=/drag.*drop|upload.*pdf/i');
@@ -54,7 +54,7 @@ test.describe('PDF Upload to Chase Flow', () => {
   test('should show invoice list after upload', async ({ page }) => {
     // Navigate to invoices
     await page.click('a:has-text("Invoices")');
-    await page.waitForURL('**/invoices');
+    await page.waitForURL('**/en/dashboard/invoices');
     await page.waitForTimeout(2000);
 
     // Should see invoice table or list

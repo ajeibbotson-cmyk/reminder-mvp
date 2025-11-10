@@ -11,7 +11,7 @@ test.describe('Payment Recording Flow', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/en/dashboard');
   });
 
   test('should allow recording payment on invoice', async ({ page }) => {

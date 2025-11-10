@@ -23,7 +23,7 @@ test.describe('Smoke Tests', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await page.waitForURL('**/en/dashboard', { timeout: 10000 });
     console.log('✓ Authentication works');
   });
 
@@ -33,7 +33,7 @@ test.describe('Smoke Tests', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/en/dashboard');
 
     // Verify dashboard elements
     const heading = page.locator('h1, h2').first();
@@ -47,11 +47,11 @@ test.describe('Smoke Tests', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/en/dashboard');
 
     // Navigate to invoices
     await page.click('a:has-text("Invoices")');
-    await page.waitForURL('**/invoices');
+    await page.waitForURL('**/en/dashboard/invoices');
     console.log('✓ Invoices page accessible');
   });
 
@@ -61,13 +61,13 @@ test.describe('Smoke Tests', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/en/dashboard');
 
     // Navigate to buckets
     const bucketsLink = page.locator('a:has-text("Buckets")');
     if (await bucketsLink.isVisible()) {
       await bucketsLink.click();
-      await page.waitForURL('**/buckets');
+      await page.waitForURL('**/en/dashboard/buckets');
       console.log('✓ Buckets page accessible');
     }
   });
@@ -78,7 +78,7 @@ test.describe('Smoke Tests', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/en/dashboard');
 
     // Navigate to upload
     await page.click('a:has-text("Invoices")');
@@ -114,12 +114,12 @@ test.describe('Critical Path Smoke Test', () => {
     await page.fill('input[name="email"]', 'smoke-test@example.com');
     await page.fill('input[name="password"]', 'SmokeTest123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/en/dashboard');
     console.log('✓ Step 1: Authentication');
 
     // 2. Access invoices
     await page.click('a:has-text("Invoices")');
-    await page.waitForURL('**/invoices');
+    await page.waitForURL('**/en/dashboard/invoices');
     console.log('✓ Step 2: Invoice list accessible');
 
     // 3. Access upload (verifies import path exists)
@@ -131,11 +131,11 @@ test.describe('Critical Path Smoke Test', () => {
     }
 
     // 4. Navigate back and check buckets
-    await page.goto('/dashboard');
+    await page.goto('/en/dashboard');
     const bucketsLink = page.locator('a:has-text("Buckets")');
     if (await bucketsLink.isVisible()) {
       await bucketsLink.click();
-      await page.waitForURL('**/buckets');
+      await page.waitForURL('**/en/dashboard/buckets');
       console.log('✓ Step 4: Buckets system accessible');
     }
 

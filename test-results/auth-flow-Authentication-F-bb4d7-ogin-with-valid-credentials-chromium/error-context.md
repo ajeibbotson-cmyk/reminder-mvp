@@ -1,0 +1,32 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: Reminder
+      - generic [ref=e6]: Sign in to your account
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: Email
+          - textbox "Email" [ref=e11]: smoke-test@example.com
+        - generic [ref=e12]:
+          - generic [ref=e13]: Password
+          - textbox "Password" [ref=e14]: SmokeTest123!
+        - button "Sign In" [ref=e15]
+      - link "Forgot your password?" [ref=e17] [cursor=pointer]:
+        - /url: /auth/forgot-password
+      - generic [ref=e18]:
+        - generic [ref=e19]: Don't have an account?
+        - link "Sign up here" [ref=e20] [cursor=pointer]:
+          - /url: /auth/signup
+  - region "Notifications alt+T"
+  - generic [ref=e21]:
+    - img [ref=e23]
+    - button "Open Tanstack query devtools" [ref=e71] [cursor=pointer]:
+      - img [ref=e72] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e125] [cursor=pointer]:
+    - img [ref=e126] [cursor=pointer]
+  - alert [ref=e129]
+```
