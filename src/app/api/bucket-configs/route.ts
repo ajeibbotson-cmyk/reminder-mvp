@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       },
       update: {
         auto_send_enabled: validatedData.auto_send_enabled,
-        email_templateId: validatedData.email_template_id,
+        email_templateId: validatedData.email_templateId,
         send_time_hour: validatedData.send_time_hour,
         send_days_of_week: validatedData.send_days_of_week as any
       },
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         companyId: user.company_id,
         bucket_id: validatedData.bucket_id,
         auto_send_enabled: validatedData.auto_send_enabled ?? false,
-        email_templateId: validatedData.email_template_id,
+        email_templateId: validatedData.email_templateId,
         send_time_hour: validatedData.send_time_hour ?? 9,
         send_days_of_week: validatedData.send_days_of_week ?? [0, 1, 2, 3, 4]
       }

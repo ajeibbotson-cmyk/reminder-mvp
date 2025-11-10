@@ -70,7 +70,8 @@ export function BucketsContent() {
       if (!response.ok) throw new Error("Failed to load configs")
 
       const data = await response.json()
-      const configsMap = data.reduce((acc: Record<string, BucketConfig>, config: BucketConfig) => {
+      const configsArray = data.configs || []
+      const configsMap = configsArray.reduce((acc: Record<string, BucketConfig>, config: BucketConfig) => {
         acc[config.bucket_id] = config
         return acc
       }, {})
