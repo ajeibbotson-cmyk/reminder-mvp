@@ -3,22 +3,24 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { getAuthPrisma } from "@/lib/prisma"
 import { compare } from "bcryptjs"
 
+// Detect if we're running on Vercel/production
+const isProduction = process.env.NEXTAUTH_URL?.startsWith("https://") ?? false;
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
-  // Use VERCEL_ENV or NEXTAUTH_URL presence to detect production
-  useSecureCookies: process.env.VERCEL_ENV === "production" || process.env.NEXTAUTH_URL?.includes("vercel.app"),
+  useSecureCookies: isProduction,
   cookies: {
     sessionToken: {
-      name: (process.env.VERCEL_ENV === "production" || process.env.NEXTAUTH_URL?.includes("vercel.app"))
+      name: isProduction
         ? `__Secure-next-auth.session-token`
         : `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.VERCEL_ENV === "production" || process.env.NEXTAUTH_URL?.includes("vercel.app"),
+        secure: isProduction,
       },
     },
   },
