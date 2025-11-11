@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import {
   Building2,
   Mail,
@@ -53,7 +53,6 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<CompanySettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchSettings();
@@ -68,12 +67,8 @@ export default function SettingsPage() {
       const data = await res.json();
       setSettings(data);
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load settings. Please refresh the page.',
-        variant: 'destructive',
-      });
-    } finally {
+      toast.error('Failed to load settings. Please refresh the page.');
+    } finally{
       setLoading(false);
     }
   }
@@ -102,16 +97,9 @@ export default function SettingsPage() {
         throw new Error(error.error || 'Failed to save settings');
       }
 
-      toast({
-        title: 'Success',
-        description: 'Settings saved successfully',
-      });
+      toast.success('Settings saved successfully');
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save settings',
-        variant: 'destructive',
-      });
+      toast.error(error instanceof Error ? error.message : 'Failed to save settings');
     } finally {
       setSaving(false);
     }

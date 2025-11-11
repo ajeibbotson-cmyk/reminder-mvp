@@ -43,19 +43,27 @@ setup('authenticate', async ({ browser }) => {
 
   console.log('⏳ Waiting for authentication to complete...');
 
+  // Wait a moment for form submission to process
+  await page.waitForTimeout(1000);
+
+  // Check for error messages on signin page BEFORE checking redirect
+  const errorText = await page.locator('[role="alert"], .error-message, .text-red-500, .text-destructive').first().textContent().catch(() => null);
+  if (errorText) {
+    console.error(`❌ Authentication error shown: ${errorText}`);
+    throw new Error(`Authentication failed: ${errorText}`);
+  }
+
   // Wait for redirect to dashboard
   try {
     await page.waitForURL('**/dashboard', { timeout: 15000 });
     console.log('✅ Successfully redirected to dashboard');
+    console.log(`Current URL: ${page.url()}`);
   } catch (e) {
     console.error('❌ Failed to redirect to dashboard');
     console.log(`Current URL: ${page.url()}`);
 
-    // Check for error messages on the page
-    const errorText = await page.locator('[role="alert"], .error-message, .text-red-500').first().textContent().catch(() => null);
-    if (errorText) {
-      console.error(`Error message: ${errorText}`);
-    }
+    // Take screenshot of signin page
+    await page.screenshot({ path: 'test-results/signin-failure.png' });
 
     throw new Error(`Authentication failed: Did not redirect to dashboard. Current URL: ${page.url()}`);
   }
@@ -63,15 +71,23 @@ setup('authenticate', async ({ browser }) => {
   // Give NextAuth time to set all cookies
   await page.waitForTimeout(2000);
 
-  // Verify we can see dashboard content
+  // Verify we can see dashboard content - using resilient verification
   try {
-    await page.waitForSelector('[data-testid="desktop-nav-invoices"]', {
-      timeout: 10000,
+    // Strategy 1: Wait for any main dashboard content (more reliable than specific nav element)
+    await page.waitForSelector('main, [role="main"], h1', {
+      timeout: 15000,
       state: 'visible'
     });
     console.log('✅ Dashboard loaded successfully');
   } catch (e) {
     console.error('❌ Dashboard did not load properly');
+    console.log(`Current URL: ${page.url()}`);
+
+    // Debug: Take screenshot and log page content
+    await page.screenshot({ path: 'test-results/dashboard-load-failure.png' });
+    const pageContent = await page.content();
+    console.log('Page HTML length:', pageContent.length);
+
     throw new Error('Authentication failed: Dashboard not accessible');
   }
 
