@@ -27,7 +27,7 @@ export interface SendEmailOptions {
 }
 
 export interface EmailServiceConfig {
-  provider: 'aws-ses' | 'sendgrid' | 'smtp'
+  provider: 'aws-ses' | 'sendgrid' | 'smtp' | 'postmark'
   credentials: {
     accessKey?: string
     secretKey?: string
@@ -37,6 +37,8 @@ export interface EmailServiceConfig {
     smtpPort?: number
     smtpUser?: string
     smtpPass?: string
+    postmarkApiToken?: string
+    postmarkServerId?: string
   }
   fromEmail: string
   fromName: string
@@ -133,7 +135,8 @@ export class EmailService {
           content,
           language: options.language || 'ENGLISH',
           deliveryStatus: 'QUEUED',
-          uaeSendTime: scheduledSendTime
+          uaeSendTime: scheduledSendTime,
+          updatedAt: new Date()
         }
       })
 
@@ -179,10 +182,14 @@ export class EmailService {
 
         // Send via configured email provider
         let result: { messageId: string }
-        
+
         switch (this.config.provider) {
           case 'aws-ses':
             result = await this.sendViaAWSSES(subject, content, recipientEmail, recipientName)
+            messageId = result.messageId
+            break
+          case 'postmark':
+            result = await this.sendViaPostmark(subject, content, recipientEmail, recipientName)
             messageId = result.messageId
             break
           case 'sendgrid':
@@ -454,6 +461,74 @@ export class EmailService {
   }
 
   /**
+   * Send via Postmark (production transactional email)
+   */
+  private async sendViaPostmark(
+    subject: string,
+    content: string,
+    recipientEmail: string,
+    recipientName?: string
+  ): Promise<{ messageId: string }> {
+    const { ServerClient } = await import('postmark')
+
+    const client = new ServerClient(this.config.credentials.postmarkApiToken!)
+
+    const toAddress = recipientName ?
+      `${recipientName} <${recipientEmail}>` :
+      recipientEmail
+
+    const fromAddress = this.config.fromName ?
+      `${this.config.fromName} <${this.config.fromEmail}>` :
+      this.config.fromEmail
+
+    try {
+      const result = await client.sendEmail({
+        From: fromAddress,
+        To: toAddress,
+        Subject: subject,
+        HtmlBody: content,
+        TextBody: this.stripHtml(content),
+        ReplyTo: this.config.replyTo,
+        MessageStream: 'outbound', // Postmark transactional stream
+        TrackOpens: true,
+        TrackLinks: 'HtmlAndText',
+        Tag: 'invoice-reminder', // For analytics
+        Metadata: {
+          environment: process.env.NODE_ENV || 'development',
+          service: 'Reminder-UAE'
+        }
+      })
+
+      if (!result.MessageID) {
+        throw new Error('Postmark did not return MessageID')
+      }
+
+      console.log(`[Postmark] Email sent successfully. MessageID: ${result.MessageID}`)
+      return { messageId: result.MessageID }
+
+    } catch (error: any) {
+      console.error(`[Postmark] Failed to send email to ${recipientEmail}:`, error)
+
+      // Enhanced error handling for Postmark
+      if (error.code === 300) {
+        throw new Error('Invalid email request. Check sender signature.')
+      } else if (error.code === 400) {
+        throw new Error('Sender signature not confirmed in Postmark.')
+      } else if (error.code === 401) {
+        throw new Error('Invalid Postmark API token.')
+      } else if (error.code === 422) {
+        throw new Error(`Invalid recipient: ${error.message}`)
+      } else if (error.code === 429) {
+        throw new Error('Postmark rate limit exceeded.')
+      } else if (error.code === 500) {
+        throw new Error('Postmark server error. Will retry.')
+      } else {
+        throw new Error(`Postmark delivery failed: ${error.message || 'Unknown error'}`)
+      }
+    }
+  }
+
+  /**
    * Send via SendGrid (fallback implementation)
    */
   private async sendViaSendGrid(
@@ -700,15 +775,23 @@ export class EmailService {
 
 // Default email service configuration (would be loaded from environment)
 export const getDefaultEmailService = (): EmailService => {
+  const provider = (process.env.EMAIL_PROVIDER || 'postmark') as 'aws-ses' | 'postmark' | 'sendgrid' | 'smtp'
+
   const config: EmailServiceConfig = {
-    provider: 'aws-ses', // or from process.env.EMAIL_PROVIDER
+    provider,
     credentials: {
+      // AWS SES (fallback)
       accessKey: process.env.AWS_ACCESS_KEY_ID,
       secretKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION || 'me-south-1' // UAE region
+      region: process.env.AWS_REGION || 'me-south-1',
+      // Postmark (primary)
+      postmarkApiToken: process.env.POSTMARK_API_TOKEN,
+      postmarkServerId: process.env.POSTMARK_SERVER_ID,
+      // SendGrid (alternative)
+      apiKey: process.env.SENDGRID_API_KEY,
     },
-    fromEmail: process.env.FROM_EMAIL || 'noreply@usereminder.com',
-    fromName: process.env.FROM_NAME || 'Reminder - Payment Collection',
+    fromEmail: process.env.FROM_EMAIL || 'hello@usereminder.com',
+    fromName: process.env.FROM_NAME || 'Reminder',
     replyTo: process.env.REPLY_TO_EMAIL,
     maxRetries: 3,
     retryDelayMs: 5000
