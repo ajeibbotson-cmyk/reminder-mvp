@@ -11,6 +11,12 @@ export interface EmailTemplateVariables {
   [key: string]: string | number | Date | boolean
 }
 
+export interface EmailAttachment {
+  name: string
+  content: string // base64 encoded
+  contentType: string
+}
+
 export interface SendEmailOptions {
   templateId?: string
   companyId: string
@@ -24,6 +30,7 @@ export interface SendEmailOptions {
   variables?: EmailTemplateVariables
   scheduleForBusinessHours?: boolean
   delayMinutes?: number
+  attachInvoicePDF?: boolean // Auto-attach invoice PDF if invoiceId provided
 }
 
 export interface EmailServiceConfig {
@@ -140,9 +147,24 @@ export class EmailService {
         }
       })
 
+      // Prepare invoice PDF attachment if requested
+      let attachments: EmailAttachment[] = []
+      if (options.attachInvoicePDF && options.invoiceId) {
+        try {
+          const attachment = await this.prepareInvoicePDFAttachment(options.invoiceId)
+          if (attachment) {
+            attachments.push(attachment)
+            console.log(`[Email] Invoice PDF attached: ${attachment.name}`)
+          }
+        } catch (error) {
+          console.error(`[Email] Failed to attach invoice PDF:`, error)
+          // Continue sending email without attachment rather than failing completely
+        }
+      }
+
       // Send immediately or schedule
       if (scheduledSendTime.getTime() <= Date.now() + 60000) { // Send within 1 minute
-        await this.sendImmediately(emailLog.id, subject, content, options.recipientEmail, options.recipientName)
+        await this.sendImmediately(emailLog.id, subject, content, options.recipientEmail, options.recipientName, attachments)
       } else {
         // In production, this would schedule the email in a queue system
         console.log(`Email scheduled for ${scheduledSendTime.toISOString()}`)
@@ -159,11 +181,12 @@ export class EmailService {
    * Send email immediately with real provider integration
    */
   private async sendImmediately(
-    emailLogId: string, 
-    subject: string, 
-    content: string, 
-    recipientEmail: string, 
-    recipientName?: string
+    emailLogId: string,
+    subject: string,
+    content: string,
+    recipientEmail: string,
+    recipientName?: string,
+    attachments: EmailAttachment[] = []
   ): Promise<void> {
     let messageId: string | undefined
     let retryCount = 0
@@ -185,19 +208,19 @@ export class EmailService {
 
         switch (this.config.provider) {
           case 'aws-ses':
-            result = await this.sendViaAWSSES(subject, content, recipientEmail, recipientName)
+            result = await this.sendViaAWSSES(subject, content, recipientEmail, recipientName, attachments)
             messageId = result.messageId
             break
           case 'postmark':
-            result = await this.sendViaPostmark(subject, content, recipientEmail, recipientName)
+            result = await this.sendViaPostmark(subject, content, recipientEmail, recipientName, attachments)
             messageId = result.messageId
             break
           case 'sendgrid':
-            result = await this.sendViaSendGrid(subject, content, recipientEmail, recipientName)
+            result = await this.sendViaSendGrid(subject, content, recipientEmail, recipientName, attachments)
             messageId = result.messageId
             break
           case 'smtp':
-            result = await this.sendViaSMTP(subject, content, recipientEmail, recipientName)
+            result = await this.sendViaSMTP(subject, content, recipientEmail, recipientName, attachments)
             messageId = result.messageId
             break
           default:
@@ -369,10 +392,11 @@ export class EmailService {
    * Send via AWS SES with real implementation
    */
   private async sendViaAWSSES(
-    subject: string, 
-    content: string, 
-    recipientEmail: string, 
-    recipientName?: string
+    subject: string,
+    content: string,
+    recipientEmail: string,
+    recipientName?: string,
+    attachments: EmailAttachment[] = []
   ): Promise<{ messageId: string }> {
     const { SESClient, SendEmailCommand } = await import('@aws-sdk/client-ses')
     
@@ -467,7 +491,8 @@ export class EmailService {
     subject: string,
     content: string,
     recipientEmail: string,
-    recipientName?: string
+    recipientName?: string,
+    attachments: EmailAttachment[] = []
   ): Promise<{ messageId: string }> {
     const { ServerClient } = await import('postmark')
 
@@ -496,7 +521,12 @@ export class EmailService {
         Metadata: {
           environment: process.env.NODE_ENV || 'development',
           service: 'Reminder-UAE'
-        }
+        },
+        Attachments: attachments.length > 0 ? attachments.map(att => ({
+          Name: att.name,
+          Content: att.content,
+          ContentType: att.contentType
+        })) : undefined
       })
 
       if (!result.MessageID) {
@@ -532,10 +562,11 @@ export class EmailService {
    * Send via SendGrid (fallback implementation)
    */
   private async sendViaSendGrid(
-    subject: string, 
-    content: string, 
-    recipientEmail: string, 
-    recipientName?: string
+    subject: string,
+    content: string,
+    recipientEmail: string,
+    recipientName?: string,
+    attachments: EmailAttachment[] = []
   ): Promise<{ messageId: string }> {
     // This is a fallback implementation - in production you'd use @sendgrid/mail
     console.log(`[SendGrid] Sending email to ${recipientEmail}`)
@@ -559,10 +590,11 @@ export class EmailService {
    * Send via SMTP (fallback implementation)
    */
   private async sendViaSMTP(
-    subject: string, 
-    content: string, 
-    recipientEmail: string, 
-    recipientName?: string
+    subject: string,
+    content: string,
+    recipientEmail: string,
+    recipientName?: string,
+    attachments: EmailAttachment[] = []
   ): Promise<{ messageId: string }> {
     // This is a fallback implementation - in production you'd use nodemailer
     console.log(`[SMTP] Sending email to ${recipientEmail}`)
@@ -630,6 +662,79 @@ export class EmailService {
       sent,
       failed,
       totalProcessed: emails.length
+    }
+  }
+
+  /**
+   * Prepare invoice PDF attachment from S3 storage
+   */
+  private async prepareInvoicePDFAttachment(invoiceId: string): Promise<EmailAttachment | null> {
+    try {
+      // Fetch invoice with PDF metadata
+      const invoice = await prisma.invoice.findUnique({
+        where: { id: invoiceId },
+        select: {
+          id: true,
+          number: true,
+          pdfS3Bucket: true,
+          pdfS3Key: true,
+          pdfUploadedAt: true
+        }
+      })
+
+      if (!invoice) {
+        console.error(`[Email] Invoice not found: ${invoiceId}`)
+        return null
+      }
+
+      if (!invoice.pdfS3Bucket || !invoice.pdfS3Key) {
+        console.warn(`[Email] Invoice ${invoice.number} has no PDF stored in S3`)
+        return null
+      }
+
+      // Import AWS S3 client
+      const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3')
+
+      const s3Client = new S3Client({
+        region: this.config.credentials.region || process.env.AWS_REGION || 'me-south-1',
+        credentials: {
+          accessKeyId: this.config.credentials.accessKey || process.env.AWS_ACCESS_KEY_ID!,
+          secretAccessKey: this.config.credentials.secretKey || process.env.AWS_SECRET_ACCESS_KEY!
+        }
+      })
+
+      // Fetch PDF from S3
+      const command = new GetObjectCommand({
+        Bucket: invoice.pdfS3Bucket,
+        Key: invoice.pdfS3Key
+      })
+
+      const response = await s3Client.send(command)
+
+      if (!response.Body) {
+        console.error(`[Email] No body returned from S3 for invoice ${invoice.number}`)
+        return null
+      }
+
+      // Convert stream to buffer
+      const chunks: Uint8Array[] = []
+      for await (const chunk of response.Body as any) {
+        chunks.push(chunk)
+      }
+      const buffer = Buffer.concat(chunks)
+
+      // Convert to base64
+      const base64Content = buffer.toString('base64')
+
+      return {
+        name: `Invoice-${invoice.number}.pdf`,
+        content: base64Content,
+        contentType: 'application/pdf'
+      }
+
+    } catch (error: any) {
+      console.error(`[Email] Failed to prepare PDF attachment for invoice ${invoiceId}:`, error)
+      return null
     }
   }
 

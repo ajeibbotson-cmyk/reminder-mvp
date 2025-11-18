@@ -107,6 +107,7 @@ async function main() {
   // Step 3: Send email via Postmark
   console.log('📤 Step 3: Sending email via Postmark...')
   console.log(`  🎯 Test Recipient: ajeibbotson@gmail.com (for testing)`)
+  console.log(`  📎 Attempting to attach invoice PDF if available`)
   console.log('')
 
   const emailService = getDefaultEmailService()
@@ -121,7 +122,8 @@ async function main() {
       companyId: testInvoice.companyId,
       invoiceId: testInvoice.id,
       customerId: testInvoice.customer?.id,
-      language: 'ENGLISH'
+      language: 'ENGLISH',
+      attachInvoicePDF: true // Enable PDF attachment
     })
 
     console.log('  ✅ Email sent successfully!')
