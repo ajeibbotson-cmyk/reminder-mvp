@@ -1,19 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
-
-// Helper function to login
-async function loginUser(page: Page) {
-  await page.goto('/en/auth/signin')
-
-  // Fill login form
-  await page.fill('[data-testid="email-input"]', 'admin@testcompany.ae')
-  await page.fill('[data-testid="password-input"]', 'testpassword123')
-
-  // Submit form
-  await page.click('[data-testid="signin-button"]')
-
-  // Wait for redirect to dashboard
-  await page.waitForURL('**/dashboard**')
-}
+import { mockAuth } from '../helpers/mock-auth';
 
 // Helper function to setup test data
 async function setupTestData(page: Page) {
@@ -152,8 +138,8 @@ async function setupTestData(page: Page) {
 
 test.describe('Bucket-Based Invoice Management E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
+    await mockAuth(page);
     await setupTestData(page)
-    await loginUser(page)
   })
 
   test('should display bucket dashboard with summary statistics', async ({ page }) => {
@@ -465,8 +451,8 @@ test.describe('Bucket-Based Invoice Management E2E Tests', () => {
 
 test.describe('Accessibility Tests', () => {
   test('should meet accessibility requirements', async ({ page }) => {
+    await mockAuth(page);
     await setupTestData(page)
-    await loginUser(page)
 
     await page.click('[data-testid="invoice-management-tab"]')
     await page.waitForSelector('[data-testid="bucket-card"]')

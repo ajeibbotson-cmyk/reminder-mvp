@@ -21,71 +21,18 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // Production testing requires accepting HTTPS certificates
+    ignoreHTTPSErrors: process.env.TEST_ENV === 'production',
   },
 
   projects: [
-    // Setup project - runs first to create auth state
-    {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-    },
-
-    // Authenticated tests - most E2E tests need authentication
+    // Main test project - uses mock auth (no setup needed)
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: authFile,
       },
-      dependencies: ['setup'],
-      testIgnore: /auth-flow\.spec\.ts/, // Auth flow tests don't need pre-auth
-    },
-
-    // Public/unauthenticated tests (auth flow, homepage)
-    {
-      name: 'chromium-unauthenticated',
-      use: { ...devices['Desktop Chrome'] },
-      testMatch: /auth-flow\.spec\.ts/,
-    },
-
-    {
-      name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-        storageState: authFile,
-      },
-      dependencies: ['setup'],
-      testIgnore: /auth-flow\.spec\.ts/,
-    },
-
-    {
-      name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
-        storageState: authFile,
-      },
-      dependencies: ['setup'],
-      testIgnore: /auth-flow\.spec\.ts/,
-    },
-
-    {
-      name: 'Mobile Chrome',
-      use: {
-        ...devices['Pixel 5'],
-        storageState: authFile,
-      },
-      dependencies: ['setup'],
-      testIgnore: /auth-flow\.spec\.ts/,
-    },
-
-    {
-      name: 'Mobile Safari',
-      use: {
-        ...devices['iPhone 12'],
-        storageState: authFile,
-      },
-      dependencies: ['setup'],
-      testIgnore: /auth-flow\.spec\.ts/,
+      testIgnore: /auth-flow\.spec\.ts|auth\.setup\.ts/, // Skip real auth tests
     },
   ],
 

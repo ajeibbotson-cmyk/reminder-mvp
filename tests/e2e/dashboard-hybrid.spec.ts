@@ -1,17 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { mockAuth } from '../helpers/mock-auth';
 
 test.describe('Hybrid Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to login page
-    await page.goto('http://localhost:3000/en/auth/signin')
-
-    // Login with test credentials (using newly created test user)
-    await page.fill('input[name="email"]', 'test@e2e.com')
-    await page.fill('input[name="password"]', 'TestPassword123!')
-    await page.click('button[type="submit"]')
-
-    // Wait for redirect to dashboard
-    await page.waitForURL('**/dashboard')
+    await mockAuth(page);
   })
 
   test('should display hero metrics with large numbers', async ({ page }) => {
@@ -138,15 +130,10 @@ test.describe('Hybrid Dashboard', () => {
 
 test.describe('Bucket Configuration Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3000/en/auth/signin')
-    await page.fill('input[name="email"]', 'test@e2e.com')
-    await page.fill('input[name="password"]', 'TestPassword123!')
-    await page.click('button[type="submit"]')
-    await page.waitForURL('**/dashboard')
+    await mockAuth(page);
 
     // Navigate to buckets config page
-    await page.getByTestId('desktop-nav-buckets').click();
-    await page.waitForURL('**/dashboard/buckets')
+    await page.goto('/en/dashboard/buckets');
   })
 
   test('should display all 6 bucket cards', async ({ page }) => {

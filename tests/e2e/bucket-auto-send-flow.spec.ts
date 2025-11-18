@@ -1,12 +1,16 @@
 import { test, expect } from '@playwright/test';
+import { mockAuth } from '../helpers/mock-auth';
 
 /**
  * E2E Test: Bucket Auto-Send Flow
  * Tests automated reminder system - THE core automation feature
  */
 test.describe('Bucket Auto-Send System', () => {
+  test.beforeEach(async ({ page }) => {
+    await mockAuth(page);
+  });
+
   test('should display bucket dashboard with invoice categorization', async ({ page }) => {
-    // Start from dashboard (already authenticated via storageState)
     await page.goto('/en/dashboard');
     // Navigate to buckets
     const bucketsLink = page.getByTestId('desktop-nav-buckets');
@@ -40,7 +44,6 @@ test.describe('Bucket Auto-Send System', () => {
   });
 
   test('should allow bucket configuration for auto-send', async ({ page }) => {
-    // Start from dashboard (already authenticated via storageState)
     await page.goto('/en/dashboard');
 
     // Navigate to buckets
@@ -78,7 +81,6 @@ test.describe('Bucket Auto-Send System', () => {
   });
 
   test('should show email template preview in bucket config', async ({ page }) => {
-    // Start from dashboard (already authenticated via storageState)
     await page.goto('/en/dashboard');
 
     await page.getByTestId('desktop-nav-buckets').click();
@@ -104,7 +106,6 @@ test.describe('Bucket Auto-Send System', () => {
   });
 
   test('should allow manual campaign trigger from bucket', async ({ page }) => {
-    // Start from dashboard (already authenticated via storageState)
     await page.goto('/en/dashboard');
 
     await page.getByTestId('desktop-nav-buckets').click();
@@ -132,7 +133,6 @@ test.describe('Bucket Auto-Send System', () => {
   });
 
   test('should respect UAE business hours in bucket config', async ({ page }) => {
-    // Start from dashboard (already authenticated via storageState)
     await page.goto('/en/dashboard');
 
     await page.getByTestId('desktop-nav-buckets').click();

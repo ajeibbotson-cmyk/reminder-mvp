@@ -1,6 +1,6 @@
 /**
  * Phase 4 Sprint 1.5: End-to-End Invoice Workflow Tests
- * 
+ *
  * Complete user journey testing for invoice management system
  * Tests the integration between frontend components and backend APIs
  * Validates Sprint 1.5 acceptance criteria through user interactions
@@ -8,6 +8,7 @@
 
 import { test, expect } from '@playwright/test'
 import { faker } from '@faker-js/faker'
+import { mockAuth } from '../helpers/mock-auth';
 
 // Test data generators
 function generateUAECompanyData() {
@@ -41,11 +42,9 @@ test.describe('Complete Invoice Workflow E2E Tests - Sprint 1.5', () => {
   let invoiceData: any
 
   test.beforeEach(async ({ page }) => {
+    await mockAuth(page);
     companyData = generateUAECompanyData()
     invoiceData = generateInvoiceData()
-    
-    // Start from home page
-    await page.goto('/')
   })
 
   test('Complete invoice lifecycle: Create → Send → Pay → Status Updates', async ({ page }) => {

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import * as path from 'path';
+import { mockAuth } from '../helpers/mock-auth';
 
 /**
  * E2E Test: PDF Upload → Extract → Chase Flow
@@ -9,12 +10,7 @@ import * as path from 'path';
  */
 test.describe('PDF Upload to Chase Flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Login
-    await page.goto('/en/auth/signin');
-    await page.fill('input[name="email"]', 'smoke-test@example.com');
-    await page.fill('input[name="password"]', 'SmokeTest123!');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/en/dashboard');
+    await mockAuth(page);
   });
 
   test('should upload PDF, extract data, and enable chasing', async ({ page }) => {

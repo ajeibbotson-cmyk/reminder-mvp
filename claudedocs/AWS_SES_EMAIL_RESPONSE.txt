@@ -1,0 +1,160 @@
+Subject: Additional Information for SES Production Access Request - usereminder.com
+
+Dear AWS SES Team,
+
+Thank you for reviewing our production access request. I'm happy to provide additional details about our use case.
+
+## PLATFORM OVERVIEW
+
+Reminder is a global B2B SaaS invoice reminder platform that automates payment collection through professional email reminders. We're launching initially in the UAE market before expanding internationally.
+
+- Website: https://reminder-mvp.vercel.app
+- Domain: usereminder.com (verified November 12, 2025)
+- Initial Launch: UAE market, December 2025 (Beta)
+- Global Expansion: Q2-Q3 2026
+
+## EMAIL SENDING DETAILS
+
+Email Types: 100% Transactional
+- Invoice payment reminders
+- Payment confirmations
+- Follow-up notifications for overdue invoices
+- Invoice delivery notifications
+
+NOT used for marketing, promotions, or newsletters.
+
+Expected Volume:
+- Beta (Dec 2025): 1,000-3,000 emails/month (50-100/day average)
+- Production (Q1 2026): 5,000-10,000 emails/month (200-400/day average)
+- Peak periods: 500-800 emails/day (month-end invoice cycles)
+
+Sending Pattern:
+- Business hours only (respects local business customs)
+- UAE initial market: Sunday-Thursday, 9 AM - 5 PM GST
+- International expansion: Adapts to local business hours and customs
+- Automated 3-stage follow-up sequences (7, 14, 30 days overdue)
+
+## RECIPIENT LIST MANAGEMENT
+
+How Recipients Are Added:
+- Verified business customers using our invoice management platform only
+- Invoice-based: Recipients are customers with existing invoice relationships
+- No purchased, rented, or third-party lists
+- Explicit business relationship required
+
+List Maintenance:
+- Regular cleanup of inactive accounts (90-day inactivity)
+- Immediate removal upon customer account deletion
+- Recipients must be active platform users
+
+Opt-In:
+- Customers register explicitly for invoice management service
+- All emails expected as part of invoice workflow
+- Existing business relationship with invoice sender
+
+## BOUNCE AND COMPLAINT MANAGEMENT
+
+Bounce Handling:
+- Hard bounces: Automatically removed from future sends
+- Soft bounces: Retry up to 3 times with exponential backoff
+- All bounce events logged with reason codes
+- Weekly review of bounce patterns
+- SNS topics configured for bounce notifications
+
+Complaint Handling:
+- Immediate suppression of complaint addresses
+- All complaints investigated within 24 hours
+- Root cause analysis and process improvements
+- Invoice sender notified for manual review
+
+Unsubscribe Management:
+- Unsubscribe link in every email footer
+- One-click unsubscribe (no login required)
+- Processed within 1 hour
+- Options to unsubscribe from all or specific senders
+
+## EMAIL CONTENT QUALITY
+
+Professional B2B content including:
+- Personalized invoice details (number, amount, due date)
+- Clear call-to-action (view/pay invoice)
+- Sender company branding
+- Mobile-responsive HTML design
+
+Example Subject: "Payment Reminder: Invoice #INV-2025-0042 from [Company Name]"
+
+Example Content:
+- Invoice details (number, amount, due date, days overdue)
+- Payment link and bank transfer details
+- Sender contact information
+- Clear unsubscribe link
+
+Anti-Spam Measures:
+- Honest subject lines matching content
+- Clear sender identification
+- Physical business address in footer
+- No deceptive content or hidden text
+
+## TECHNICAL IMPLEMENTATION
+
+Infrastructure:
+- Platform: Next.js 15 serverless (Vercel hosting)
+- Database: PostgreSQL (Supabase)
+- Rate limiting with exponential backoff
+- Retry logic for transient failures (3 attempts)
+- Comprehensive logging of all send events
+
+Authentication (All Verified):
+- SPF: v=spf1 include:amazonses.com ~all
+- DKIM: Enabled (3 CNAME records verified)
+- DMARC: v=DMARC1; p=none; rua=mailto:hello@usereminder.com
+- Domain: usereminder.com verified November 12, 2025
+
+Monitoring:
+- Real-time send status tracking
+- Daily bounce/complaint rate monitoring
+- Automated alerts for anomalies (bounce >5%, complaint >0.1%)
+- Weekly reputation score review
+
+## COMPLIANCE
+
+- UAE E-Invoicing mandate compliance (July 2026) for initial market
+- GDPR-ready (data export/deletion) for international expansion
+- International business regulations compliance
+- Full AWS AUP and CAN-SPAM compliance
+- Gradual volume ramp-up (warm-up period)
+- Maintain bounce rate <5%, complaint rate <0.1%
+
+## BETA TESTING PLAN
+
+Phase 1 (Dec 2025): UAE market, 3-5 customers, 500-1,000 emails, close monitoring
+Phase 2 (Jan 2026): UAE expansion, 10-15 customers, 2,000-3,000 emails/month
+Phase 3 (Feb 2026): UAE full production, 5,000-10,000 emails/month
+Phase 4 (Q2-Q3 2026): International expansion to additional markets
+
+## COMMITMENT
+
+We will:
+- Monitor bounce/complaint rates continuously
+- Respond to issues within 4 hours
+- Maintain high-quality, expected email content
+- Follow AWS SES best practices strictly
+- Communicate proactively with AWS team
+
+## VERIFIED IDENTITIES
+
+- Domain: usereminder.com (Verified ✅)
+- Email: ajeibbotson@gmail.com (Verified ✅)
+- Email: hello@usereminder.com (Verified via domain ✅)
+
+## SUMMARY
+
+We're requesting production access for a legitimate global B2B SaaS platform launching initially in the UAE market with 100% transactional invoice reminder emails. All recipients have existing business relationships. We have verified our domain, configured proper authentication (SPF/DKIM/DMARC), implemented comprehensive bounce/complaint handling, and committed to AWS best practices. Our phased approach starts with UAE beta customers before international expansion.
+
+Thank you for your consideration. Please let me know if you need any additional information.
+
+Best regards,
+[Your Name]
+Reminder Invoice Management Platform
+[Your Email]
+AWS Account ID: 716542960616

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { mockAuth } from '../helpers/mock-auth';
 
 /**
  * E2E Test: CSV/Excel Import → Verify → Chase Flow
@@ -6,12 +7,7 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('CSV Import Flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Login
-    await page.goto('/en/auth/signin');
-    await page.fill('input[name="email"]', 'smoke-test@example.com');
-    await page.fill('input[name="password"]', 'SmokeTest123!');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/en/dashboard');
+    await mockAuth(page);
   });
 
   test('should access CSV import interface', async ({ page }) => {

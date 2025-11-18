@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { mockAuth } from '../helpers/mock-auth';
 
-test.describe('UAEPay User Journey', () => {
+test.describe('UAEPay User Journey - Authenticated Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await mockAuth(page);
+  });
+
   test('Complete user registration and dashboard navigation', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
@@ -34,12 +39,8 @@ test.describe('UAEPay User Journey', () => {
   });
 
   test('Navigation through all sidebar sections', async ({ page }) => {
-    // Login first (assuming we have test user)
-    await page.goto('/en/auth/signin');
-    await page.fill('input[name="email"]', 'test@example.com');
-    await page.fill('input[name="password"]', 'password123');
-    await page.click('button[type="submit"]');
-    
+    await page.goto('/en/dashboard');
+
     // Test all sidebar navigation
     const navigationTests = [
       { text: 'Dashboard', url: '/en/dashboard', expectedContent: 'Enhanced Dashboard' },

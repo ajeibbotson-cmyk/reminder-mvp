@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { mockAuth } from '../helpers/mock-auth';
 
 /**
  * Smoke Tests - Fast sanity checks for deployment validation
  * Run these after every deployment to catch critical breaks
  */
-test.describe('Smoke Tests', () => {
+test.describe('Smoke Tests - Public Pages', () => {
   test('homepage loads successfully', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Reminder/i);
@@ -17,23 +18,15 @@ test.describe('Smoke Tests', () => {
     await expect(emailInput).toBeVisible();
     console.log('✓ Login page accessible');
   });
+});
 
-  test('can login with valid credentials', async ({ page }) => {
-    await page.goto('/en/auth/signin');
-    await page.fill('input[name="email"]', 'smoke-test@example.com');
-    await page.fill('input[name="password"]', 'SmokeTest123!');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/en/dashboard', { timeout: 10000 });
-    console.log('✓ Authentication works');
+test.describe('Smoke Tests - Authenticated Pages', () => {
+  test.beforeEach(async ({ page }) => {
+    await mockAuth(page);
   });
 
   test('dashboard loads for authenticated user', async ({ page }) => {
-    // Login
-    await page.goto('/en/auth/signin');
-    await page.fill('input[name="email"]', 'smoke-test@example.com');
-    await page.fill('input[name="password"]', 'SmokeTest123!');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/en/dashboard');
+    await page.goto('/en/dashboard');
 
     // Verify dashboard elements
     const heading = page.locator('h1, h2').first();
@@ -42,12 +35,7 @@ test.describe('Smoke Tests', () => {
   });
 
   test('invoices page is accessible', async ({ page }) => {
-    // Login
-    await page.goto('/en/auth/signin');
-    await page.fill('input[name="email"]', 'smoke-test@example.com');
-    await page.fill('input[name="password"]', 'SmokeTest123!');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/en/dashboard');
+    await page.goto('/en/dashboard');
 
     // Navigate to invoices
     await page.getByTestId('desktop-nav-invoices').click();

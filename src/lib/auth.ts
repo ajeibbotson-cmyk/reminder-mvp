@@ -10,7 +10,6 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
-  useSecureCookies: isProduction,
   cookies: {
     sessionToken: {
       name: isProduction

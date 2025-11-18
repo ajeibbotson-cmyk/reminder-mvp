@@ -21,7 +21,14 @@ setup('authenticate', async ({ browser }) => {
   console.log(`📍 Using base URL: ${baseURL}`);
 
   // Create a new context that we can control
-  const context = await browser.newContext({ baseURL });
+  // For production HTTPS, we need to accept insecure certificates
+  const isProduction = process.env.TEST_ENV === 'production';
+  const context = await browser.newContext({
+    baseURL,
+    ignoreHTTPSErrors: isProduction,
+    // Accept all cookies including __Secure- prefixed ones
+    acceptDownloads: true,
+  });
   const page = await context.newPage();
 
   // Use existing test user credentials
@@ -58,6 +65,21 @@ setup('authenticate', async ({ browser }) => {
     await page.waitForURL('**/dashboard', { timeout: 15000 });
     console.log('✅ Successfully redirected to dashboard');
     console.log(`Current URL: ${page.url()}`);
+
+    // Check cookies immediately after redirect
+    const cookies = await context.cookies();
+    console.log('🍪 Cookies immediately after redirect:', cookies.map(c => c.name));
+    const sessionCookie = cookies.find(c => c.name.includes('session-token'));
+    if (sessionCookie) {
+      console.log(`✅ Session cookie found: ${sessionCookie.name}`);
+      console.log(`   Domain: ${sessionCookie.domain}`);
+      console.log(`   Path: ${sessionCookie.path}`);
+      console.log(`   Secure: ${sessionCookie.secure}`);
+      console.log(`   HttpOnly: ${sessionCookie.httpOnly}`);
+      console.log(`   SameSite: ${sessionCookie.sameSite}`);
+    } else {
+      console.error('❌ No session cookie found after redirect!');
+    }
   } catch (e) {
     console.error('❌ Failed to redirect to dashboard');
     console.log(`Current URL: ${page.url()}`);
@@ -70,6 +92,28 @@ setup('authenticate', async ({ browser }) => {
 
   // Give NextAuth time to set all cookies
   await page.waitForTimeout(2000);
+
+  // Check what page we're actually on
+  const currentUrl = page.url();
+  console.log(`Current URL after wait: ${currentUrl}`);
+
+  // If we got redirected back to signin, check for error messages
+  if (currentUrl.includes('/auth/signin')) {
+    console.error('❌ Redirected back to signin page');
+
+    // Check for any error/alert messages
+    const alertText = await page.locator('[role="alert"]').textContent().catch(() => null);
+    if (alertText) {
+      console.error(`❌ Error message: ${alertText}`);
+    }
+
+    // Check cookies at this point
+    const cookies = await context.cookies();
+    console.log('🍪 Cookies after redirect:', cookies.map(c => `${c.name}=${c.value.substring(0, 20)}...`));
+
+    await page.screenshot({ path: 'test-results/signin-redirect-failure.png' });
+    throw new Error(`Authentication failed: Redirected to signin. Alert: ${alertText || 'none'}`);
+  }
 
   // Verify we can see dashboard content - using resilient verification
   try {
