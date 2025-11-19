@@ -328,3 +328,4 @@ Proprietary - All rights reserved.
 
 **Reminder Platform** - Built for speed, designed for success. Ready to capture the UAE e-invoicing payment collection market. 🚀
 # Database connection verified with correct credentials
+
