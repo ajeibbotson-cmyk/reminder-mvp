@@ -33,8 +33,8 @@ export default function SignInPage() {
         toast.error("Invalid email or password");
       } else {
         toast.success("Welcome back!");
-        router.push("/en/dashboard");
-        router.refresh();
+        // Use window.location for full page reload to ensure session is ready
+        window.location.href = "/en/dashboard";
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
