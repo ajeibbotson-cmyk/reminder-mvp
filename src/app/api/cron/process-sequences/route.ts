@@ -365,7 +365,7 @@ async function performHealthChecks(): Promise<{
     await prisma.$queryRaw`SELECT 1`
 
     // Check for stuck sequences (running for too long)
-    const stuckSequences = await prisma.follow_up_logs.count({
+    const stuckSequences = await prisma.followUpLog.count({
       where: {
         sentAt: {
           lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days old

@@ -178,14 +178,14 @@ async function getOverallStats(whereClause: any) {
     totalUnsubscribed,
     arabicEmails
   ] = await Promise.all([
-    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: { not: 'QUEUED' } } }),
-    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: 'DELIVERED' } }),
-    prisma.email_logs.count({ where: { ...whereClause, openedAt: { not: null } } }),
-    prisma.email_logs.count({ where: { ...whereClause, clicked_at: { not: null } } }),
-    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: 'BOUNCED' } }),
-    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: 'COMPLAINED' } }),
-    prisma.email_logs.count({ where: { ...whereClause, deliveryStatus: 'UNSUBSCRIBED' } }),
-    prisma.email_logs.count({ where: { ...whereClause, language: 'ARABIC' } })
+    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: { not: 'QUEUED' } } }),
+    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: 'DELIVERED' } }),
+    prisma.emailLog.count({ where: { ...whereClause, openedAt: { not: null } } }),
+    prisma.emailLog.count({ where: { ...whereClause, clicked_at: { not: null } } }),
+    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: 'BOUNCED' } }),
+    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: 'COMPLAINED' } }),
+    prisma.emailLog.count({ where: { ...whereClause, deliveryStatus: 'UNSUBSCRIBED' } }),
+    prisma.emailLog.count({ where: { ...whereClause, language: 'ARABIC' } })
   ])
 
   return {
@@ -201,7 +201,7 @@ async function getOverallStats(whereClause: any) {
 }
 
 async function getDeliveryStatusStats(whereClause: any) {
-  const statusCounts = await prisma.email_logs.groupBy({
+  const statusCounts = await prisma.emailLog.groupBy({
     by: ['delivery_status'],
     where: whereClause,
     _count: { id: true },
@@ -217,7 +217,7 @@ async function getDeliveryStatusStats(whereClause: any) {
 async function getDailyStats(whereClause: any, daysBack: number) {
   // This would typically use raw SQL for better performance
   // For simplicity, we'll group by day using JavaScript
-  const emailLogs = await prisma.email_logs.findMany({
+  const emailLogs = await prisma.emailLog.findMany({
     where: whereClause,
     select: {
       createdAt: true,
@@ -255,7 +255,7 @@ async function getDailyStats(whereClause: any, daysBack: number) {
 }
 
 async function getTemplatePerformance(companyId: string, startDate: Date) {
-  const templates = await prisma.email_templates.findMany({
+  const templates = await prisma.emailTemplate.findMany({
     where: {
       companyId: companyId,
       emailLogs: {
@@ -299,7 +299,7 @@ async function getTemplatePerformance(companyId: string, startDate: Date) {
 }
 
 async function getRecipientEngagement(whereClause: any) {
-  const recipientStats = await prisma.email_logs.groupBy({
+  const recipientStats = await prisma.emailLog.groupBy({
     by: ['recipient_email'],
     where: whereClause,
     _count: { id: true },
@@ -318,7 +318,7 @@ async function getRecipientEngagement(whereClause: any) {
 }
 
 async function getBounceAnalysis(whereClause: any) {
-  const bounces = await prisma.email_bounce_tracking.findMany({
+  const bounces = await prisma.emailBounceTracking.findMany({
     where: {
       emailLogs: whereClause
     },
@@ -354,7 +354,7 @@ async function getBounceAnalysis(whereClause: any) {
 }
 
 async function getUAEBusinessHoursStats(whereClause: any) {
-  const allEmails = await prisma.email_logs.findMany({
+  const allEmails = await prisma.emailLog.findMany({
     where: whereClause,
     select: {
       uae_send_time: true,

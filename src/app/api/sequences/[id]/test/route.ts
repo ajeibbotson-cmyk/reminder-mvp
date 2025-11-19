@@ -79,7 +79,7 @@ export async function POST(
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
-    const sequence = await prisma.follow_up_sequences.findFirst({
+    const sequence = await prisma.followUpSequence.findFirst({
       where: {
         id: params.id,
         companyId: user.companies.id

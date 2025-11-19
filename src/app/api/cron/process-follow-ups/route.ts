@@ -236,13 +236,13 @@ export async function GET(request: NextRequest) {
       failedLastHour,
       overdueInvoices
     ] = await Promise.all([
-      prisma.follow_up_sequences.count({ where: { active: true } }),
-      prisma.follow_up_logs.count({
+      prisma.followUpSequence.count({ where: { active: true } }),
+      prisma.followUpLog.count({
         where: {
           deliveryStatus: { in: ['QUEUED', 'SENT'] }
         }
       }),
-      prisma.follow_up_logs.count({
+      prisma.followUpLog.count({
         where: {
           deliveryStatus: 'FAILED',
           sentAt: {
@@ -353,7 +353,7 @@ async function detectAndInitiateFollowUps(): Promise<{
     for (const invoice of overdueInvoices) {
       try {
         // Find active follow-up sequences for this company
-        const activeSequences = await prisma.follow_up_sequences.findMany({
+        const activeSequences = await prisma.followUpSequence.findMany({
           where: {
             companyId: invoice.companyId,
             active: true
@@ -407,7 +407,7 @@ async function detectAndInitiateFollowUps(): Promise<{
         })
 
         // Create follow-up log entry for the first step
-        await prisma.follow_up_logs.create({
+        await prisma.followUpLog.create({
           data: {
             id: crypto.randomUUID(),
             invoiceId: invoice.id,
@@ -457,7 +457,7 @@ async function processPendingFollowUpSteps(): Promise<{
     const now = new Date()
 
     // Find follow-up logs that are ready to be sent
-    const pendingFollowUps = await prisma.follow_up_logs.findMany({
+    const pendingFollowUps = await prisma.followUpLog.findMany({
       where: {
         deliveryStatus: 'QUEUED',
         sentAt: {
@@ -492,7 +492,7 @@ async function processPendingFollowUpSteps(): Promise<{
             culturalTone: 'BUSINESS'
           })
 
-          await prisma.follow_up_logs.update({
+          await prisma.followUpLog.update({
             where: { id: followUp.id },
             data: { sentAt: nextOptimalTime }
           })
@@ -519,7 +519,7 @@ async function processPendingFollowUpSteps(): Promise<{
         })
 
         // Update follow-up log status
-        await prisma.follow_up_logs.update({
+        await prisma.followUpLog.update({
           where: { id: followUp.id },
           data: {
             deliveryStatus: 'SENT',
@@ -556,7 +556,7 @@ async function processPendingFollowUpSteps(): Promise<{
               culturalTone: 'BUSINESS'
             })
 
-            await prisma.follow_up_logs.create({
+            await prisma.followUpLog.create({
               data: {
                 id: crypto.randomUUID(),
                 invoiceId: followUp.invoiceId,
@@ -579,7 +579,7 @@ async function processPendingFollowUpSteps(): Promise<{
         console.error(errorMsg, error)
 
         // Mark as failed
-        await prisma.follow_up_logs.update({
+        await prisma.followUpLog.update({
           where: { id: followUp.id },
           data: {
             deliveryStatus: 'FAILED'
@@ -613,7 +613,7 @@ async function applyBusinessCompliance(): Promise<{
     const now = new Date()
 
     // Find emails scheduled outside business hours
-    const missScheduledEmails = await prisma.follow_up_logs.findMany({
+    const missScheduledEmails = await prisma.followUpLog.findMany({
       where: {
         deliveryStatus: 'QUEUED',
         sentAt: {
@@ -634,7 +634,7 @@ async function applyBusinessCompliance(): Promise<{
           culturalTone: 'BUSINESS'
         })
 
-        await prisma.follow_up_logs.update({
+        await prisma.followUpLog.update({
           where: { id: email.id },
           data: { sentAt: nextOptimalTime }
         })
@@ -672,7 +672,7 @@ async function performMaintenance(): Promise<void> {
     // Clean up old completed follow-up logs (older than 90 days)
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
 
-    await prisma.follow_up_logs.deleteMany({
+    await prisma.followUpLog.deleteMany({
       where: {
         deliveryStatus: { in: ['DELIVERED', 'OPENED', 'CLICKED', 'FAILED'] },
         sentAt: {

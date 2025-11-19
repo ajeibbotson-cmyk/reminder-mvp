@@ -301,7 +301,7 @@ export async function PUT(request: NextRequest) {
             updatedAt: { gte: startDate }
           }
         }),
-        prisma.follow_up_logs.count({
+        prisma.followUpLog.count({
           where: {
             invoice: { companyId: user.companies.id },
             sentAt: { gte: startDate }
@@ -439,8 +439,8 @@ async function performStressTest(companyId: string) {
     const dbStartTime = Date.now()
     await Promise.all([
       prisma.invoice.findMany({ where: { companyId }, take: 100 }),
-      prisma.follow_up_sequences.findMany({ where: { companyId } }),
-      prisma.follow_up_logs.findMany({ where: { invoice: { companyId } }, take: 100 })
+      prisma.followUpSequence.findMany({ where: { companyId } }),
+      prisma.followUpLog.findMany({ where: { invoice: { companyId } }, take: 100 })
     ])
     results.tests.databaseLoad = {
       duration: Date.now() - dbStartTime,

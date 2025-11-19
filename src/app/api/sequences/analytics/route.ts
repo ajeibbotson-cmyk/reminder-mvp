@@ -153,17 +153,17 @@ async function buildOverallAnalytics(
     triggerMetrics
   ] = await Promise.all([
     // Total sequences
-    prisma.follow_up_sequences.count({
+    prisma.followUpSequence.count({
       where: { companyId }
     }),
 
     // Active sequences
-    prisma.follow_up_sequences.count({
+    prisma.followUpSequence.count({
       where: { companyId, active: true }
     }),
 
     // Total executions (follow-up logs)
-    prisma.follow_up_logs.count({
+    prisma.followUpLog.count({
       where: {
         followUpSequence: { companyId },
         sentAt: {
@@ -191,7 +191,7 @@ async function buildOverallAnalytics(
   ])
 
   // Get sequence performance data
-  const sequences = await prisma.follow_up_sequences.findMany({
+  const sequences = await prisma.followUpSequence.findMany({
     where: {
       companyId,
       ...(query.sequenceIds && { id: { in: query.sequenceIds } })
@@ -308,7 +308,7 @@ async function buildTrendData(
     const nextDate = new Date(date.getTime() + 24 * 60 * 60 * 1000)
 
     const [executions, emails] = await Promise.all([
-      prisma.follow_up_logs.count({
+      prisma.followUpLog.count({
         where: {
           followUpSequence: { companyId },
           sentAt: {

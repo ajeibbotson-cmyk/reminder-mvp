@@ -209,7 +209,7 @@ async function getConsolidationAnalytics(
   const data = result[0]
 
   // Calculate response rate separately
-  const responseRateData = await prisma.customer_consolidated_reminders.aggregate({
+  const responseRateData = await prisma.customerConsolidatedReminder.aggregate({
     where: {
       companyId: companyId,
       createdAt: {

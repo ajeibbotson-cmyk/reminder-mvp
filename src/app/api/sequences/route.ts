@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 
     // Get sequences with pagination
     const [sequences, totalCount] = await Promise.all([
-      prisma.follow_up_sequences.findMany({
+      prisma.followUpSequence.findMany({
         where,
         include: {
           _count: {
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit
       }),
-      prisma.follow_up_sequences.count({ where })
+      prisma.followUpSequence.count({ where })
     ])
 
     // Get analytics for each sequence
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate sequence name uniqueness
-    const existingSequence = await prisma.follow_up_sequences.findFirst({
+    const existingSequence = await prisma.followUpSequence.findFirst({
       where: {
         companyId: user.companies.id,
         name: body.name
@@ -223,7 +223,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the sequence
-    const sequence = await prisma.follow_up_sequences.create({
+    const sequence = await prisma.followUpSequence.create({
       data: {
         id: crypto.randomUUID(),
         companyId: user.companies.id,
@@ -308,7 +308,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update sequences
-    const updateResult = await prisma.follow_up_sequences.updateMany({
+    const updateResult = await prisma.followUpSequence.updateMany({
       where: {
         id: { in: sequenceIds },
         companyId: user.companies.id

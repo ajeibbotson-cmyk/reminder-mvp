@@ -46,7 +46,7 @@ export async function POST(
     }
 
     // Verify sequence exists and belongs to company
-    const sequence = await prisma.follow_up_sequences.findFirst({
+    const sequence = await prisma.followUpSequence.findFirst({
       where: {
         id: params.id,
         companyId: user.companies.id
@@ -228,7 +228,7 @@ export async function GET(
     }
 
     // Verify sequence belongs to company
-    const sequence = await prisma.follow_up_sequences.findFirst({
+    const sequence = await prisma.followUpSequence.findFirst({
       where: {
         id: params.id,
         companyId: user.companies.id
@@ -253,7 +253,7 @@ export async function GET(
     }
 
     // Get detailed execution logs
-    const executionLogs = await prisma.follow_up_logs.findMany({
+    const executionLogs = await prisma.followUpLog.findMany({
       where: {
         sequenceId: params.id,
         invoiceId: invoiceId
@@ -336,7 +336,7 @@ export async function DELETE(
     }
 
     // Verify sequence belongs to company
-    const sequence = await prisma.follow_up_sequences.findFirst({
+    const sequence = await prisma.followUpSequence.findFirst({
       where: {
         id: params.id,
         companyId: user.companies.id

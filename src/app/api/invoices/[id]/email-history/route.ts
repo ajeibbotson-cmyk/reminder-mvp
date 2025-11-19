@@ -42,7 +42,7 @@ export async function GET(
     }
 
     // Get email history for this invoice
-    const emailHistory = await prisma.email_logs.findMany({
+    const emailHistory = await prisma.emailLog.findMany({
       where: {
         invoiceId: invoiceId,
         companyId: user.companies.id

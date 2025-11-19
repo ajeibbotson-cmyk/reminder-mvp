@@ -21,7 +21,7 @@ export async function PUT(
     const body = await request.json()
 
     // Verify template exists and belongs to company
-    const existingTemplate = await prisma.email_templates.findFirst({
+    const existingTemplate = await prisma.emailTemplate.findFirst({
       where: {
         id: templateId,
         companyId: session.user.companyId,
@@ -37,7 +37,7 @@ export async function PUT(
 
     // If setting as default, unset other defaults of same type
     if (body.is_default && existingTemplate.template_type) {
-      await prisma.email_templates.updateMany({
+      await prisma.emailTemplate.updateMany({
         where: {
           companyId: session.user.companyId,
           template_type: existingTemplate.template_type,
@@ -77,7 +77,7 @@ export async function PUT(
       }
     }
 
-    const template = await prisma.email_templates.update({
+    const template = await prisma.emailTemplate.update({
       where: { id: templateId },
       data: updateData,
     })
@@ -112,7 +112,7 @@ export async function DELETE(
     const templateId = params.id
 
     // Verify template exists and belongs to company
-    const existingTemplate = await prisma.email_templates.findFirst({
+    const existingTemplate = await prisma.emailTemplate.findFirst({
       where: {
         id: templateId,
         companyId: session.user.companyId,
@@ -127,7 +127,7 @@ export async function DELETE(
     }
 
     // Soft delete by setting is_active to false
-    const template = await prisma.email_templates.update({
+    const template = await prisma.emailTemplate.update({
       where: { id: templateId },
       data: {
         isActive: false,

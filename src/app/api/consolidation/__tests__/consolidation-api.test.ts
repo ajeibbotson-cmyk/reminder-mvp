@@ -228,7 +228,7 @@ describe('Consolidation API Endpoints', () => {
         .mockResolvedValue([mockCandidate])
       ;(customerConsolidationService.createConsolidatedReminder as jest.Mock)
         .mockResolvedValue(mockConsolidation)
-      ;(prisma.follow_up_sequencess.findFirst as jest.Mock)
+      ;(prisma.followUpSequences.findFirst as jest.Mock)
         .mockResolvedValue(mockSequence)
       ;(sequenceExecutionService.startConsolidatedSequenceExecution as jest.Mock)
         .mockResolvedValue(mockExecutionResult)

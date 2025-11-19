@@ -44,6 +44,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency } from '@/hooks/use-invoice-buckets'
 import { useEmailTemplates } from '@/hooks/useEmailTemplates'
+import { EmailPreviewModal } from '@/components/email/email-preview-modal'
 
 interface EmailCampaignModalProps {
   isOpen: boolean
@@ -87,6 +88,7 @@ export function EmailCampaignModal({
 }: EmailCampaignModalProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const [formData, setFormData] = useState<CampaignFormData>({
     campaignName: `Payment Reminder - ${new Date().toLocaleDateString()}`,
     emailSubject: 'Payment Reminder: Outstanding Invoice {{invoiceNumber}}',
@@ -537,56 +539,57 @@ Best regards,
               <CardHeader>
                 <CardTitle>Email Preview</CardTitle>
                 <CardDescription>
-                  Preview how your email will appear to recipients
+                  Preview how your email will appear to recipients with full details and insights
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="border rounded-lg p-4 bg-white">
-                  <div className="border-b pb-4 mb-4">
-                    <div className="text-sm text-gray-600">Subject:</div>
-                    <div className="font-medium">{formData.emailSubject}</div>
+              <CardContent className="space-y-4">
+                {invoiceDetails.length > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                      <div>
+                        <div className="font-medium">Preview with real invoice data</div>
+                        <div className="text-sm text-muted-foreground">
+                          See desktop/mobile views, quality scores, and personalization insights
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => setShowPreview(true)}
+                        className="gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Open Preview
+                      </Button>
+                    </div>
+
+                    {/* Quick Preview */}
+                    <div className="border rounded-lg p-4 bg-white">
+                      <div className="text-sm font-medium mb-3">Quick Preview</div>
+                      <div className="border-b pb-3 mb-3">
+                        <div className="text-xs text-gray-600">Subject:</div>
+                        <div className="font-medium text-sm">{formData.emailSubject}</div>
+                      </div>
+                      <div className="text-xs text-gray-600 mb-2">Content Preview:</div>
+                      <div className="whitespace-pre-wrap text-sm text-gray-700 line-clamp-6">
+                        {formData.emailContent}
+                      </div>
+                      <Button
+                        variant="link"
+                        onClick={() => setShowPreview(true)}
+                        className="mt-2 p-0 h-auto text-xs"
+                      >
+                        View full preview with personalization →
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Eye className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <div>No invoices selected for preview</div>
+                    <div className="text-sm">Select invoices to see personalized preview</div>
                   </div>
-                  <div className="whitespace-pre-wrap text-sm">
-                    {formData.emailContent}
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
-
-            {/* Sample recipient preview */}
-            {invoiceDetails.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sample Personalized Email</CardTitle>
-                  <CardDescription>
-                    Example with real data from {invoiceDetails[0].customerName}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="border rounded-lg p-4 bg-white">
-                    <div className="border-b pb-4 mb-4">
-                      <div className="text-sm text-gray-600">To: {invoiceDetails[0].customerEmail}</div>
-                      <div className="text-sm text-gray-600">Subject:</div>
-                      <div className="font-medium">
-                        {formData.emailSubject
-                          .replace(/\{\{invoiceNumber\}\}/g, invoiceDetails[0].number)
-                          .replace(/\{\{customerName\}\}/g, invoiceDetails[0].customerName)}
-                      </div>
-                    </div>
-                    <div className="whitespace-pre-wrap text-sm">
-                      {formData.emailContent
-                        .replace(/\{\{customerName\}\}/g, invoiceDetails[0].customerName)
-                        .replace(/\{\{invoiceNumber\}\}/g, invoiceDetails[0].number)
-                        .replace(/\{\{amount\}\}/g, formatCurrency(invoiceDetails[0].amount, invoiceDetails[0].currency))
-                        .replace(/\{\{daysPastDue\}\}/g, invoiceDetails[0].daysOverdue.toString())
-                        .replace(/\{\{dueDate\}\}/g, new Date().toLocaleDateString())
-                        .replace(/\{\{companyName\}\}/g, 'Your Company')
-                        .replace(/\{\{customerEmail\}\}/g, invoiceDetails[0].customerEmail)}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
 
           {/* Step 4: Send */}
@@ -677,6 +680,19 @@ Best regards,
           </div>
         </div>
       </DialogContent>
+
+      {/* Email Preview Modal */}
+      {showPreview && invoiceDetails.length > 0 && (
+        <EmailPreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          invoiceId={invoiceDetails[0].id}
+          templateId={formData.templateId}
+          language={formData.language}
+          customSubject={formData.emailSubject}
+          customContent={formData.emailContent}
+        />
+      )}
     </Dialog>
   )
 }

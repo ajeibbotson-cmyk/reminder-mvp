@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all bucket configs for company
-    const configs = await prisma.bucket_configs.findMany({
+    const configs = await prisma.bucketConfig.findMany({
       where: { companyId: user.company_id },
       orderBy: { bucket_id: 'asc' }
     })
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     const validatedData = BucketConfigSchema.parse(body)
 
     // Upsert bucket config
-    const config = await prisma.bucket_configs.upsert({
+    const config = await prisma.bucketConfig.upsert({
       where: {
         company_id_bucket_id: {
           companyId: user.company_id,

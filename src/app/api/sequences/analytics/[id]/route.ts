@@ -114,7 +114,7 @@ export async function GET(
       : new Date()
 
     // Get sequence and verify ownership
-    const sequence = await prisma.follow_up_sequences.findFirst({
+    const sequence = await prisma.followUpSequence.findFirst({
       where: {
         id: params.id,
         companyId: user.companies.id
@@ -170,7 +170,7 @@ async function buildDetailedAnalytics(
   const baseAnalytics = await sequenceExecutionService.getSequenceAnalytics(sequence.id)
 
   // Get detailed execution data
-  const executionLogs = await prisma.follow_up_logs.findMany({
+  const executionLogs = await prisma.followUpLog.findMany({
     where: {
       sequenceId: sequence.id,
       sentAt: {

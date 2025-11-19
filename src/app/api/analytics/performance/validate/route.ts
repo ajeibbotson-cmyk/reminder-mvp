@@ -163,7 +163,7 @@ export async function GET(request: NextRequest) {
     // Test 5: Queue Management Query (<300ms target)
     startTime = Date.now()
     try {
-      await prisma.customer_consolidated_reminders.findMany({
+      await prisma.customerConsolidatedReminder.findMany({
         where: {
           companyId,
           deliveryStatus: { in: ['QUEUED', 'SCHEDULED'] }
@@ -273,7 +273,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Log performance report for monitoring
-    await prisma.audit_logs.create({
+    await prisma.auditLog.create({
       data: {
         companyId,
         userId: session.user.id,
@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
             where: { companyId: session.user.companyId },
             take: 50
           }),
-          prisma.customer_consolidated_reminders.findMany({
+          prisma.customerConsolidatedReminder.findMany({
             where: { companyId: session.user.companyId },
             take: 20
           })
@@ -388,14 +388,14 @@ export async function POST(request: NextRequest) {
         // Test bulk operations performance
         const bulkStart = Date.now()
         // Simulate bulk operation on sample data
-        const sampleConsolidations = await prisma.customer_consolidated_reminders.findMany({
+        const sampleConsolidations = await prisma.customerConsolidatedReminder.findMany({
           where: { companyId: session.user.companyId },
           take: 10
         })
 
         if (sampleConsolidations.length > 0) {
           // Simulate bulk priority update
-          await prisma.customer_consolidated_reminders.updateMany({
+          await prisma.customerConsolidatedReminder.updateMany({
             where: {
               id: { in: sampleConsolidations.map(c => c.id) }
             },

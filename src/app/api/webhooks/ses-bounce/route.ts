@@ -66,7 +66,7 @@ async function handleBounceNotification(message: any) {
     
     try {
       // Find the email log entry using message ID
-      const emailLog = await prisma.email_logs.findFirst({
+      const emailLog = await prisma.emailLog.findFirst({
         where: {
           aws_message_id: mail.messageId,
           recipient_email: emailAddress
@@ -75,7 +75,7 @@ async function handleBounceNotification(message: any) {
 
       if (emailLog) {
         // Update email log status
-        await prisma.email_logs.update({
+        await prisma.emailLog.update({
           where: { id: emailLog.id },
           data: {
             deliveryStatus: 'BOUNCED',
@@ -85,7 +85,7 @@ async function handleBounceNotification(message: any) {
         })
 
         // Create bounce tracking record
-        await prisma.email_bounce_tracking.create({
+        await prisma.emailBounceTracking.create({
           data: {
             id: crypto.randomUUID(),
             email_log_id: emailLog.id,
@@ -125,7 +125,7 @@ async function handleComplaintNotification(message: any) {
     
     try {
       // Find the email log entry using message ID
-      const emailLog = await prisma.email_logs.findFirst({
+      const emailLog = await prisma.emailLog.findFirst({
         where: {
           aws_message_id: mail.messageId,
           recipient_email: emailAddress
@@ -134,7 +134,7 @@ async function handleComplaintNotification(message: any) {
 
       if (emailLog) {
         // Update email log status
-        await prisma.email_logs.update({
+        await prisma.emailLog.update({
           where: { id: emailLog.id },
           data: {
             deliveryStatus: 'COMPLAINED',
@@ -144,7 +144,7 @@ async function handleComplaintNotification(message: any) {
         })
 
         // Create bounce tracking record for complaint
-        await prisma.email_bounce_tracking.create({
+        await prisma.emailBounceTracking.create({
           data: {
             id: crypto.randomUUID(),
             email_log_id: emailLog.id,
@@ -180,7 +180,7 @@ async function handleDeliveryNotification(message: any) {
   for (const emailAddress of recipients) {
     try {
       // Update email log status to delivered
-      const result = await prisma.email_logs.updateMany({
+      const result = await prisma.emailLog.updateMany({
         where: {
           aws_message_id: mail.messageId,
           recipient_email: emailAddress,
