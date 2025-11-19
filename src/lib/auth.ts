@@ -42,13 +42,13 @@ export const authOptions: NextAuthOptions = {
 
           console.log(`🔍 Auth: Looking up user: ${credentials.email}`)
           const user = await authPrisma.user.findUnique({
-          where: {
-            email: credentials.email
-          },
-          include: {
-            company: true
-          }
-        })
+            where: {
+              email: credentials.email
+            },
+            include: {
+              company: true
+            }
+          })
 
         if (!user) {
           console.log('🔴 Auth: User not found')
