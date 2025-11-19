@@ -151,9 +151,9 @@ Best regards,
     id: t.id,
     name: t.name,
     description: t.description || 'Email template',
-    subject: t.subject_en,
-    preview: t.content_en.substring(0, 50) + '...',
-    content: t.content_en
+    subject: t.subject_en || '',
+    preview: (t.content_en || '').substring(0, 50) + '...',
+    content: t.content_en || ''
   })) : fallbackTemplates
 
   const mergeTagOptions = [
