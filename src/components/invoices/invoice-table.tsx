@@ -428,10 +428,10 @@ export function InvoiceTable({
                         <TableCell>
                           <div className="space-y-1">
                             <div className="font-medium">
-                              {invoice.customer_name || 'Unknown Customer'}
+                              {invoice.customer?.name || invoice.customer_name || 'Unknown Customer'}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {invoice.customer_email}
+                              {invoice.customer?.email || invoice.customer_email}
                             </div>
                           </div>
                         </TableCell>

@@ -140,7 +140,7 @@ export function InvoiceSearch({
         switch (primaryMatch) {
           case 'invoice':
             icon = <Hash className="h-4 w-4" />
-            sublabel = invoice.customer_name || 'Unknown Customer'
+            sublabel = invoice.customer?.name || invoice.customer_name || 'Unknown Customer'
             break
           case 'customer':
             icon = <Building2 className="h-4 w-4" />
@@ -156,7 +156,7 @@ export function InvoiceSearch({
             break
           default:
             icon = <Hash className="h-4 w-4" />
-            sublabel = invoice.customer_name || 'Unknown Customer'
+            sublabel = invoice.customer?.name || invoice.customer_name || 'Unknown Customer'
         }
         
         results.push({

@@ -31,10 +31,11 @@ export default function SignInPage() {
 
       if (result?.error) {
         toast.error("Invalid email or password");
-      } else {
+      } else if (result?.ok) {
         toast.success("Welcome back!");
-        router.push("/en/dashboard");
-        router.refresh();
+        // Wait for session to be established before redirecting
+        await getSession();
+        window.location.href = "/en/dashboard";
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
