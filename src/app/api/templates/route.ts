@@ -23,35 +23,35 @@ export async function GET(request: NextRequest) {
     }
 
     if (templateType) {
-      whereClause.template_type = templateType
+      whereClause.templateType = templateType
     }
 
     if (activeOnly) {
-      whereClause.is_active = true
+      whereClause.isActive = true
     }
 
-    const templates = await prisma.email_templates.findMany({
+    const templates = await prisma.emailTemplate.findMany({
       where: whereClause,
       orderBy: [
-        { is_default: 'desc' },
+        { isDefault: 'desc' },
         { name: 'asc' },
       ],
       select: {
         id: true,
         name: true,
         description: true,
-        template_type: true,
-        subject_en: true,
-        subject_ar: true,
-        content_en: true,
-        content_ar: true,
+        templateType: true,
+        subjectEn: true,
+        subjectAr: true,
+        contentEn: true,
+        contentAr: true,
         variables: true,
         version: true,
         isActive: true,
-        is_default: true,
-        supports_consolidation: true,
-        max_invoice_count: true,
-        uae_business_hours_only: true,
+        isDefault: true,
+        supportsConsolidation: true,
+        maxInvoiceCount: true,
+        uaeBusinessHoursOnly: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -96,37 +96,37 @@ export async function POST(request: NextRequest) {
 
     // If setting as default, unset other defaults of same type
     if (body.is_default) {
-      await prisma.email_templates.updateMany({
+      await prisma.emailTemplate.updateMany({
         where: {
           companyId: session.user.companyId,
-          template_type: body.template_type,
-          is_default: true,
+          templateType: body.template_type,
+          isDefault: true,
         },
         data: {
-          is_default: false,
+          isDefault: false,
         },
       })
     }
 
-    const template = await prisma.email_templates.create({
+    const template = await prisma.emailTemplate.create({
       data: {
         id: crypto.randomUUID(),
         companyId: session.user.companyId,
-        created_by: session.user.id,
+        createdBy: session.user.id,
         name: body.name,
         description: body.description || null,
-        template_type: body.template_type,
-        subject_en: body.subject_en,
-        subject_ar: body.subject_ar || null,
-        content_en: body.content_en,
-        content_ar: body.content_ar || null,
+        templateType: body.template_type,
+        subjectEn: body.subject_en,
+        subjectAr: body.subject_ar || null,
+        contentEn: body.content_en,
+        contentAr: body.content_ar || null,
         variables: body.variables || null,
         isActive: body.is_active !== false,
-        is_default: body.is_default || false,
-        supports_consolidation: body.supports_consolidation || false,
-        max_invoice_count: body.max_invoice_count || 1,
-        uae_business_hours_only: body.uae_business_hours_only !== false,
-        consolidation_variables: body.consolidation_variables || null,
+        isDefault: body.is_default || false,
+        supportsConsolidation: body.supports_consolidation || false,
+        maxInvoiceCount: body.max_invoice_count || 1,
+        uaeBusinessHoursOnly: body.uae_business_hours_only !== false,
+        consolidationVariables: body.consolidation_variables || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
