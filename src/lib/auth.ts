@@ -5,6 +5,7 @@ import { compare } from "bcryptjs"
 
 // Detect if we're running on Vercel/production
 const isProduction = process.env.NEXTAUTH_URL?.startsWith("https://") ?? false;
+// Prisma client will be regenerated with updated DATABASE_URL from Vercel environment
 
 export const authOptions: NextAuthOptions = {
   session: {
