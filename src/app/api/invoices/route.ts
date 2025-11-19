@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     // Customer email filtering
     if (filters.customerEmail) {
-      where.customer_email = {
+      where.customerEmail = {
         equals: filters.customerEmail,
         mode: 'insensitive'
       }
@@ -50,26 +50,26 @@ export async function GET(request: NextRequest) {
 
     // Date range filtering (invoice creation or due dates)
     if (filters.startDate && filters.endDate) {
-      where.created_at = {
+      where.createdAt = {
         gte: filters.startDate,
         lte: filters.endDate
       }
     } else if (filters.startDate) {
-      where.created_at = { gte: filters.startDate }
+      where.createdAt = { gte: filters.startDate }
     } else if (filters.endDate) {
-      where.created_at = { lte: filters.endDate }
+      where.createdAt = { lte: filters.endDate }
     }
 
     // Due date filtering for UAE payment terms
     if (filters.dueDateStart && filters.dueDateEnd) {
-      where.due_date = {
+      where.dueDate = {
         gte: filters.dueDateStart,
         lte: filters.dueDateEnd
       }
     } else if (filters.dueDateStart) {
-      where.due_date = { gte: filters.dueDateStart }
+      where.dueDate = { gte: filters.dueDateStart }
     } else if (filters.dueDateEnd) {
-      where.due_date = { lte: filters.dueDateEnd }
+      where.dueDate = { lte: filters.dueDateEnd }
     }
 
     // Amount filtering with Decimal support
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
 
     // TRN filtering for UAE tax compliance
     if (filters.trnNumber) {
-      where.trn_number = {
+      where.trnNumber = {
         contains: filters.trnNumber,
         mode: 'insensitive'
       }
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
         { descriptionAr: { contains: filters.search, mode: 'insensitive' } },
         { notes: { contains: filters.search, mode: 'insensitive' } },
         { notesAr: { contains: filters.search, mode: 'insensitive' } },
-        { trn_number: { contains: filters.search, mode: 'insensitive' } }
+        { trnNumber: { contains: filters.search, mode: 'insensitive' } }
       ]
     }
 
@@ -313,7 +313,7 @@ async function calculateInvoiceInsights(invoices: any[], companyId: string) {
     .reduce((sum, inv) => sum.plus(inv.totalAmount || inv.amount), new Decimal(0))
   
   const recentInvoices = invoices
-    .filter(inv => inv.created_at > thirtyDaysAgo)
+    .filter(inv => inv.createdAt > thirtyDaysAgo)
     .length
   
   return {
@@ -460,11 +460,11 @@ export async function POST(request: NextRequest) {
       invoice: {
         id: result.invoice.id,
         number: result.invoice.number,
-        customerName: result.invoice.customer_name,
-        customerEmail: result.invoice.customer_email,
+        customerName: result.invoice.customerName,
+        customerEmail: result.invoice.customerEmail,
         totalAmount: result.invoice.totalAmount?.toString(),
         currency: result.invoice.currency,
-        dueDate: result.invoice.due_date,
+        dueDate: result.invoice.dueDate,
         status: result.invoice.status
       }
     }, 'Invoice created successfully', 201)
