@@ -509,20 +509,6 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
             />
           </CardContent>
         </Card>
-
-        {processing && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center space-x-3">
-                <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-                <div>
-                  <p className="font-medium">Processing PDF...</p>
-                  <p className="text-sm text-gray-500">Extracting invoice data using AI</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     )
   }
