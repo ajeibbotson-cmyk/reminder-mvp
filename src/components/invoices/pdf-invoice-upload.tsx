@@ -184,20 +184,27 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
     console.log('editableData:', editableData)
     console.log('parseResult:', parseResult)
 
-    // Parse amount properly - handle string to number conversion
-    const rawAmount = confirmedValues.amount || confirmedValues.totalAmount
-    const parsedAmount = typeof rawAmount === 'string' ? parseFloat(rawAmount) : (rawAmount ?? 0)
-    const finalAmount = isNaN(parsedAmount) ? 0 : parsedAmount
-
-    // Parse VAT amount
-    const rawVatAmount = confirmedValues.vatAmount
-    const parsedVatAmount = typeof rawVatAmount === 'string' ? parseFloat(rawVatAmount) : (rawVatAmount ?? 0)
-    const finalVatAmount = isNaN(parsedVatAmount) ? undefined : parsedVatAmount
-
-    // Parse total amount
+    // Parse total amount first (this is confirmed by user)
     const rawTotalAmount = confirmedValues.totalAmount
     const parsedTotalAmount = typeof rawTotalAmount === 'string' ? parseFloat(rawTotalAmount) : (rawTotalAmount ?? 0)
-    const finalTotalAmount = isNaN(parsedTotalAmount) ? undefined : parsedTotalAmount
+    const finalTotalAmount = isNaN(parsedTotalAmount) ? 0 : parsedTotalAmount
+
+    // Parse VAT amount (optional, may not be confirmed)
+    const rawVatAmount = confirmedValues.vatAmount || editableData.vatAmount
+    const parsedVatAmount = typeof rawVatAmount === 'string' ? parseFloat(rawVatAmount) : (rawVatAmount ?? 0)
+    const finalVatAmount = isNaN(parsedVatAmount) ? 0 : parsedVatAmount
+
+    // Calculate amount (net amount before VAT)
+    // If we have totalAmount and VAT, calculate: amount = total - VAT
+    // Otherwise use the amount from editableData as fallback
+    let finalAmount = finalTotalAmount - finalVatAmount
+
+    // If calculated amount is invalid, try using amount from editableData
+    if (finalAmount <= 0) {
+      const fallbackAmount = editableData.amount || confirmedValues.amount
+      const parsedFallback = typeof fallbackAmount === 'string' ? parseFloat(fallbackAmount) : (fallbackAmount ?? 0)
+      finalAmount = isNaN(parsedFallback) ? finalTotalAmount : parsedFallback
+    }
 
     // Use confirmed values for invoice creation
     const invoiceData = {
