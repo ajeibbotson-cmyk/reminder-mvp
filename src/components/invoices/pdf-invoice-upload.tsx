@@ -97,10 +97,17 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
   const [confirmedValues, setConfirmedValues] = useState<Partial<ExtractedInvoiceData>>({})
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null)
 
   const handleFileUpload = async (file: File) => {
     setProcessing(true)
     setError(null)
+
+    // Store the file and create preview URL
+    setUploadedFile(file)
+    const previewUrl = URL.createObjectURL(file)
+    setPdfPreviewUrl(previewUrl)
 
     try {
       const formData = new FormData()
@@ -197,6 +204,13 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
     setConfirmedFields({})
     setConfirmedValues({})
     setError(null)
+    setUploadedFile(null)
+
+    // Clean up the preview URL to prevent memory leaks
+    if (pdfPreviewUrl) {
+      URL.revokeObjectURL(pdfPreviewUrl)
+      setPdfPreviewUrl(null)
+    }
   }
 
   const getFieldsWithConfidence = (): FieldDefinition[] => {
@@ -675,22 +689,31 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         </CardContent>
       </Card>
 
-      {/* Raw Extracted Text (Collapsible) */}
+      {/* View Uploaded Invoice PDF */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            Raw Extracted Text
+            View Invoice
           </CardTitle>
+          <CardDescription>
+            Preview of the uploaded invoice PDF
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <details className="space-y-2">
-            <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800">
-              View original PDF text (for debugging)
+          <details className="space-y-4">
+            <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+              Show invoice preview
             </summary>
-            <pre className="text-xs bg-gray-50 p-4 rounded-lg overflow-auto max-h-60 whitespace-pre-wrap">
-              {parseResult.extractedData.rawText}
-            </pre>
+            {pdfPreviewUrl && (
+              <div className="mt-4 border rounded-lg overflow-hidden bg-gray-50">
+                <iframe
+                  src={pdfPreviewUrl}
+                  className="w-full h-[600px]"
+                  title="Invoice PDF Preview"
+                />
+              </div>
+            )}
           </details>
         </CardContent>
       </Card>
