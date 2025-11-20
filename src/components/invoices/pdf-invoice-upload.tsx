@@ -530,45 +530,52 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-12 gap-4">
-            {/* Left Column - Confirmed Values (Read-only) */}
+          {/* Column Headers */}
+          <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-4">
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+              <div className="p-3 bg-blue-50 rounded-lg">
                 <h3 className="font-medium text-blue-900 text-sm">Confirmed Values</h3>
                 <p className="text-xs text-blue-700 mt-1">Values that will be saved</p>
               </div>
-              <ScrollArea className="h-[600px] pr-2">
-                <div className="space-y-3">
-                  {fields.map(field => renderConfirmedValue(field))}
-                </div>
-              </ScrollArea>
             </div>
-
-            {/* Middle Column - Confirmation Buttons */}
             <div className="col-span-2">
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
+              <div className="p-3 bg-gray-50 rounded-lg text-center">
                 <h3 className="font-medium text-gray-900 text-sm">Action</h3>
               </div>
-              <ScrollArea className="h-[600px]">
-                <div className="space-y-3">
-                  {fields.map(field => renderConfirmButton(field))}
-                </div>
-              </ScrollArea>
             </div>
-
-            {/* Right Column - AI Extracted (Editable) */}
             <div className="col-span-6">
-              <div className="mb-4 p-3 bg-green-50 rounded-lg">
+              <div className="p-3 bg-green-50 rounded-lg">
                 <h3 className="font-medium text-green-900 text-sm">AI Extracted Data</h3>
                 <p className="text-xs text-green-700 mt-1">Edit values if needed before confirming</p>
               </div>
-              <ScrollArea className="h-[600px] pr-2">
+            </div>
+          </div>
+
+          {/* Single ScrollArea wrapping all three columns */}
+          <ScrollArea className="h-[600px]">
+            <div className="grid grid-cols-12 gap-4 pr-4">
+              {/* Left Column - Confirmed Values (Read-only) */}
+              <div className="col-span-4">
+                <div className="space-y-3">
+                  {fields.map(field => renderConfirmedValue(field))}
+                </div>
+              </div>
+
+              {/* Middle Column - Confirmation Buttons */}
+              <div className="col-span-2">
+                <div className="space-y-3">
+                  {fields.map(field => renderConfirmButton(field))}
+                </div>
+              </div>
+
+              {/* Right Column - AI Extracted (Editable) */}
+              <div className="col-span-6">
                 <div className="space-y-3">
                   {fields.map(field => renderEditableField(field))}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
-          </div>
+          </ScrollArea>
 
           <Separator className="my-6" />
 
