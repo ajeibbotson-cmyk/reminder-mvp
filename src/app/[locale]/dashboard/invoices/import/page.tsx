@@ -110,10 +110,43 @@ export default function InvoiceImportPage() {
   }
 
   const handlePDFInvoiceCreate = async (invoiceData: any) => {
-    // This would typically save the invoice to the database
-    // For now, just show success and redirect
-    console.log('Creating invoice from PDF data:', invoiceData)
-    router.push('/dashboard/invoices?pdf_imported=true')
+    if (!session?.user?.companyId) return
+
+    try {
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          number: invoiceData.invoiceNumber, // API expects 'number' field
+          customerName: invoiceData.customerName,
+          customerEmail: invoiceData.customerEmail,
+          amount: invoiceData.amount,
+          vatAmount: invoiceData.vatAmount,
+          totalAmount: invoiceData.totalAmount,
+          currency: invoiceData.currency || 'AED',
+          dueDate: invoiceData.dueDate,
+          invoiceDate: invoiceData.invoiceDate,
+          description: invoiceData.description || '',
+          pdf_s3_key: invoiceData.pdf_s3_key,
+          pdf_s3_bucket: invoiceData.pdf_s3_bucket,
+          pdf_uploaded_at: invoiceData.pdf_uploaded_at
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create invoice')
+      }
+
+      const result = await response.json()
+      console.log('Invoice created successfully:', result)
+
+      // Show success and redirect to invoices page
+      router.push('/dashboard/invoices?import_success=true')
+    } catch (error) {
+      console.error('Failed to create invoice:', error)
+      alert(`Failed to save invoice: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
   const handleMappingComplete = async (mappings: Record<string, string>) => {
