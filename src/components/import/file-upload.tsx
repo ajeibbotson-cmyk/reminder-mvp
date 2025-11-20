@@ -155,22 +155,10 @@ export function FileUpload({
     if (!uploadedFile || !validationResult?.isValid) return
 
     try {
-      setUploadProgress(0)
-      
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval)
-            return prev
-          }
-          return prev + 10
-        })
-      }, 200)
-      
+      // For PDF files, skip progress simulation and trigger immediately
+      // The parent component will handle processing state
       await onFileUpload(uploadedFile)
-      setUploadProgress(100)
-      
+
     } catch (err) {
       console.error('Upload failed:', err)
       setUploadProgress(0)
@@ -423,17 +411,7 @@ export function FileUpload({
                   </div>
                 )}
 
-                {uploadProgress > 0 && uploadProgress < 100 && (
-                  <div className="space-y-2">
-                    <Progress value={uploadProgress} className="h-2" />
-                    <div className="flex justify-between text-sm">
-                      <span>{t('fileUpload.uploading')}</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                  </div>
-                )}
-
-                {validationResult?.isValid && uploadProgress === 0 && (
+                {validationResult?.isValid && (
                   <Button
                     onClick={handleUpload}
                     disabled={isLoading}
@@ -452,13 +430,6 @@ export function FileUpload({
                       </>
                     )}
                   </Button>
-                )}
-
-                {uploadProgress === 100 && !isLoading && (
-                  <div className="flex items-center justify-center space-x-2 text-green-600 py-4">
-                    <Check className="h-5 w-5" />
-                    <span className="font-medium">{t('fileUpload.uploadComplete')}</span>
-                  </div>
                 )}
               </div>
             )}
