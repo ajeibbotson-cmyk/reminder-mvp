@@ -36,8 +36,8 @@ export async function GET(request: NextRequest) {
 
     // Get all bucket configs for company
     const configs = await prisma.bucketConfig.findMany({
-      where: { companyId: user.company_id },
-      orderBy: { bucket_id: 'asc' }
+      where: { companyId: user.companyId },
+      orderBy: { bucketId: 'asc' }
     })
 
     return NextResponse.json({ configs })
@@ -80,24 +80,24 @@ export async function POST(request: NextRequest) {
     // Upsert bucket config
     const config = await prisma.bucketConfig.upsert({
       where: {
-        company_id_bucket_id: {
-          companyId: user.company_id,
-          bucket_id: validatedData.bucket_id
+        companyId_bucketId: {
+          companyId: user.companyId,
+          bucketId: validatedData.bucket_id
         }
       },
       update: {
-        auto_send_enabled: validatedData.auto_send_enabled,
-        email_templateId: validatedData.email_templateId,
-        send_time_hour: validatedData.send_time_hour,
-        send_days_of_week: validatedData.send_days_of_week as any
+        autoSendEnabled: validatedData.auto_send_enabled,
+        emailTemplateId: validatedData.email_templateId,
+        sendTimeHour: validatedData.send_time_hour,
+        sendDaysOfWeek: validatedData.send_days_of_week as any
       },
       create: {
-        companyId: user.company_id,
-        bucket_id: validatedData.bucket_id,
-        auto_send_enabled: validatedData.auto_send_enabled ?? false,
-        email_templateId: validatedData.email_templateId,
-        send_time_hour: validatedData.send_time_hour ?? 9,
-        send_days_of_week: validatedData.send_days_of_week ?? [0, 1, 2, 3, 4]
+        companyId: user.companyId,
+        bucketId: validatedData.bucket_id,
+        autoSendEnabled: validatedData.auto_send_enabled ?? false,
+        emailTemplateId: validatedData.email_templateId,
+        sendTimeHour: validatedData.send_time_hour ?? 9,
+        sendDaysOfWeek: validatedData.send_days_of_week ?? [0, 1, 2, 3, 4]
       }
     })
 
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       )
     }
