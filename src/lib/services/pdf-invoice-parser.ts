@@ -17,6 +17,8 @@ export interface ExtractedInvoiceData {
   trn?: string
   confidence: number // 0-100 confidence score
   rawText: string
+  s3Key?: string // S3 key where PDF is stored
+  s3Bucket?: string // S3 bucket where PDF is stored
 }
 
 export class PDFInvoiceParser {

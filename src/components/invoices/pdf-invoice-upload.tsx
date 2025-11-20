@@ -178,14 +178,35 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
   const handleCreateInvoice = () => {
     if (!parseResult) return
 
+    // Debug: Log confirmed values to diagnose issues
+    console.log('=== INVOICE CREATION DEBUG ===')
+    console.log('confirmedValues:', confirmedValues)
+    console.log('editableData:', editableData)
+    console.log('parseResult:', parseResult)
+
+    // Parse amount properly - handle string to number conversion
+    const rawAmount = confirmedValues.amount || confirmedValues.totalAmount
+    const parsedAmount = typeof rawAmount === 'string' ? parseFloat(rawAmount) : (rawAmount ?? 0)
+    const finalAmount = isNaN(parsedAmount) ? 0 : parsedAmount
+
+    // Parse VAT amount
+    const rawVatAmount = confirmedValues.vatAmount
+    const parsedVatAmount = typeof rawVatAmount === 'string' ? parseFloat(rawVatAmount) : (rawVatAmount ?? 0)
+    const finalVatAmount = isNaN(parsedVatAmount) ? undefined : parsedVatAmount
+
+    // Parse total amount
+    const rawTotalAmount = confirmedValues.totalAmount
+    const parsedTotalAmount = typeof rawTotalAmount === 'string' ? parseFloat(rawTotalAmount) : (rawTotalAmount ?? 0)
+    const finalTotalAmount = isNaN(parsedTotalAmount) ? undefined : parsedTotalAmount
+
     // Use confirmed values for invoice creation
     const invoiceData = {
       invoiceNumber: confirmedValues.invoiceNumber || '',
       customerName: confirmedValues.customerName || '',
       customerEmail: confirmedValues.customerEmail || '',
-      amount: confirmedValues.amount || confirmedValues.totalAmount || 0,
-      vatAmount: confirmedValues.vatAmount,
-      totalAmount: confirmedValues.totalAmount,
+      amount: finalAmount,
+      vatAmount: finalVatAmount,
+      totalAmount: finalTotalAmount,
       currency: confirmedValues.currency || 'AED',
       dueDate: confirmedValues.dueDate || '',
       invoiceDate: confirmedValues.invoiceDate || '',
@@ -194,6 +215,9 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
       pdf_s3_bucket: parseResult.extractedData.s3Bucket,
       pdf_uploaded_at: new Date().toISOString()
     }
+
+    console.log('invoiceData to be sent:', invoiceData)
+    console.log('=== END DEBUG ===')
 
     onInvoiceCreate(invoiceData)
   }
