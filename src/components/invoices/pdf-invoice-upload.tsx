@@ -70,6 +70,26 @@ const REQUIRED_FIELDS = [
   'dueDate'
 ]
 
+/**
+ * Convert DD/MM/YYYY or MM/DD/YYYY format to YYYY-MM-DD for HTML date inputs
+ */
+const convertDateFormat = (dateStr: string | undefined): string => {
+  if (!dateStr) return ''
+
+  // Try to parse DD/MM/YYYY or MM/DD/YYYY format
+  const parts = dateStr.split(/[-\/]/)
+  if (parts.length !== 3) return dateStr
+
+  const [first, second, year] = parts
+
+  // Detect format based on first part (day > 12 means DD/MM/YYYY)
+  const day = parseInt(first) > 12 ? first : second
+  const month = parseInt(first) > 12 ? second : first
+
+  // Return YYYY-MM-DD format
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+}
+
 export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvoiceUploadProps) {
   const [parseResult, setParseResult] = useState<ParseResult | null>(null)
   const [editableData, setEditableData] = useState<Partial<ExtractedInvoiceData>>({})
@@ -98,7 +118,14 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
 
       const result = await response.json()
       setParseResult(result.data)
-      setEditableData(result.data.extractedData)
+
+      // Convert date formats for HTML date inputs
+      const extractedData = result.data.extractedData
+      setEditableData({
+        ...extractedData,
+        invoiceDate: convertDateFormat(extractedData.invoiceDate),
+        dueDate: convertDateFormat(extractedData.dueDate)
+      })
 
     } catch (err) {
       console.error('PDF upload failed:', err)
@@ -124,12 +151,10 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
   const getFieldButtonState = (fieldKey: string) => {
     const isConfirmed = confirmedFields[fieldKey]
     const currentValue = editableData[fieldKey as keyof ExtractedInvoiceData]
-    const confirmedValue = confirmedValues[fieldKey as keyof ExtractedInvoiceData]
     const hasValue = currentValue !== undefined && currentValue !== '' && currentValue !== null
-    const isEditing = currentValue !== confirmedValue && confirmedValue !== undefined
 
     return {
-      disabled: !hasValue || isEditing,
+      disabled: !hasValue,
       variant: isConfirmed ? 'default' as const : 'outline' as const,
       icon: isConfirmed
     }
