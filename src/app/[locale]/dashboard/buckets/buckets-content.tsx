@@ -67,6 +67,14 @@ export function BucketsContent() {
   const loadConfigs = async () => {
     try {
       const response = await fetch("/api/bucket-configs")
+
+      // 404 is expected for new users with no configurations yet
+      if (response.status === 404) {
+        setConfigs({})
+        setLoading(false)
+        return
+      }
+
       if (!response.ok) throw new Error("Failed to load configs")
 
       const data = await response.json()
