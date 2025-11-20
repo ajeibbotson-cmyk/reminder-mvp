@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Upload,
@@ -8,19 +8,11 @@ import {
   Check,
   AlertCircle,
   Eye,
-  Edit,
-  Save,
   RefreshCw,
   CheckCircle,
   AlertTriangle,
   X,
-  ArrowRight,
-  ZoomIn,
-  Download,
-  FileText,
-  Target,
-  Layers,
-  Split
+  FileText
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,7 +23,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FileUpload } from '@/components/import/file-upload'
 import { ExtractedInvoiceData } from '@/lib/services/pdf-invoice-parser'
 import { cn } from '@/lib/utils'
@@ -53,24 +44,41 @@ interface ParseResult {
   extractedData: ExtractedInvoiceData
   validation: ValidationResult
   timestamp: string
-  previewUrl?: string
-  rawTextHighlights?: {
-    [field: string]: {
-      text: string
-      confidence: number
-      position: { start: number; end: number }
-    }
-  }
 }
+
+interface FieldConfirmation {
+  [fieldKey: string]: boolean
+}
+
+interface FieldDefinition {
+  key: string
+  label: string
+  placeholder: string
+  value: any
+  extractedValue: any
+  confidence: number
+  type: 'text' | 'email' | 'number' | 'date' | 'textarea'
+  required: boolean
+}
+
+const REQUIRED_FIELDS = [
+  'invoiceNumber',
+  'customerName',
+  'customerEmail',
+  'totalAmount',
+  'currency',
+  'invoiceDate',
+  'dueDate'
+]
 
 export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvoiceUploadProps) {
   const t = useTranslations('invoices')
   const [parseResult, setParseResult] = useState<ParseResult | null>(null)
   const [editableData, setEditableData] = useState<Partial<ExtractedInvoiceData>>({})
+  const [confirmedFields, setConfirmedFields] = useState<FieldConfirmation>({})
+  const [confirmedValues, setConfirmedValues] = useState<Partial<ExtractedInvoiceData>>({})
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState('reconciliation')
-  const [hoveredField, setHoveredField] = useState<string | null>(null)
 
   const handleFileUpload = async (file: File) => {
     setProcessing(true)
@@ -102,20 +110,48 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
     }
   }
 
+  const handleConfirmField = (fieldKey: string) => {
+    const currentValue = editableData[fieldKey as keyof ExtractedInvoiceData]
+
+    setConfirmedFields(prev => ({ ...prev, [fieldKey]: true }))
+    setConfirmedValues(prev => ({ ...prev, [fieldKey]: currentValue }))
+  }
+
+  const handleFieldEdit = (fieldKey: string, value: any) => {
+    // Editing unconfirms the field
+    setConfirmedFields(prev => ({ ...prev, [fieldKey]: false }))
+    setEditableData(prev => ({ ...prev, [fieldKey]: value }))
+  }
+
+  const getFieldButtonState = (fieldKey: string) => {
+    const isConfirmed = confirmedFields[fieldKey]
+    const currentValue = editableData[fieldKey as keyof ExtractedInvoiceData]
+    const confirmedValue = confirmedValues[fieldKey as keyof ExtractedInvoiceData]
+    const hasValue = currentValue !== undefined && currentValue !== '' && currentValue !== null
+    const isEditing = currentValue !== confirmedValue && confirmedValue !== undefined
+
+    return {
+      disabled: !hasValue || isEditing,
+      variant: isConfirmed ? 'default' as const : 'outline' as const,
+      icon: isConfirmed
+    }
+  }
+
   const handleCreateInvoice = () => {
     if (!parseResult) return
 
-    // Combine extracted data with any user edits
+    // Use confirmed values for invoice creation
     const invoiceData = {
-      invoiceNumber: editableData.invoiceNumber || '',
-      customerName: editableData.customerName || '',
-      customerEmail: editableData.customerEmail || '',
-      amount: editableData.amount || editableData.totalAmount || 0,
-      vatAmount: editableData.vatAmount,
-      totalAmount: editableData.totalAmount,
-      currency: editableData.currency || 'EUR',
-      dueDate: editableData.dueDate || '',
-      description: editableData.description || '',
+      invoiceNumber: confirmedValues.invoiceNumber || '',
+      customerName: confirmedValues.customerName || '',
+      customerEmail: confirmedValues.customerEmail || '',
+      amount: confirmedValues.amount || confirmedValues.totalAmount || 0,
+      vatAmount: confirmedValues.vatAmount,
+      totalAmount: confirmedValues.totalAmount,
+      currency: confirmedValues.currency || 'AED',
+      dueDate: confirmedValues.dueDate || '',
+      invoiceDate: confirmedValues.invoiceDate || '',
+      description: confirmedValues.description || '',
       pdf_s3_key: parseResult.extractedData.s3Key,
       pdf_s3_bucket: parseResult.extractedData.s3Bucket,
       pdf_uploaded_at: new Date().toISOString()
@@ -127,11 +163,12 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
   const resetUpload = () => {
     setParseResult(null)
     setEditableData({})
+    setConfirmedFields({})
+    setConfirmedValues({})
     setError(null)
   }
 
-  // Helper function to get field data with confidence scores
-  const getFieldsWithConfidence = () => {
+  const getFieldsWithConfidence = (): FieldDefinition[] => {
     if (!parseResult) return []
 
     const extracted = parseResult.extractedData
@@ -143,7 +180,8 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         value: editableData.invoiceNumber || '',
         extractedValue: extracted.invoiceNumber || '',
         confidence: extracted.invoiceNumber ? 95 : 0,
-        type: 'text'
+        type: 'text',
+        required: true
       },
       {
         key: 'customerName',
@@ -152,7 +190,8 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         value: editableData.customerName || '',
         extractedValue: extracted.customerName || '',
         confidence: extracted.customerName ? 90 : 0,
-        type: 'text'
+        type: 'text',
+        required: true
       },
       {
         key: 'customerEmail',
@@ -161,25 +200,28 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         value: editableData.customerEmail || '',
         extractedValue: extracted.customerEmail || '',
         confidence: extracted.customerEmail ? 85 : 0,
-        type: 'email'
+        type: 'email',
+        required: true
       },
       {
         key: 'totalAmount',
         label: 'Invoice Amount',
-        placeholder: 'AED 5,250.00',
-        value: editableData.totalAmount || '',
+        placeholder: '5250.00',
+        value: editableData.totalAmount || editableData.amount || '',
         extractedValue: extracted.totalAmount || extracted.amount || '',
         confidence: (extracted.totalAmount || extracted.amount) ? 90 : 0,
-        type: 'number'
+        type: 'number',
+        required: true
       },
       {
-        key: 'vatAmount',
-        label: 'VAT Amount',
-        placeholder: 'AED 250.00',
-        value: editableData.vatAmount || '',
-        extractedValue: extracted.vatAmount || '',
-        confidence: extracted.vatAmount ? 80 : 50, // Often calculated
-        type: 'number'
+        key: 'currency',
+        label: 'Currency',
+        placeholder: 'AED',
+        value: editableData.currency || 'AED',
+        extractedValue: extracted.currency || 'AED',
+        confidence: 95,
+        type: 'text',
+        required: true
       },
       {
         key: 'invoiceDate',
@@ -188,7 +230,8 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         value: editableData.invoiceDate || '',
         extractedValue: extracted.invoiceDate || '',
         confidence: extracted.invoiceDate ? 85 : 0,
-        type: 'date'
+        type: 'date',
+        required: true
       },
       {
         key: 'dueDate',
@@ -197,7 +240,18 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         value: editableData.dueDate || '',
         extractedValue: extracted.dueDate || '',
         confidence: extracted.dueDate ? 80 : 0,
-        type: 'date'
+        type: 'date',
+        required: true
+      },
+      {
+        key: 'vatAmount',
+        label: 'VAT Amount',
+        placeholder: '250.00',
+        value: editableData.vatAmount || '',
+        extractedValue: extracted.vatAmount || '',
+        confidence: extracted.vatAmount ? 80 : 50,
+        type: 'number',
+        required: false
       },
       {
         key: 'trn',
@@ -206,71 +260,108 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         value: editableData.trn || '',
         extractedValue: extracted.trn || '',
         confidence: extracted.trn ? 95 : 0,
-        type: 'text'
-      },
-      {
-        key: 'currency',
-        label: 'Currency',
-        placeholder: 'AED',
-        value: editableData.currency || 'AED',
-        extractedValue: extracted.currency || 'AED',
-        confidence: 95, // Usually reliable
-        type: 'text'
+        type: 'text',
+        required: false
       },
       {
         key: 'description',
         label: 'Notes',
-        placeholder: 'Project Alpha completion',
+        placeholder: 'Invoice notes',
         value: editableData.description || '',
         extractedValue: extracted.description || '',
         confidence: extracted.description ? 70 : 0,
-        type: 'textarea'
+        type: 'textarea',
+        required: false
       }
     ]
   }
 
-  // Helper function to render editable fields with confidence indicators
-  const renderEditableField = (field: any) => {
-    const confidenceIcon = field.confidence >= 95 ? (
-      <CheckCircle className="h-4 w-4 text-green-500" />
-    ) : field.confidence >= 70 ? (
-      <AlertTriangle className="h-4 w-4 text-orange-500" />
-    ) : (
-      <X className="h-4 w-4 text-red-500" />
-    )
+  const allRequiredConfirmed = REQUIRED_FIELDS.every(field => confirmedFields[field])
 
+  const renderConfirmedValue = (field: FieldDefinition) => {
+    const isConfirmed = confirmedFields[field.key]
+    const value = confirmedValues[field.key as keyof ExtractedInvoiceData]
+
+    return (
+      <div
+        key={field.key}
+        className="p-4 border rounded-lg bg-gray-50 min-h-[80px] flex flex-col justify-center"
+      >
+        <Label className="text-sm font-medium text-gray-700 mb-2">
+          {field.label}
+          {field.required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
+        {isConfirmed ? (
+          <div className="text-sm font-semibold text-gray-900">
+            {field.type === 'number' && value ? Number(value).toLocaleString('en-AE', { minimumFractionDigits: 2 }) : value || '-'}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-400 italic">Pending confirmation</div>
+        )}
+      </div>
+    )
+  }
+
+  const renderConfirmButton = (field: FieldDefinition) => {
+    const buttonState = getFieldButtonState(field.key)
+    const confidenceColor = field.confidence >= 95 ? 'text-green-600' :
+                           field.confidence >= 70 ? 'text-orange-600' :
+                           'text-red-600'
+
+    return (
+      <div
+        key={field.key}
+        className="p-4 flex items-center justify-center min-h-[80px]"
+      >
+        <Button
+          variant={buttonState.variant}
+          size="sm"
+          onClick={() => handleConfirmField(field.key)}
+          disabled={buttonState.disabled}
+          className={cn(
+            "w-full",
+            buttonState.icon && "bg-green-600 hover:bg-green-700 text-white"
+          )}
+        >
+          {buttonState.icon ? (
+            <>
+              <Check className="h-4 w-4 mr-1" />
+              Confirmed
+            </>
+          ) : (
+            <>
+              {field.confidence >= 95 ? (
+                <CheckCircle className={cn("h-4 w-4 mr-1", confidenceColor)} />
+              ) : field.confidence >= 70 ? (
+                <AlertTriangle className={cn("h-4 w-4 mr-1", confidenceColor)} />
+              ) : (
+                <X className={cn("h-4 w-4 mr-1", confidenceColor)} />
+              )}
+              Confirm
+            </>
+          )}
+        </Button>
+      </div>
+    )
+  }
+
+  const renderEditableField = (field: FieldDefinition) => {
     const confidenceColor = field.confidence >= 95 ? 'border-green-200 bg-green-50' :
                            field.confidence >= 70 ? 'border-orange-200 bg-orange-50' :
                            'border-red-200 bg-red-50'
 
     return (
-      <div key={field.key} className={cn('p-3 rounded-lg border-2', confidenceColor)}>
-        <div className="flex items-center justify-between mb-2">
-          <Label className="text-sm font-medium flex items-center gap-2">
-            {confidenceIcon}
-            {field.label}
-            {field.confidence >= 95 && <span className="text-xs text-green-600">(High confidence)</span>}
-            {field.confidence >= 70 && field.confidence < 95 && <span className="text-xs text-orange-600">(Review needed)</span>}
-            {field.confidence < 70 && <span className="text-xs text-red-600">(Manual entry required)</span>}
-          </Label>
-          {field.confidence > 0 && (
-            <Badge variant="outline" className="text-xs">
-              {field.confidence}%
-            </Badge>
-          )}
-        </div>
-
-        {field.extractedValue && field.confidence >= 70 && (
-          <div className="text-xs text-gray-600 mb-2 p-2 bg-white rounded border">
-            <strong>Extracted:</strong> {field.extractedValue}
-          </div>
-        )}
+      <div key={field.key} className={cn('p-4 rounded-lg border-2 min-h-[80px]', confidenceColor)}>
+        <Label className="text-sm font-medium mb-2 block">
+          {field.label}
+          {field.required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
 
         {field.type === 'textarea' ? (
           <Textarea
             value={field.value}
-            onChange={(e) => setEditableData(prev => ({ ...prev, [field.key]: e.target.value }))}
-            placeholder={field.confidence < 70 ? field.placeholder : ''}
+            onChange={(e) => handleFieldEdit(field.key, e.target.value)}
+            placeholder={field.placeholder}
             rows={2}
             className="mt-1"
           />
@@ -280,23 +371,12 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
             value={field.value}
             onChange={(e) => {
               const value = field.type === 'number' ? parseFloat(e.target.value) || '' : e.target.value
-              setEditableData(prev => ({ ...prev, [field.key]: value }))
+              handleFieldEdit(field.key, value)
             }}
-            placeholder={field.confidence < 70 ? field.placeholder : ''}
+            placeholder={field.placeholder}
             step={field.type === 'number' ? '0.01' : undefined}
             className="mt-1"
           />
-        )}
-
-        {field.confidence < 70 && field.extractedValue && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setEditableData(prev => ({ ...prev, [field.key]: field.extractedValue }))}
-            className="mt-2 text-xs"
-          >
-            Use extracted value: "{field.extractedValue}"
-          </Button>
         )}
       </div>
     )
@@ -342,6 +422,8 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
     )
   }
 
+  const fields = getFieldsWithConfidence()
+
   return (
     <div className="space-y-6">
       {/* Parsing Results Summary */}
@@ -357,7 +439,7 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
             </Button>
           </div>
           <CardDescription>
-            Review and edit the extracted data before importing the invoice
+            Review and confirm the extracted data before importing the invoice
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -375,18 +457,16 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
               </div>
             </div>
             <div className="text-center">
-              <Badge
-                variant={parseResult.validation?.isValid ? "default" : "destructive"}
-                className="text-sm"
-              >
-                {parseResult.validation?.isValid ? "Valid" : "Review"}
-              </Badge>
+              <div className="text-lg font-semibold">
+                {Object.keys(confirmedFields).filter(k => confirmedFields[k]).length}/{REQUIRED_FIELDS.length}
+              </div>
+              <div className="text-sm text-gray-500">Fields Confirmed</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-semibold">
-                {getFieldsWithConfidence().filter(f => f.confidence >= 95).length}/{getFieldsWithConfidence().length}
+                {fields.filter(f => f.confidence >= 95).length}/{fields.length}
               </div>
-              <div className="text-sm text-gray-500">Fields Matched</div>
+              <div className="text-sm text-gray-500">High Confidence</div>
             </div>
           </div>
         </CardContent>
@@ -421,152 +501,91 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         </Alert>
       )}
 
-      {/* Enhanced Smart Reconciliation Interface */}
+      {/* Completion Message */}
+      {allRequiredConfirmed && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-green-900">
+                Invoice details complete
+              </h3>
+              <p className="text-sm text-green-700 mt-2">
+                All required fields have been confirmed. Review optional fields below or save the invoice.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Three-Column Reconciliation Layout */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Smart Reconciliation System
+            <FileText className="h-5 w-5" />
+            Review & Confirm Invoice Data
           </CardTitle>
           <CardDescription>
-            AI-powered invoice field matching with confidence scoring and manual override capabilities
+            Confirm each field by reviewing the AI-extracted value on the right. Edit if needed, then click Confirm.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="reconciliation" className="flex items-center gap-2">
-                <Split className="h-4 w-4" />
-                Side-by-Side
-              </TabsTrigger>
-              <TabsTrigger value="extraction" className="flex items-center gap-2">
-                <Layers className="h-4 w-4" />
-                Field Details
-              </TabsTrigger>
-              <TabsTrigger value="preview" className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                PDF Preview
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="reconciliation" className="space-y-6 mt-6">
-              <div className="grid lg:grid-cols-2 gap-8">
-                {/* Left Panel - Required Fields Template */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <h3 className="font-medium text-blue-900">Required Invoice Structure</h3>
-                  </div>
-                  <ScrollArea className="h-[600px] pr-4">
-                    <div className="space-y-3">
-                      {getFieldsWithConfidence().map((field) => (
-                        <div
-                          key={field.key}
-                          className={cn(
-                            "flex items-center justify-between p-3 border rounded-lg transition-colors cursor-pointer",
-                            hoveredField === field.key && "bg-blue-50 border-blue-200"
-                          )}
-                          onMouseEnter={() => setHoveredField(field.key)}
-                          onMouseLeave={() => setHoveredField(null)}
-                        >
-                          <div className="flex-1">
-                            <Label className="text-sm font-medium text-gray-700">{field.label}</Label>
-                            <div className="text-sm text-gray-500 mt-1">{field.placeholder}</div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {field.confidence >= 95 ? (
-                              <CheckCircle className="h-5 w-5 text-green-500" title="High confidence match" />
-                            ) : field.confidence >= 70 ? (
-                              <AlertTriangle className="h-5 w-5 text-orange-500" title="Partial match - review needed" />
-                            ) : (
-                              <X className="h-5 w-5 text-red-500" title="Not found or low confidence" />
-                            )}
-                            <ArrowRight className="h-4 w-4 text-gray-400" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
-
-                {/* Right Panel - Extracted Data with Editing */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
-                    <Target className="h-5 w-5 text-green-600" />
-                    <h3 className="font-medium text-green-900">AI Extracted Data</h3>
-                  </div>
-                  <ScrollArea className="h-[600px] pr-4">
-                    <div className="space-y-3">
-                      {getFieldsWithConfidence().map((field) => (
-                        <div
-                          key={field.key}
-                          className={cn(
-                            "transition-all duration-200",
-                            hoveredField === field.key && "scale-105 z-10 relative"
-                          )}
-                        >
-                          {renderEditableField(field)}
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
+          <div className="grid grid-cols-12 gap-4">
+            {/* Left Column - Confirmed Values (Read-only) */}
+            <div className="col-span-4">
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                <h3 className="font-medium text-blue-900 text-sm">Confirmed Values</h3>
+                <p className="text-xs text-blue-700 mt-1">Values that will be saved</p>
               </div>
-            </TabsContent>
+              <ScrollArea className="h-[600px] pr-2">
+                <div className="space-y-3">
+                  {fields.map(field => renderConfirmedValue(field))}
+                </div>
+              </ScrollArea>
+            </div>
 
-            <TabsContent value="extraction" className="space-y-6 mt-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                  <Layers className="h-5 w-5 text-gray-600" />
-                  <h3 className="font-medium">Detailed Field Analysis</h3>
-                </div>
-                <div className="grid gap-4">
-                  {getFieldsWithConfidence().map((field) => renderEditableField(field))}
-                </div>
+            {/* Middle Column - Confirmation Buttons */}
+            <div className="col-span-2">
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
+                <h3 className="font-medium text-gray-900 text-sm">Action</h3>
               </div>
-            </TabsContent>
+              <ScrollArea className="h-[600px]">
+                <div className="space-y-3">
+                  {fields.map(field => renderConfirmButton(field))}
+                </div>
+              </ScrollArea>
+            </div>
 
-            <TabsContent value="preview" className="space-y-6 mt-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                  <Eye className="h-5 w-5 text-gray-600" />
-                  <h3 className="font-medium">Document Preview & Extraction Highlights</h3>
-                </div>
-                {parseResult.previewUrl ? (
-                  <div className="border rounded-lg p-4 bg-white">
-                    <iframe
-                      src={parseResult.previewUrl}
-                      className="w-full h-[600px] border rounded"
-                      title="PDF Preview"
-                    />
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">PDF Preview Not Available</h3>
-                    <p className="text-gray-500">Preview functionality will be added in future updates</p>
-                  </div>
-                )}
+            {/* Right Column - AI Extracted (Editable) */}
+            <div className="col-span-6">
+              <div className="mb-4 p-3 bg-green-50 rounded-lg">
+                <h3 className="font-medium text-green-900 text-sm">AI Extracted Data</h3>
+                <p className="text-xs text-green-700 mt-1">Edit values if needed before confirming</p>
               </div>
-            </TabsContent>
-          </Tabs>
+              <ScrollArea className="h-[600px] pr-2">
+                <div className="space-y-3">
+                  {fields.map(field => renderEditableField(field))}
+                </div>
+              </ScrollArea>
+            </div>
+          </div>
 
           <Separator className="my-6" />
 
-          {/* Enhanced Action Buttons */}
+          {/* Action Buttons */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Badge variant="outline" className="flex items-center gap-2">
-                <Target className="h-3 w-3" />
-                {getFieldsWithConfidence().filter(f => f.confidence >= 95).length} High Confidence
+                <CheckCircle className="h-3 w-3 text-green-600" />
+                {fields.filter(f => f.confidence >= 95).length} High Confidence
               </Badge>
               <Badge variant="outline" className="flex items-center gap-2">
-                <AlertTriangle className="h-3 w-3" />
-                {getFieldsWithConfidence().filter(f => f.confidence >= 70 && f.confidence < 95).length} Review Needed
+                <AlertTriangle className="h-3 w-3 text-orange-600" />
+                {fields.filter(f => f.confidence >= 70 && f.confidence < 95).length} Review Needed
               </Badge>
               <Badge variant="outline" className="flex items-center gap-2">
-                <X className="h-3 w-3" />
-                {getFieldsWithConfidence().filter(f => f.confidence < 70).length} Manual Entry
+                <X className="h-3 w-3 text-red-600" />
+                {fields.filter(f => f.confidence < 70).length} Manual Entry
               </Badge>
             </div>
             <div className="flex space-x-4">
@@ -576,7 +595,7 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
               </Button>
               <Button
                 onClick={handleCreateInvoice}
-                disabled={isLoading || !editableData.invoiceNumber || !editableData.customerName}
+                disabled={isLoading || !allRequiredConfirmed}
                 className="min-w-[150px]"
               >
                 {isLoading ? (
@@ -586,7 +605,7 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
                   </>
                 ) : (
                   <>
-                    <Save className="h-4 w-4 mr-2" />
+                    <Check className="h-4 w-4 mr-2" />
                     Import Invoice
                   </>
                 )}
