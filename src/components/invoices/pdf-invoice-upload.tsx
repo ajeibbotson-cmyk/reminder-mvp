@@ -398,17 +398,30 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
     )
   }
 
+  const handleQuickDueDate = (days: number) => {
+    const invoiceDate = editableData.invoiceDate
+    if (!invoiceDate) return
+
+    const dueDate = new Date(invoiceDate)
+    dueDate.setDate(dueDate.getDate() + days)
+    const formattedDueDate = dueDate.toISOString().split('T')[0] // YYYY-MM-DD format
+    handleFieldEdit('dueDate', formattedDueDate)
+  }
+
   const renderEditableField = (field: FieldDefinition) => {
     const confidenceColor = field.confidence >= 95 ? 'border-green-200 bg-green-50' :
                            field.confidence >= 70 ? 'border-orange-200 bg-orange-50' :
                            'border-red-200 bg-red-50'
+
+    // Special handling for due date field with quick buttons
+    const showQuickButtons = field.key === 'dueDate' && !field.extractedValue && editableData.invoiceDate
 
     return (
       <div
         key={field.key}
         className={cn(
           'p-4 rounded-lg border-2 flex flex-col',
-          field.type === 'textarea' ? 'min-h-[120px]' : 'h-[100px]',
+          field.type === 'textarea' ? 'min-h-[120px]' : showQuickButtons ? 'min-h-[130px]' : 'h-[100px]',
           confidenceColor
         )}
       >
@@ -426,24 +439,49 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
             className="flex-1"
           />
         ) : (
-          <Input
-            type={field.type === 'number' ? 'text' : field.type}
-            inputMode={field.type === 'number' ? 'decimal' : undefined}
-            value={field.value}
-            onChange={(e) => {
-              if (field.type === 'number') {
-                const value = e.target.value
-                // Allow empty string or valid positive numbers
-                if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                  const numValue = value === '' ? '' : parseFloat(value)
-                  handleFieldEdit(field.key, numValue)
+          <>
+            <Input
+              type={field.type === 'number' ? 'text' : field.type}
+              inputMode={field.type === 'number' ? 'decimal' : undefined}
+              value={field.value}
+              onChange={(e) => {
+                if (field.type === 'number') {
+                  const value = e.target.value
+                  // Allow empty string or valid positive numbers
+                  if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                    const numValue = value === '' ? '' : parseFloat(value)
+                    handleFieldEdit(field.key, numValue)
+                  }
+                } else {
+                  handleFieldEdit(field.key, e.target.value)
                 }
-              } else {
-                handleFieldEdit(field.key, e.target.value)
-              }
-            }}
-            placeholder={field.placeholder}
-          />
+              }}
+              placeholder={field.placeholder}
+            />
+
+            {showQuickButtons && (
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuickDueDate(30)}
+                  className="flex-1 text-xs"
+                >
+                  +30 days
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuickDueDate(60)}
+                  className="flex-1 text-xs"
+                >
+                  +60 days
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     )

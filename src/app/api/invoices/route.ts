@@ -351,6 +351,7 @@ export async function POST(request: NextRequest) {
       totalAmount,
       currency = 'AED',
       dueDate,
+      invoiceDate,
       description,
       pdf_s3_key,
       pdf_s3_bucket,
@@ -376,7 +377,18 @@ export async function POST(request: NextRequest) {
     const calculatedVatAmount = vatAmount ? new Decimal(vatAmount) : invoiceAmount.mul(0.05) // 5% UAE VAT
     const calculatedTotalAmount = totalAmount ? new Decimal(totalAmount) : invoiceAmount.add(calculatedVatAmount)
 
-    // Parse due date or set default (30 days from now for UAE business terms)
+    // Parse invoice date or default to now
+    let parsedInvoiceDate: Date
+    if (invoiceDate) {
+      parsedInvoiceDate = new Date(invoiceDate)
+      if (isNaN(parsedInvoiceDate.getTime())) {
+        return handleApiError(new Error('Invalid invoice date format'), 'Invalid invoice date')
+      }
+    } else {
+      parsedInvoiceDate = new Date()
+    }
+
+    // Parse due date or set default (30 days from invoice date for UAE business terms)
     let parsedDueDate: Date
     if (dueDate) {
       parsedDueDate = new Date(dueDate)
@@ -384,7 +396,7 @@ export async function POST(request: NextRequest) {
         return handleApiError(new Error('Invalid due date format'), 'Invalid due date')
       }
     } else {
-      parsedDueDate = new Date()
+      parsedDueDate = new Date(parsedInvoiceDate)
       parsedDueDate.setDate(parsedDueDate.getDate() + 30)
     }
 
@@ -415,6 +427,7 @@ export async function POST(request: NextRequest) {
           vatAmount: calculatedVatAmount,
           totalAmount: calculatedTotalAmount,
           currency: currency,
+          invoiceDate: parsedInvoiceDate,
           dueDate: parsedDueDate,
           status: 'SENT',
           description: description || `Invoice ${invoiceNumber}`,
