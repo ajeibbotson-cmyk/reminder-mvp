@@ -416,24 +416,35 @@ export class TextractAsyncParser {
     let s3Bucket: string | undefined
     let s3Key: string | undefined
 
+    const startTime = Date.now()
+    console.log(`[Textract] Starting PDF processing for ${fileName}`)
+
     try {
       if (!pdfBuffer || pdfBuffer.length === 0) {
         throw new Error('Invalid PDF buffer provided')
       }
 
       // Step 1: Upload to S3
+      const s3StartTime = Date.now()
       const s3Location = await this.uploadToS3(pdfBuffer, fileName)
       s3Bucket = s3Location.bucket
       s3Key = s3Location.key
+      console.log(`[Textract] S3 upload complete (${Date.now() - s3StartTime}ms)`)
 
       // Step 2: Start Textract job
+      const jobStartTime = Date.now()
       const jobId = await this.startTextractJob(s3Bucket, s3Key)
+      console.log(`[Textract] Job started: ${jobId} (${Date.now() - jobStartTime}ms)`)
 
       // Step 3: Poll until complete
+      const pollStartTime = Date.now()
       const blocks = await this.pollTextractJob(jobId)
+      console.log(`[Textract] Job completed after polling (${Date.now() - pollStartTime}ms)`)
 
       // Step 4: Extract text from blocks
+      const extractStartTime = Date.now()
       const text = this.extractTextFromBlocks(blocks)
+      console.log(`[Textract] Text extracted from blocks (${Date.now() - extractStartTime}ms)`)
 
       if (!text || text.trim().length === 0) {
         return {
@@ -470,6 +481,8 @@ export class TextractAsyncParser {
 
       extractedData.confidence = this.calculateConfidence(extractedData)
 
+      const totalTime = Date.now() - startTime
+      console.log(`[Textract] ✅ TOTAL TIME: ${totalTime}ms (${(totalTime / 1000).toFixed(1)}s)`)
       console.log('Textract async extraction complete:', {
         invoiceNumber: extractedData.invoiceNumber,
         customerName: extractedData.customerName,
