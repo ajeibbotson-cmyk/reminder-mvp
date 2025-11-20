@@ -68,14 +68,16 @@ export function BucketsContent() {
     try {
       const response = await fetch("/api/bucket-configs")
 
-      // 404 is expected for new users with no configurations yet
-      if (response.status === 404) {
+      if (!response.ok) {
+        // Only show error for actual server errors, not auth issues
+        if (response.status >= 500) {
+          throw new Error("Server error loading configs")
+        }
+        // For 401, 404, etc - just set empty configs without error
         setConfigs({})
         setLoading(false)
         return
       }
-
-      if (!response.ok) throw new Error("Failed to load configs")
 
       const data = await response.json()
       const configsArray = data.configs || []
@@ -87,7 +89,10 @@ export function BucketsContent() {
       setConfigs(configsMap)
     } catch (error) {
       console.error("Error loading bucket configs:", error)
-      toast.error("Failed to load bucket configurations")
+      // Only show toast for actual errors, not empty states
+      if (error instanceof Error && error.message.includes("Server error")) {
+        toast.error("Failed to load bucket configurations")
+      }
     } finally {
       setLoading(false)
     }
