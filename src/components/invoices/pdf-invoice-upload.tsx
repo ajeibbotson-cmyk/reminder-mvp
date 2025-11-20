@@ -121,10 +121,18 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
 
       // Convert date formats for HTML date inputs
       const extractedData = result.data.extractedData
+      const convertedInvoiceDate = convertDateFormat(extractedData.invoiceDate)
+      const convertedDueDate = convertDateFormat(extractedData.dueDate)
+
+      console.log('Date conversion:', {
+        original: { invoiceDate: extractedData.invoiceDate, dueDate: extractedData.dueDate },
+        converted: { invoiceDate: convertedInvoiceDate, dueDate: convertedDueDate }
+      })
+
       setEditableData({
         ...extractedData,
-        invoiceDate: convertDateFormat(extractedData.invoiceDate),
-        dueDate: convertDateFormat(extractedData.dueDate)
+        invoiceDate: convertedInvoiceDate,
+        dueDate: convertedDueDate
       })
 
     } catch (err) {
@@ -269,10 +277,10 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
       {
         key: 'vatAmount',
         label: 'VAT Amount',
-        placeholder: '250.00',
+        placeholder: extracted.vatAmount ? '250.00' : 'Not found',
         value: editableData.vatAmount || '',
         extractedValue: extracted.vatAmount || '',
-        confidence: extracted.vatAmount ? 80 : 50,
+        confidence: extracted.vatAmount ? 80 : 0,
         type: 'number',
         required: false
       },
@@ -405,14 +413,22 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
           />
         ) : (
           <Input
-            type={field.type}
+            type={field.type === 'number' ? 'text' : field.type}
+            inputMode={field.type === 'number' ? 'decimal' : undefined}
             value={field.value}
             onChange={(e) => {
-              const value = field.type === 'number' ? parseFloat(e.target.value) || '' : e.target.value
-              handleFieldEdit(field.key, value)
+              if (field.type === 'number') {
+                const value = e.target.value
+                // Allow empty string or valid positive numbers
+                if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                  const numValue = value === '' ? '' : parseFloat(value)
+                  handleFieldEdit(field.key, numValue)
+                }
+              } else {
+                handleFieldEdit(field.key, e.target.value)
+              }
             }}
             placeholder={field.placeholder}
-            step={field.type === 'number' ? '0.01' : undefined}
           />
         )}
       </div>
