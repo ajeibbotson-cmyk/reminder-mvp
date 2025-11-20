@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 import {
   Upload,
   File,
@@ -72,7 +71,6 @@ const REQUIRED_FIELDS = [
 ]
 
 export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvoiceUploadProps) {
-  const t = useTranslations('invoices')
   const [parseResult, setParseResult] = useState<ParseResult | null>(null)
   const [editableData, setEditableData] = useState<Partial<ExtractedInvoiceData>>({})
   const [confirmedFields, setConfirmedFields] = useState<FieldConfirmation>({})
@@ -285,19 +283,24 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
     return (
       <div
         key={field.key}
-        className="p-4 border rounded-lg bg-gray-50 min-h-[80px] flex flex-col justify-center"
+        className={cn(
+          "p-4 border rounded-lg bg-gray-50 flex flex-col",
+          field.type === 'textarea' ? 'min-h-[120px]' : 'h-[100px]'
+        )}
       >
         <Label className="text-sm font-medium text-gray-700 mb-2">
           {field.label}
           {field.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
-        {isConfirmed ? (
-          <div className="text-sm font-semibold text-gray-900">
-            {field.type === 'number' && value ? Number(value).toLocaleString('en-AE', { minimumFractionDigits: 2 }) : value || '-'}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-400 italic">Pending confirmation</div>
-        )}
+        <div className="flex-1 flex items-center">
+          {isConfirmed ? (
+            <div className="text-sm font-semibold text-gray-900">
+              {field.type === 'number' && value ? Number(value).toLocaleString('en-AE', { minimumFractionDigits: 2 }) : value || '-'}
+            </div>
+          ) : (
+            <div className="text-sm text-gray-400 italic">Pending confirmation</div>
+          )}
+        </div>
       </div>
     )
   }
@@ -311,7 +314,10 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
     return (
       <div
         key={field.key}
-        className="p-4 flex items-center justify-center min-h-[80px]"
+        className={cn(
+          "p-4 flex items-center justify-center",
+          field.type === 'textarea' ? 'min-h-[120px]' : 'h-[100px]'
+        )}
       >
         <Button
           variant={buttonState.variant}
@@ -351,7 +357,14 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
                            'border-red-200 bg-red-50'
 
     return (
-      <div key={field.key} className={cn('p-4 rounded-lg border-2 min-h-[80px]', confidenceColor)}>
+      <div
+        key={field.key}
+        className={cn(
+          'p-4 rounded-lg border-2 flex flex-col',
+          field.type === 'textarea' ? 'min-h-[120px]' : 'h-[100px]',
+          confidenceColor
+        )}
+      >
         <Label className="text-sm font-medium mb-2 block">
           {field.label}
           {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -363,7 +376,7 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
             onChange={(e) => handleFieldEdit(field.key, e.target.value)}
             placeholder={field.placeholder}
             rows={2}
-            className="mt-1"
+            className="flex-1"
           />
         ) : (
           <Input
@@ -375,7 +388,6 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
             }}
             placeholder={field.placeholder}
             step={field.type === 'number' ? '0.01' : undefined}
-            className="mt-1"
           />
         )}
       </div>
