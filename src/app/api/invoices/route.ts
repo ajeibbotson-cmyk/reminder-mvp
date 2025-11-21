@@ -414,6 +414,28 @@ export async function POST(request: NextRequest) {
         throw new Error(`Invoice number ${invoiceNumber} already exists`)
       }
 
+      // Create or find the customer (required relation for Invoice)
+      const customer = await tx.customer.upsert({
+        where: {
+          email_companyId: {
+            email: customerEmail,
+            companyId: companyId
+          }
+        },
+        update: {
+          name: customerName,
+          updatedAt: new Date()
+        },
+        create: {
+          id: randomUUID(),
+          companyId: companyId,
+          name: customerName,
+          email: customerEmail,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      })
+
       // Create the invoice
       const invoice = await tx.invoice.create({
         data: {
@@ -427,14 +449,13 @@ export async function POST(request: NextRequest) {
           vatAmount: calculatedVatAmount,
           totalAmount: calculatedTotalAmount,
           currency: currency,
-          invoiceDate: parsedInvoiceDate,
           dueDate: parsedDueDate,
           status: 'SENT',
           description: description || `Invoice ${invoiceNumber}`,
-          pdf_s3_key: pdf_s3_key || null,
-          pdf_s3_bucket: pdf_s3_bucket || null,
-          pdf_uploaded_at: pdf_uploaded_at ? new Date(pdf_uploaded_at) : null,
-          createdAt: new Date(),
+          pdfS3Key: pdf_s3_key || null,
+          pdfS3Bucket: pdf_s3_bucket || null,
+          pdfUploadedAt: pdf_uploaded_at ? new Date(pdf_uploaded_at) : null,
+          createdAt: parsedInvoiceDate, // Use invoice date as created date
           updatedAt: new Date()
         }
       })
