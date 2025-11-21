@@ -32,9 +32,10 @@ const S3_BUCKET = process.env.AWS_S3_BUCKET || 'reminder-mvp-textract-pdfs'
 // Adjusted based on rate limiting errors
 const MAX_CONCURRENT_JOBS = 20
 
-// Polling configuration
-const POLL_INTERVAL_MS = 3000 // Check every 3 seconds
-const MAX_POLL_ATTEMPTS = 60 // Maximum 3 minutes of polling per job
+// Polling configuration - optimized with exponential backoff
+const INITIAL_POLL_INTERVAL_MS = 1000 // Start at 1s for faster detection
+const MAX_POLL_INTERVAL_MS = 5000 // Cap at 5s
+const MAX_POLL_TIME_MS = 120000 // Maximum 2 minutes per job
 
 const s3Client = new S3Client({ region: AWS_REGION })
 const textractClient = new TextractClient({ region: AWS_REGION })
@@ -148,9 +149,10 @@ async function startTextractJob(
 }
 
 async function pollTextractJob(jobId: string): Promise<string> {
-  let attempts = 0
+  const startTime = Date.now()
+  let pollInterval = INITIAL_POLL_INTERVAL_MS
 
-  while (attempts < MAX_POLL_ATTEMPTS) {
+  while (Date.now() - startTime < MAX_POLL_TIME_MS) {
     const command = new GetDocumentAnalysisCommand({ JobId: jobId })
     const response = await textractClient.send(command)
 
@@ -161,6 +163,8 @@ async function pollTextractJob(jobId: string): Promise<string> {
           .map((block) => block.Text)
           .join('\n') || ''
 
+      const elapsed = Date.now() - startTime
+      console.log(`[Textract] Job ${jobId.substring(0, 8)} completed in ${elapsed}ms`)
       return text
     }
 
@@ -168,12 +172,13 @@ async function pollTextractJob(jobId: string): Promise<string> {
       throw new Error(`Textract job failed: ${response.StatusMessage || 'Unknown error'}`)
     }
 
-    // Still in progress - wait and retry
-    attempts++
-    await sleep(POLL_INTERVAL_MS)
+    // Still in progress - wait with exponential backoff
+    await sleep(pollInterval)
+    // Exponential backoff: 1s -> 1.3s -> 1.7s -> 2.2s -> 2.9s -> 3.7s -> 4.8s -> 5s (max)
+    pollInterval = Math.min(pollInterval * 1.3, MAX_POLL_INTERVAL_MS)
   }
 
-  throw new Error(`Textract job timed out after ${MAX_POLL_ATTEMPTS} attempts (${(MAX_POLL_ATTEMPTS * POLL_INTERVAL_MS) / 1000}s)`)
+  throw new Error(`Textract job timed out after ${MAX_POLL_TIME_MS / 1000}s`)
 }
 
 // ============================================================================
