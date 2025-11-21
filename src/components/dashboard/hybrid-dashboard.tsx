@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { HeroMetrics } from './hero-metrics'
+import { PaymentTrendsChart } from './payment-trends-chart'
+import { RecentActivity } from './recent-activity'
 import { InvoiceBucketDashboard } from '../invoices/invoice-bucket-dashboard'
 import { useInvoiceStore } from '@/lib/stores/invoice-store'
 import { ProfessionalLoading } from '@/components/ui/professional-loading'
@@ -125,6 +127,12 @@ export function HybridDashboard({ companyId, locale = 'en' }: HybridDashboardPro
         trend={metrics.trend}
         currency="AED"
       />
+
+      {/* Secondary Row: Trends + Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <PaymentTrendsChart currency="AED" />
+        <RecentActivity maxItems={5} />
+      </div>
 
       {/* Invoice Buckets - Primary view */}
       <div>
