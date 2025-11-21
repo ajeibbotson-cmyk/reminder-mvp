@@ -207,7 +207,7 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
     }
 
     // Use confirmed values for invoice creation
-    // API expects 'number' not 'invoiceNumber' for the invoice number field
+    // All field names use camelCase to match Prisma schema
     const invoiceData = {
       number: confirmedValues.invoiceNumber || '',
       customerName: confirmedValues.customerName || '',
@@ -219,9 +219,9 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
       dueDate: confirmedValues.dueDate || '',
       invoiceDate: confirmedValues.invoiceDate || '',
       description: confirmedValues.description || '',
-      pdf_s3_key: parseResult.extractedData.s3Key,
-      pdf_s3_bucket: parseResult.extractedData.s3Bucket,
-      pdf_uploaded_at: new Date().toISOString()
+      pdfS3Key: parseResult.extractedData.s3Key,
+      pdfS3Bucket: parseResult.extractedData.s3Bucket,
+      pdfUploadedAt: new Date().toISOString()
     }
 
     console.log('invoiceData to be sent:', invoiceData)

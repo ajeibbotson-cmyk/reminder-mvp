@@ -340,7 +340,7 @@ export async function POST(request: NextRequest) {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE])
     const companyId = authContext.user.companyId
 
-    // Parse request body
+    // Parse request body - all fields use camelCase
     const body = await request.json()
     const {
       number: invoiceNumber, // Rename 'number' field to 'invoiceNumber' for internal use
@@ -353,9 +353,9 @@ export async function POST(request: NextRequest) {
       dueDate,
       invoiceDate,
       description,
-      pdf_s3_key,
-      pdf_s3_bucket,
-      pdf_uploaded_at
+      pdfS3Key,
+      pdfS3Bucket,
+      pdfUploadedAt
     } = body
 
     // Validate required fields
@@ -452,9 +452,9 @@ export async function POST(request: NextRequest) {
           dueDate: parsedDueDate,
           status: 'SENT',
           description: description || `Invoice ${invoiceNumber}`,
-          pdfS3Key: pdf_s3_key || null,
-          pdfS3Bucket: pdf_s3_bucket || null,
-          pdfUploadedAt: pdf_uploaded_at ? new Date(pdf_uploaded_at) : null,
+          pdfS3Key: pdfS3Key || null,
+          pdfS3Bucket: pdfS3Bucket || null,
+          pdfUploadedAt: pdfUploadedAt ? new Date(pdfUploadedAt) : null,
           createdAt: parsedInvoiceDate, // Use invoice date as created date
           updatedAt: new Date()
         }

@@ -117,7 +117,7 @@ export default function InvoiceImportPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Component sends 'number' directly (already mapped from invoiceNumber)
+          // All field names use camelCase to match Prisma schema
           number: invoiceData.number,
           customerName: invoiceData.customerName,
           customerEmail: invoiceData.customerEmail,
@@ -128,9 +128,9 @@ export default function InvoiceImportPage() {
           dueDate: invoiceData.dueDate,
           invoiceDate: invoiceData.invoiceDate,
           description: invoiceData.description || '',
-          pdf_s3_key: invoiceData.pdf_s3_key,
-          pdf_s3_bucket: invoiceData.pdf_s3_bucket,
-          pdf_uploaded_at: invoiceData.pdf_uploaded_at
+          pdfS3Key: invoiceData.pdfS3Key,
+          pdfS3Bucket: invoiceData.pdfS3Bucket,
+          pdfUploadedAt: invoiceData.pdfUploadedAt
         })
       })
 
