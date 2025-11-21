@@ -207,8 +207,9 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
     }
 
     // Use confirmed values for invoice creation
+    // API expects 'number' not 'invoiceNumber' for the invoice number field
     const invoiceData = {
-      invoiceNumber: confirmedValues.invoiceNumber || '',
+      number: confirmedValues.invoiceNumber || '',
       customerName: confirmedValues.customerName || '',
       customerEmail: confirmedValues.customerEmail || '',
       amount: finalAmount,
