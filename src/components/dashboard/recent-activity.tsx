@@ -50,8 +50,8 @@ export function RecentActivity({ activities = [], maxItems = 5 }: RecentActivity
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
   }
 
-  // Generate sample activities if none provided
-  const displayActivities = activities.length > 0 ? activities : generateSampleActivities()
+  // Use real activities only - no sample/dummy data
+  const displayActivities = activities
 
   return (
     <Card>
@@ -107,50 +107,3 @@ export function RecentActivity({ activities = [], maxItems = 5 }: RecentActivity
   )
 }
 
-function generateSampleActivities(): ActivityItem[] {
-  const now = new Date()
-
-  return [
-    {
-      id: '1',
-      type: 'payment',
-      title: 'Payment Received',
-      description: 'Invoice #INV-2024-001 paid by Acme Corp',
-      timestamp: new Date(now.getTime() - 2 * 3600000),
-      amount: 5420,
-      currency: 'AED'
-    },
-    {
-      id: '2',
-      type: 'reminder_sent',
-      title: 'Reminder Sent',
-      description: '3 reminders sent for overdue invoices',
-      timestamp: new Date(now.getTime() - 5 * 3600000)
-    },
-    {
-      id: '3',
-      type: 'reminder_opened',
-      title: 'Email Opened',
-      description: 'Gulf Trading viewed reminder for INV-2024-015',
-      timestamp: new Date(now.getTime() - 8 * 3600000)
-    },
-    {
-      id: '4',
-      type: 'overdue',
-      title: 'Invoice Overdue',
-      description: 'Invoice #INV-2024-023 is now 7 days overdue',
-      timestamp: new Date(now.getTime() - 24 * 3600000),
-      amount: 12500,
-      currency: 'AED'
-    },
-    {
-      id: '5',
-      type: 'payment',
-      title: 'Payment Received',
-      description: 'Invoice #INV-2024-019 paid by Dubai Trading LLC',
-      timestamp: new Date(now.getTime() - 48 * 3600000),
-      amount: 8750,
-      currency: 'AED'
-    }
-  ]
-}

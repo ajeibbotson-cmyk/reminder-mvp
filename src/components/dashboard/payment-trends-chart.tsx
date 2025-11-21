@@ -20,8 +20,29 @@ export function PaymentTrendsChart({ data = [], currency = 'AED' }: PaymentTrend
     }).format(amount)
   }
 
-  // Generate sample data if none provided
-  const chartData = data.length > 0 ? data : generateSampleData()
+  // Use real data only - no sample/dummy data
+  const chartData = data
+
+  // Handle empty state
+  if (chartData.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-green-600" />
+            Payment Trends (Last 30 Days)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500">
+            <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>No payment data yet</p>
+            <p className="text-sm mt-1">Payment trends will appear here as invoices are paid</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const maxValue = Math.max(...chartData.map(d => Math.max(d.collected, d.outstanding)))
   const totalCollected = chartData.reduce((sum, d) => sum + d.collected, 0)
@@ -86,20 +107,3 @@ export function PaymentTrendsChart({ data = [], currency = 'AED' }: PaymentTrend
   )
 }
 
-function generateSampleData() {
-  const data = []
-  const today = new Date()
-
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-
-    data.push({
-      date: date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
-      collected: Math.floor(Math.random() * 15000) + 2000,
-      outstanding: Math.floor(Math.random() * 10000) + 1000
-    })
-  }
-
-  return data
-}
