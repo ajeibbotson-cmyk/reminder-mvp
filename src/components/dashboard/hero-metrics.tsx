@@ -55,18 +55,35 @@ export function HeroMetrics({
       </Card>
 
       {/* Overdue Amount */}
-      <Card className="border-2 border-amber-200 bg-amber-50/50 hover:shadow-lg transition-shadow">
+      <Card className={cn(
+        "border-2 hover:shadow-lg transition-shadow",
+        overdue > 0
+          ? "border-amber-200 bg-amber-50/50"
+          : "border-green-200 bg-green-50/50"
+      )}>
         <CardContent className="pt-6">
-          <div className="flex items-center gap-2 text-sm font-medium text-amber-700 mb-2">
+          <div className={cn(
+            "flex items-center gap-2 text-sm font-medium mb-2",
+            overdue > 0 ? "text-amber-700" : "text-green-700"
+          )}>
             <AlertCircle className="h-4 w-4" />
             Overdue Amount
           </div>
-          <div className="text-5xl md:text-6xl font-bold text-amber-600 mb-2">
+          <div className={cn(
+            "text-5xl md:text-6xl font-bold mb-2",
+            overdue > 0 ? "text-amber-600" : "text-green-600"
+          )}>
             {currency} {formatCurrency(overdue)}
           </div>
-          <div className="text-sm text-amber-700 font-medium">
-            ⚠️ Requires immediate attention
-          </div>
+          {overdue > 0 ? (
+            <div className="text-sm text-amber-700 font-medium">
+              ⚠️ Requires immediate attention
+            </div>
+          ) : (
+            <div className="text-sm text-green-700 font-medium">
+              ✓ All invoices on track
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

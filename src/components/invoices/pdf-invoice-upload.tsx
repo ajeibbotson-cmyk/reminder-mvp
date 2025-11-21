@@ -308,8 +308,9 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         key: 'totalAmount',
         label: 'Invoice Amount',
         placeholder: '5250.00',
-        value: editableData.totalAmount || editableData.amount || '',
-        extractedValue: extracted.totalAmount || extracted.amount || '',
+        // Use nullish coalescing to allow empty string values (user clearing the field)
+        value: editableData.totalAmount !== undefined ? editableData.totalAmount : (editableData.amount ?? ''),
+        extractedValue: extracted.totalAmount ?? extracted.amount ?? '',
         confidence: (extracted.totalAmount || extracted.amount) ? 90 : 0,
         type: 'number',
         required: true
@@ -348,8 +349,8 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         key: 'vatAmount',
         label: 'VAT Amount',
         placeholder: extracted.vatAmount ? '250.00' : 'Not found',
-        value: editableData.vatAmount || '',
-        extractedValue: extracted.vatAmount || '',
+        value: editableData.vatAmount ?? '',
+        extractedValue: extracted.vatAmount ?? '',
         confidence: extracted.vatAmount ? 80 : 0,
         type: 'number',
         required: false
@@ -523,14 +524,15 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
             <Input
               type={field.type === 'number' ? 'text' : field.type}
               inputMode={field.type === 'number' ? 'decimal' : undefined}
-              value={field.value}
+              value={field.value === 0 ? '0' : field.value || ''}
               onChange={(e) => {
                 if (field.type === 'number') {
                   const value = e.target.value
-                  // Allow empty string or valid positive numbers
-                  if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                    const numValue = value === '' ? '' : parseFloat(value)
-                    handleFieldEdit(field.key, numValue)
+                  // Allow empty string, numbers with decimals, and partial decimals (e.g., "123.")
+                  if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
+                    // Store as string while editing to preserve trailing decimals/zeros
+                    // Convert to number only when needed for calculations
+                    handleFieldEdit(field.key, value)
                   }
                 } else {
                   handleFieldEdit(field.key, e.target.value)
@@ -722,31 +724,29 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
             </div>
           </div>
 
-          {/* Single ScrollArea wrapping all three columns */}
-          <ScrollArea className="h-[600px]">
-            <div className="grid grid-cols-12 gap-4 pr-4">
-              {/* Left Column - Confirmed Values (Read-only) */}
-              <div className="col-span-4">
-                <div className="space-y-3">
-                  {fields.map(field => renderConfirmedValue(field))}
-                </div>
-              </div>
-
-              {/* Middle Column - Confirmation Buttons */}
-              <div className="col-span-2">
-                <div className="space-y-3">
-                  {fields.map(field => renderConfirmButton(field))}
-                </div>
-              </div>
-
-              {/* Right Column - AI Extracted (Editable) */}
-              <div className="col-span-6">
-                <div className="space-y-3">
-                  {fields.map(field => renderEditableField(field))}
-                </div>
+          {/* All three columns - no scroll wrapper for better UX */}
+          <div className="grid grid-cols-12 gap-4">
+            {/* Left Column - Confirmed Values (Read-only) */}
+            <div className="col-span-4">
+              <div className="space-y-3">
+                {fields.map(field => renderConfirmedValue(field))}
               </div>
             </div>
-          </ScrollArea>
+
+            {/* Middle Column - Confirmation Buttons */}
+            <div className="col-span-2">
+              <div className="space-y-3">
+                {fields.map(field => renderConfirmButton(field))}
+              </div>
+            </div>
+
+            {/* Right Column - AI Extracted (Editable) */}
+            <div className="col-span-6">
+              <div className="space-y-3">
+                {fields.map(field => renderEditableField(field))}
+              </div>
+            </div>
+          </div>
 
           <Separator className="my-6" />
 
@@ -790,6 +790,83 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
               </Button>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Raw Extraction Data - Debug View */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4" />
+            Raw Extraction Data
+          </CardTitle>
+          <CardDescription className="text-xs">
+            What Textract extracted from the PDF (for debugging)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <details>
+            <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+              Show raw data
+            </summary>
+            <div className="mt-4 space-y-4">
+              {/* Processing Stats */}
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-gray-500 text-xs">Confidence</div>
+                  <div className="font-semibold">{parseResult?.extractedData?.confidence ?? 0}%</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-gray-500 text-xs">Processing Time</div>
+                  <div className="font-semibold">{parseResult?.extractedData?.processingTimeMs ?? 0}ms</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-gray-500 text-xs">File Size</div>
+                  <div className="font-semibold">{parseResult?.fileSize ? (parseResult.fileSize / 1024).toFixed(1) + ' KB' : '-'}</div>
+                </div>
+              </div>
+
+              {/* Extracted Fields */}
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium text-gray-700">Field</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-700">Extracted Value</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {parseResult?.extractedData && Object.entries(parseResult.extractedData)
+                      .filter(([key]) => !['rawText', 's3Bucket', 's3Key', 'processingTimeMs', 'confidence'].includes(key))
+                      .map(([key, value]) => (
+                        <tr key={key} className="hover:bg-gray-50">
+                          <td className="px-3 py-2 font-mono text-xs text-gray-600">{key}</td>
+                          <td className="px-3 py-2 font-mono text-xs">
+                            {value === null || value === undefined ? (
+                              <span className="text-gray-400 italic">null</span>
+                            ) : typeof value === 'object' ? (
+                              JSON.stringify(value)
+                            ) : (
+                              String(value)
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Raw Text Sample */}
+              {parseResult?.extractedData?.rawText && (
+                <div>
+                  <div className="text-xs font-medium text-gray-500 mb-1">Raw Text (first 500 chars)</div>
+                  <pre className="p-3 bg-gray-900 text-gray-100 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap">
+                    {parseResult.extractedData.rawText.substring(0, 500)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          </details>
         </CardContent>
       </Card>
 

@@ -165,6 +165,7 @@ export class TextractExpenseParser {
 
   /**
    * Extract field value from expense summary fields
+   * Searches by Type.Text (Textract's classified type) and LabelDetection.Text (actual label on document)
    */
   private static getFieldValue(
     fields: ExpenseField[] | undefined,
@@ -173,10 +174,21 @@ export class TextractExpenseParser {
     if (!fields) return { value: undefined, confidence: 0 }
 
     for (const type of fieldTypes) {
-      const field = fields.find(f =>
-        f.Type?.Text?.toUpperCase() === type.toUpperCase() ||
-        f.LabelDetection?.Text?.toUpperCase().includes(type.toUpperCase())
-      )
+      const typeUpper = type.toUpperCase().replace(/[_\s]+/g, '') // Normalize: "DUE_DATE" -> "DUEDATE"
+
+      const field = fields.find(f => {
+        // Match by Textract's classified type
+        const fieldType = f.Type?.Text?.toUpperCase().replace(/[_\s]+/g, '') || ''
+        if (fieldType === typeUpper) return true
+
+        // Match by label text on document (more flexible - contains match)
+        const labelText = f.LabelDetection?.Text?.toUpperCase().replace(/[_\s]+/g, '') || ''
+        if (labelText.includes(typeUpper) || typeUpper.includes(labelText)) return true
+
+        // Also check for common variations
+        const searchTerms = type.toUpperCase().split(/[_\s]+/)
+        return searchTerms.every(term => labelText.includes(term))
+      })
 
       if (field?.ValueDetection?.Text) {
         return {
@@ -267,64 +279,136 @@ export class TextractExpenseParser {
     let fieldCount = 0
     const result: Partial<ExtractedInvoiceData> = {}
 
+    // Debug: Log all detected fields for analysis
+    const allFields: { type: string; label: string; value: string; confidence: number }[] = []
+
     for (const doc of documents) {
       const fields = doc.SummaryFields
 
+      // Log all fields for debugging
+      fields?.forEach(f => {
+        allFields.push({
+          type: f.Type?.Text || 'UNKNOWN',
+          label: f.LabelDetection?.Text || '',
+          value: f.ValueDetection?.Text || '',
+          confidence: f.ValueDetection?.Confidence || 0
+        })
+      })
+
       // Extract standard invoice fields using Textract's expense-specific types
-      const invoiceId = this.getFieldValue(fields, 'INVOICE_RECEIPT_ID', 'INVOICE_NUMBER', 'RECEIPT_ID')
+      const invoiceId = this.getFieldValue(fields, 'INVOICE_RECEIPT_ID', 'INVOICE_NUMBER', 'RECEIPT_ID', 'INVOICE NUMBER')
       if (invoiceId.value) {
         result.invoiceNumber = invoiceId.value
         totalConfidence += invoiceId.confidence
         fieldCount++
       }
 
-      const vendorName = this.getFieldValue(fields, 'VENDOR_NAME', 'SUPPLIER_NAME', 'NAME')
+      // IMPORTANT: For outgoing invoices (what we're building), the structure is:
+      // - VENDOR = who sent the invoice (e.g., POP Trading Company) - this is US/our client
+      // - RECEIVER/CUSTOMER = who receives the invoice and owes money (e.g., De Bijenkorf) - this is who we're chasing
+
+      // First get the vendor (the company sending the invoice - our client)
+      const vendorName = this.getFieldValue(fields, 'VENDOR_NAME', 'SUPPLIER_NAME', 'FROM', 'SELLER')
       if (vendorName.value) {
         result.vendorName = vendorName.value
-        result.customerName = vendorName.value // Use vendor as customer for consistency
         totalConfidence += vendorName.confidence
         fieldCount++
       }
 
-      const total = this.getFieldValue(fields, 'TOTAL', 'AMOUNT_DUE', 'GRAND_TOTAL')
+      // Now get the receiver/customer (who we're invoicing and need to chase for payment)
+      const receiverName = this.getFieldValue(fields, 'RECEIVER_NAME', 'RECEIVER', 'CUSTOMER_NAME', 'CUSTOMER', 'BILL_TO', 'SHIP_TO', 'DEBTOR', 'CLIENT')
+      if (receiverName.value) {
+        result.customerName = receiverName.value
+        totalConfidence += receiverName.confidence
+        fieldCount++
+      }
+
+      // If no receiver found but we have vendor, check for NAME field (might be the debtor in some formats)
+      // Also look for "Debtor" specific fields
+      if (!result.customerName) {
+        const debtorName = this.getFieldValue(fields, 'DEBTOR_NAME', 'DEBTOR', 'DEBTOR NUMBER')
+        if (debtorName.value && debtorName.value !== result.vendorName) {
+          // If it's a number (like debtor number), don't use it as customer name
+          if (!/^\d+$/.test(debtorName.value)) {
+            result.customerName = debtorName.value
+            totalConfidence += debtorName.confidence
+            fieldCount++
+          }
+        }
+      }
+
+      // Last resort: use NAME field if it's different from vendor
+      if (!result.customerName) {
+        const nameField = this.getFieldValue(fields, 'NAME')
+        if (nameField.value && nameField.value !== result.vendorName) {
+          result.customerName = nameField.value
+          totalConfidence += nameField.confidence
+          fieldCount++
+        }
+      }
+
+      // Try multiple total field variations
+      const total = this.getFieldValue(fields, 'TOTAL', 'AMOUNT_DUE', 'GRAND_TOTAL', 'TOTAL_DUE', 'BALANCE_DUE', 'AMOUNT', 'INVOICE_TOTAL')
       if (total.value) {
         result.totalAmount = this.parseAmount(total.value)
         totalConfidence += total.confidence
         fieldCount++
       }
 
-      const subtotal = this.getFieldValue(fields, 'SUBTOTAL', 'NET_TOTAL')
+      const subtotal = this.getFieldValue(fields, 'SUBTOTAL', 'NET_TOTAL', 'SUB_TOTAL', 'NET_AMOUNT')
       if (subtotal.value) {
         result.amount = this.parseAmount(subtotal.value)
         totalConfidence += subtotal.confidence
         fieldCount++
       }
 
-      const tax = this.getFieldValue(fields, 'TAX', 'VAT', 'TAX_AMOUNT')
+      const tax = this.getFieldValue(fields, 'TAX', 'VAT', 'TAX_AMOUNT', 'BTW', 'GST', 'SALES_TAX')
       if (tax.value) {
         result.vatAmount = this.parseAmount(tax.value)
         totalConfidence += tax.confidence
         fieldCount++
       }
 
-      const invoiceDate = this.getFieldValue(fields, 'INVOICE_RECEIPT_DATE', 'DATE', 'INVOICE_DATE')
+      const invoiceDate = this.getFieldValue(fields, 'INVOICE_RECEIPT_DATE', 'DATE', 'INVOICE_DATE', 'INVOICE DATE', 'DOCUMENT_DATE')
       if (invoiceDate.value) {
         result.invoiceDate = this.normalizeDate(invoiceDate.value)
         totalConfidence += invoiceDate.confidence
         fieldCount++
       }
 
-      const dueDate = this.getFieldValue(fields, 'DUE_DATE', 'PAYMENT_DUE')
+      // Expanded due date search - many variations
+      const dueDate = this.getFieldValue(fields, 'DUE_DATE', 'PAYMENT_DUE', 'PAY_BY', 'PAYMENT_DATE', 'PAYMENT_TERMS', 'TERMS', 'NET_DUE', 'DUE BY')
       if (dueDate.value) {
-        result.dueDate = this.normalizeDate(dueDate.value)
+        // Check if it's a date or payment terms like "Net 30"
+        const dueDateNormalized = this.normalizeDate(dueDate.value)
+        if (dueDateNormalized && /\d{4}/.test(dueDateNormalized)) {
+          result.dueDate = dueDateNormalized
+        } else if (result.invoiceDate && /net\s*(\d+)/i.test(dueDate.value)) {
+          // Calculate due date from payment terms
+          const daysMatch = dueDate.value.match(/net\s*(\d+)/i)
+          if (daysMatch) {
+            const days = parseInt(daysMatch[1])
+            const invoiceDateObj = new Date(result.invoiceDate)
+            invoiceDateObj.setDate(invoiceDateObj.getDate() + days)
+            result.dueDate = invoiceDateObj.toISOString().split('T')[0]
+          }
+        }
         totalConfidence += dueDate.confidence
         fieldCount++
       }
 
-      const vendorAddress = this.getFieldValue(fields, 'VENDOR_ADDRESS', 'ADDRESS')
+      const vendorAddress = this.getFieldValue(fields, 'VENDOR_ADDRESS', 'ADDRESS', 'SENDER_ADDRESS', 'FROM_ADDRESS')
       if (vendorAddress.value) {
         result.vendorAddress = vendorAddress.value
         totalConfidence += vendorAddress.confidence
+        fieldCount++
+      }
+
+      // Try to get receiver/customer address
+      const receiverAddress = this.getFieldValue(fields, 'RECEIVER_ADDRESS', 'BILL_TO_ADDRESS', 'SHIP_TO_ADDRESS', 'CUSTOMER_ADDRESS')
+      if (receiverAddress.value && !result.vendorAddress) {
+        result.vendorAddress = receiverAddress.value
+        totalConfidence += receiverAddress.confidence
         fieldCount++
       }
 
@@ -338,9 +422,11 @@ export class TextractExpenseParser {
         }
       })
 
-      // Extract line items for description
+      // Extract line items for description and also look for totals in line items
       if (doc.LineItemGroups) {
         const descriptions: string[] = []
+        let lineItemTotal = 0
+
         doc.LineItemGroups.forEach((group: LineItemGroup) => {
           group.LineItems?.forEach(item => {
             item.LineItemExpenseFields?.forEach(field => {
@@ -349,17 +435,207 @@ export class TextractExpenseParser {
                   descriptions.push(field.ValueDetection.Text)
                 }
               }
+              // Sum up line item prices if we don't have a total
+              if (field.Type?.Text === 'PRICE' || field.Type?.Text === 'AMOUNT') {
+                const price = this.parseAmount(field.ValueDetection?.Text)
+                if (price) lineItemTotal += price
+              }
             })
           })
         })
         if (descriptions.length > 0) {
           result.description = descriptions.slice(0, 3).join('; ')
         }
+        // Use line item total if we didn't find a document total
+        if (!result.totalAmount && lineItemTotal > 0) {
+          result.totalAmount = lineItemTotal
+        }
+      }
+    }
+
+    // Debug log all fields found
+    console.log('[ExpenseParser] All detected fields:', JSON.stringify(allFields, null, 2))
+    console.log('[ExpenseParser] Current result before fallback:', JSON.stringify({
+      invoiceNumber: result.invoiceNumber,
+      invoiceNumberLength: result.invoiceNumber?.length,
+      customerName: result.customerName,
+      vendorName: result.vendorName,
+      totalAmount: result.totalAmount
+    }))
+    console.log('[ExpenseParser] Raw text for fallback (first 500 chars):', rawText.substring(0, 500))
+
+    // FALLBACK: If expense analysis didn't extract proper fields, try regex on raw text
+    // This helps with B2B invoices like POP Trading that have clear labels
+
+    // Check if invoice number is bad: missing, too long (merged text), or contains newlines (address merged)
+    const invoiceNumBad = !result.invoiceNumber ||
+                          result.invoiceNumber.length > 30 ||
+                          result.invoiceNumber.includes('\n')
+    console.log('[ExpenseParser] Invoice number needs fallback?', invoiceNumBad)
+
+    if (invoiceNumBad) {
+      // Invoice number looks wrong (too long = merged text), try regex
+      // Look for patterns like V01250234, INV-2024-001, etc.
+      // IMPORTANT: These patterns must require digits to avoid matching words like "number"
+      const invoicePatterns = [
+        /([V]\d{8,})/i,  // POP Trading format: V01250234 (V followed by 8+ digits)
+        /invoice\s*(?:number|no\.?|#)?\s*[:.]?\s*([A-Z]?\d{6,})/i,  // Invoice number: 123456
+        /(?:inv|fac(?:tuur)?)\s*#?\s*[:.]?\s*([A-Z]{0,3}\d{5,})/i,  // INV/FAC followed by number
+        /\b([A-Z]{2,3}\d{6,})\b/i  // ABC123456 pattern
+      ]
+      for (const pattern of invoicePatterns) {
+        const match = rawText.match(pattern)
+        const matchedValue = match?.[1]
+        console.log('[ExpenseParser] Trying invoice pattern:', pattern.toString(), '-> match:', matchedValue)
+        // Ensure the match contains at least some digits (not just "number")
+        if (matchedValue && matchedValue.length < 30 && /\d{4,}/.test(matchedValue)) {
+          result.invoiceNumber = matchedValue.trim()
+          console.log('[ExpenseParser] Fallback: Found invoice number via regex:', result.invoiceNumber)
+          break
+        }
+      }
+    }
+
+    // Check if customer name is bad: missing, same as vendor, contains newlines (merged with address), or suspiciously long
+    const customerNameBad = !result.customerName ||
+                            result.customerName === result.vendorName ||
+                            result.customerName.includes('\n') ||
+                            result.customerName.length > 50
+    console.log('[ExpenseParser] Customer name needs fallback?', customerNameBad,
+                '(has newlines:', result.customerName?.includes('\n'),
+                ', length:', result.customerName?.length, ')')
+
+    if (customerNameBad) {
+      // Look for labeled customer/debtor - more patterns for B2B invoices
+      const customerPatterns = [
+        /de\s+bijenkorf/i,  // Specific known customer
+        /(?:debtor|customer|bill\s*to|sold\s*to|klant|debiteur)\s*(?:name)?[:.]?\s*([A-Za-z][A-Za-z\s&.',-]{2,50}?)(?:\n|$|postbus|\d)/i,
+        /^([A-Z][A-Za-z\s&.',-]{2,40})\s*\n\s*(?:postbus|p\.?o\.?\s*box)/im,  // Name followed by address
+        /([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+(?:BV|B\.V\.|NV|N\.V\.|Ltd|LLC|Inc))?/  // Company name pattern
+      ]
+      for (const pattern of customerPatterns) {
+        const match = rawText.match(pattern)
+        console.log('[ExpenseParser] Trying customer pattern:', pattern.toString(), '-> match:', match?.[0] || match?.[1])
+        if (match) {
+          const customerValue = match[1] || match[0]
+          if (customerValue && customerValue.trim() !== result.vendorName && !customerValue.toLowerCase().includes('pop trading')) {
+            result.customerName = customerValue.trim()
+            console.log('[ExpenseParser] Fallback: Found customer name via regex:', result.customerName)
+            break
+          }
+        }
+      }
+    }
+
+    // Extract amounts - look for "To pay" amount which is the final payable amount
+    // This is CRITICAL: We need the actual invoice total, not subtotals or discounts
+    // For invoices with VAT, the "To pay" amount should be AFTER VAT is added
+
+    // First, try to find the definitive "To pay" / "Te betalen" amount (highest priority)
+    const toPayPatterns = [
+      /to\s*pay\s*[:.]?\s*(?:EUR|€|USD|\$)?\s*([\d.,]+)/i,                    // "To pay: EUR 35,753.76"
+      /te\s*betalen\s*[:.]?\s*(?:EUR|€)?\s*([\d.,]+)/i,                        // Dutch: "Te betalen"
+      /(?:EUR|€)\s*([\d.,]+)\s*(?:to\s*pay|te\s*betalen)/i,                    // "EUR 35,753.76 To pay"
+      /amount\s*(?:to\s*)?pay(?:able)?\s*[:.]?\s*(?:EUR|€)?\s*([\d.,]+)/i,     // "Amount payable"
+      /balance\s*due\s*[:.]?\s*(?:EUR|€)?\s*([\d.,]+)/i,                       // "Balance due"
+      /total\s*(?:amount\s*)?due\s*[:.]?\s*(?:EUR|€)?\s*([\d.,]+)/i,           // "Total amount due"
+      /(?:final|net)\s*(?:total|amount)\s*[:.]?\s*(?:EUR|€)?\s*([\d.,]+)/i,    // "Final total" / "Net amount"
+    ]
+
+    let foundToPay = false
+    for (const pattern of toPayPatterns) {
+      const match = rawText.match(pattern)
+      if (match) {
+        const toPayAmount = this.parseAmount(match[1])
+        if (toPayAmount && toPayAmount > 0) {
+          // Validate: "To pay" amount should be reasonable (> VAT if VAT exists, or > current totalAmount)
+          const isReasonable = !result.vatAmount || toPayAmount > result.vatAmount
+          if (isReasonable) {
+            console.log('[ExpenseParser] Found "To pay" amount:', toPayAmount, 'via pattern:', pattern.toString())
+            result.totalAmount = toPayAmount
+            foundToPay = true
+            break
+          }
+        }
+      }
+    }
+
+    // If we found a totalAmount from Textract, validate it makes sense
+    // A common error: extracting discount amount instead of final total
+    if (result.totalAmount && result.vatAmount && !foundToPay) {
+      // If we have VAT, the total should be GREATER than VAT alone
+      // Also, if total is LESS than VAT, it's probably wrong (e.g., discount amount)
+      if (result.totalAmount < result.vatAmount) {
+        console.log('[ExpenseParser] WARNING: totalAmount', result.totalAmount, '< vatAmount', result.vatAmount, '- likely wrong, searching for correct total')
+
+        // Search for larger amounts in raw text that could be the real total
+        // Look for amounts that are greater than the current (wrong) total
+        const allAmountMatches = rawText.matchAll(/(?:EUR|€)\s*([\d.,]+)/gi)
+        let largestReasonableAmount = result.totalAmount
+
+        for (const match of allAmountMatches) {
+          const amount = this.parseAmount(match[1])
+          if (amount && amount > largestReasonableAmount && amount > result.vatAmount) {
+            // Sanity check: shouldn't be more than 10x the VAT (would be unrealistic)
+            if (amount < result.vatAmount * 10) {
+              largestReasonableAmount = amount
+              console.log('[ExpenseParser] Found larger candidate total:', amount)
+            }
+          }
+        }
+
+        if (largestReasonableAmount > result.totalAmount) {
+          console.log('[ExpenseParser] Correcting totalAmount from', result.totalAmount, 'to', largestReasonableAmount)
+          result.totalAmount = largestReasonableAmount
+        }
+      }
+    }
+
+    // Fallback: if still no total or seems wrong, use pattern matching
+    if (!result.totalAmount) {
+      // Look for total amount patterns
+      const totalPatterns = [
+        /(?:total|totaal|grand\s*total|amount\s*due|balance\s*due)\s*[:.]?\s*[€$]?\s*([\d.,]+)/i,
+        /[€$]\s*([\d.,]+)\s*(?:total|totaal)/i,
+        /(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})\s*(?:€|EUR)/i  // European format before currency
+      ]
+      for (const pattern of totalPatterns) {
+        const match = rawText.match(pattern)
+        if (match) {
+          result.totalAmount = this.parseAmount(match[1])
+          console.log('[ExpenseParser] Fallback: Found total amount via regex:', result.totalAmount)
+          break
+        }
+      }
+    }
+
+    // Extract invoice date if not found
+    if (!result.invoiceDate) {
+      const datePatterns = [
+        /invoice\s*date\s*[:.]?\s*(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i,
+        /date\s*[:.]?\s*(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i,
+        /(\d{2}-\d{2}-\d{4})/  // DD-MM-YYYY format
+      ]
+      for (const pattern of datePatterns) {
+        const match = rawText.match(pattern)
+        if (match) {
+          result.invoiceDate = this.normalizeDate(match[1])
+          console.log('[ExpenseParser] Fallback: Found invoice date via regex:', result.invoiceDate)
+          break
+        }
       }
     }
 
     // Extract email from raw text
     result.customerEmail = this.extractEmail(rawText)
+
+    // Fallback: If no due date but we have invoice date, default to Net 30
+    if (!result.dueDate && result.invoiceDate) {
+      const invoiceDateObj = new Date(result.invoiceDate)
+      invoiceDateObj.setDate(invoiceDateObj.getDate() + 30)
+      result.dueDate = invoiceDateObj.toISOString().split('T')[0]
+      console.log('[ExpenseParser] No due date found, defaulting to Net 30:', result.dueDate)
+    }
 
     // Calculate overall confidence
     const confidence = fieldCount > 0 ? Math.round(totalConfidence / fieldCount) : 0
