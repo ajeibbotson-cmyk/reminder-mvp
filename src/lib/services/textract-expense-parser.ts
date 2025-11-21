@@ -177,17 +177,22 @@ export class TextractExpenseParser {
       const typeUpper = type.toUpperCase().replace(/[_\s]+/g, '') // Normalize: "DUE_DATE" -> "DUEDATE"
 
       const field = fields.find(f => {
-        // Match by Textract's classified type
+        // Match by Textract's classified type (exact match)
         const fieldType = f.Type?.Text?.toUpperCase().replace(/[_\s]+/g, '') || ''
         if (fieldType === typeUpper) return true
 
         // Match by label text on document (more flexible - contains match)
+        // BUT only if labelText is not empty (empty string.includes() always returns true!)
         const labelText = f.LabelDetection?.Text?.toUpperCase().replace(/[_\s]+/g, '') || ''
-        if (labelText.includes(typeUpper) || typeUpper.includes(labelText)) return true
+        if (labelText && labelText.includes(typeUpper)) return true
 
-        // Also check for common variations
-        const searchTerms = type.toUpperCase().split(/[_\s]+/)
-        return searchTerms.every(term => labelText.includes(term))
+        // Also check for common variations (only if labelText is meaningful)
+        if (labelText && labelText.length >= 3) {
+          const searchTerms = type.toUpperCase().split(/[_\s]+/)
+          return searchTerms.every(term => labelText.includes(term))
+        }
+
+        return false
       })
 
       if (field?.ValueDetection?.Text) {
@@ -347,12 +352,40 @@ export class TextractExpenseParser {
         }
       }
 
-      // Try multiple total field variations
-      const total = this.getFieldValue(fields, 'TOTAL', 'AMOUNT_DUE', 'GRAND_TOTAL', 'TOTAL_DUE', 'BALANCE_DUE', 'AMOUNT', 'INVOICE_TOTAL')
-      if (total.value) {
-        result.totalAmount = this.parseAmount(total.value)
-        totalConfidence += total.confidence
+      // Try to find the "To pay" total first (most accurate for final payable amount)
+      // Textract may return multiple TOTAL fields - we want the one labeled "To pay" or similar
+      let bestTotal: { value: string; confidence: number; label: string } | null = null
+
+      fields?.forEach(f => {
+        if (f.Type?.Text?.toUpperCase() === 'TOTAL' && f.ValueDetection?.Text) {
+          const label = f.LabelDetection?.Text?.toLowerCase() || ''
+          const value = f.ValueDetection.Text
+          const confidence = f.ValueDetection.Confidence || 0
+
+          // Prioritize "To pay" / "Te betalen" / "Amount due" over generic "Total"
+          const isPayableLabel = label.includes('pay') || label.includes('betalen') ||
+                                 label.includes('due') || label.includes('balance')
+
+          if (!bestTotal || isPayableLabel) {
+            bestTotal = { value, confidence, label }
+            console.log('[ExpenseParser] Found TOTAL candidate:', { label, value, confidence, isPayableLabel })
+          }
+        }
+      })
+
+      if (bestTotal) {
+        result.totalAmount = this.parseAmount(bestTotal.value)
+        totalConfidence += bestTotal.confidence
         fieldCount++
+        console.log('[ExpenseParser] Selected total:', bestTotal.value, 'from label:', bestTotal.label)
+      } else {
+        // Fallback to generic search
+        const total = this.getFieldValue(fields, 'TOTAL', 'AMOUNT_DUE', 'GRAND_TOTAL', 'TOTAL_DUE', 'BALANCE_DUE', 'AMOUNT', 'INVOICE_TOTAL')
+        if (total.value) {
+          result.totalAmount = this.parseAmount(total.value)
+          totalConfidence += total.confidence
+          fieldCount++
+        }
       }
 
       const subtotal = this.getFieldValue(fields, 'SUBTOTAL', 'NET_TOTAL', 'SUB_TOTAL', 'NET_AMOUNT')
