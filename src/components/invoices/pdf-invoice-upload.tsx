@@ -356,16 +356,6 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         required: true
       },
       {
-        key: 'vatAmount',
-        label: 'VAT Amount',
-        placeholder: extracted.vatAmount ? '250.00' : 'Not found',
-        value: editableData.vatAmount ?? '',
-        extractedValue: extracted.vatAmount ?? '',
-        confidence: extracted.vatAmount ? 80 : 0,
-        type: 'number',
-        required: false
-      },
-      {
         key: 'trn',
         label: 'TRN',
         placeholder: '100123456789012',
