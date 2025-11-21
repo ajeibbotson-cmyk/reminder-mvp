@@ -113,34 +113,58 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetch('/api/invoices/upload-pdf', {
+      // Use async API for faster perceived performance
+      const uploadResponse = await fetch('/api/invoices/upload-pdf-async', {
         method: 'POST',
         body: formData
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to process PDF')
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json()
+        throw new Error(errorData.error || 'Failed to upload PDF')
       }
 
-      const result = await response.json()
-      setParseResult(result.data)
+      const { trackingId } = await uploadResponse.json()
+      console.log('[Upload] Started with trackingId:', trackingId)
 
-      // Convert date formats for HTML date inputs
-      const extractedData = result.data.extractedData
-      const convertedInvoiceDate = convertDateFormat(extractedData.invoiceDate)
-      const convertedDueDate = convertDateFormat(extractedData.dueDate)
+      // Poll for results with fast interval
+      const pollInterval = 500 // Check every 500ms for fast feedback
+      const maxPollTime = 120000 // 2 minutes max
+      const startTime = Date.now()
 
-      console.log('Date conversion:', {
-        original: { invoiceDate: extractedData.invoiceDate, dueDate: extractedData.dueDate },
-        converted: { invoiceDate: convertedInvoiceDate, dueDate: convertedDueDate }
-      })
+      while (Date.now() - startTime < maxPollTime) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval))
 
-      setEditableData({
-        ...extractedData,
-        invoiceDate: convertedInvoiceDate,
-        dueDate: convertedDueDate
-      })
+        const statusResponse = await fetch(`/api/invoices/upload-pdf-async?trackingId=${trackingId}`)
+        const statusData = await statusResponse.json()
+
+        console.log('[Upload] Status:', statusData.status, statusData.elapsedMs ? `${statusData.elapsedMs}ms` : '')
+
+        if (statusData.status === 'completed') {
+          const result = statusData.data
+          setParseResult(result)
+
+          // Convert date formats for HTML date inputs
+          const extractedData = result.extractedData
+          const convertedInvoiceDate = convertDateFormat(extractedData.invoiceDate)
+          const convertedDueDate = convertDateFormat(extractedData.dueDate)
+
+          setEditableData({
+            ...extractedData,
+            invoiceDate: convertedInvoiceDate,
+            dueDate: convertedDueDate
+          })
+
+          console.log('[Upload] Complete in', statusData.processingTimeMs, 'ms')
+          return
+        }
+
+        if (statusData.status === 'failed') {
+          throw new Error(statusData.error || 'Processing failed')
+        }
+      }
+
+      throw new Error('Processing timeout - please try again')
 
     } catch (err) {
       console.error('PDF upload failed:', err)
