@@ -355,9 +355,33 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
 
   const allRequiredConfirmed = REQUIRED_FIELDS.every(field => confirmedFields[field])
 
+  /**
+   * Format date for display (YYYY-MM-DD -> DD/MM/YYYY)
+   */
+  const formatDateForDisplay = (dateStr: string | undefined): string => {
+    if (!dateStr) return '-'
+    // Parse YYYY-MM-DD format
+    const parts = dateStr.split('-')
+    if (parts.length !== 3) return dateStr
+    const [year, month, day] = parts
+    return `${day}/${month}/${year}`
+  }
+
   const renderConfirmedValue = (field: FieldDefinition) => {
     const isConfirmed = confirmedFields[field.key]
     const value = confirmedValues[field.key as keyof ExtractedInvoiceData]
+
+    // Format value based on field type
+    const displayValue = (() => {
+      if (!value) return '-'
+      if (field.type === 'number') {
+        return Number(value).toLocaleString('en-AE', { minimumFractionDigits: 2 })
+      }
+      if (field.type === 'date') {
+        return formatDateForDisplay(value as string)
+      }
+      return value
+    })()
 
     return (
       <div
@@ -374,7 +398,7 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         <div className="flex-1 flex items-center">
           {isConfirmed ? (
             <div className="text-sm font-semibold text-gray-900">
-              {field.type === 'number' && value ? Number(value).toLocaleString('en-AE', { minimumFractionDigits: 2 }) : value || '-'}
+              {displayValue}
             </div>
           ) : (
             <div className="text-sm text-gray-400 italic">Pending confirmation</div>

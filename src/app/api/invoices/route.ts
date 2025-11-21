@@ -461,7 +461,7 @@ export async function POST(request: NextRequest) {
       })
 
       // Create associated invoice item
-      const invoiceItem = await tx.invoice_items.create({
+      const invoiceItem = await tx.invoiceItem.create({
         data: {
           id: randomUUID(),
           invoiceId: invoice.id,
