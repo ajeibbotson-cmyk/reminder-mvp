@@ -117,7 +117,8 @@ export default function InvoiceImportPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          number: invoiceData.invoiceNumber, // API expects 'number' field
+          // Component sends 'number' directly (already mapped from invoiceNumber)
+          number: invoiceData.number,
           customerName: invoiceData.customerName,
           customerEmail: invoiceData.customerEmail,
           amount: invoiceData.amount,
