@@ -297,14 +297,14 @@ export class AWSSESConsolidationService {
 
       const [deliveryStats, culturalAnalysis, performanceMetrics] = await Promise.all([
         // Delivery statistics
-        prisma.emailLogs.groupBy({
+        prisma.emailLog.groupBy({
           by: ['deliveryStatus'],
           where: whereClause,
           _count: { id: true }
         }),
 
         // Cultural compliance analysis
-        prisma.emailLogs.aggregate({
+        prisma.emailLog.aggregate({
           where: whereClause,
           _avg: { culturalComplianceScore: true },
           _min: { culturalComplianceScore: true },
@@ -312,7 +312,7 @@ export class AWSSESConsolidationService {
         }),
 
         // Performance metrics
-        prisma.emailLogs.aggregate({
+        prisma.emailLog.aggregate({
           where: {
             ...whereClause,
             deliveredAt: { not: null },
@@ -565,7 +565,7 @@ export class AWSSESConsolidationService {
   }
 
   private async createEmailLogEntry(request: ConsolidatedEmailRequest): Promise<string> {
-    const emailLog = await prisma.emailLogs.create({
+    const emailLog = await prisma.emailLog.create({
       data: {
         id: crypto.randomUUID(),
         consolidatedReminderId: request.consolidationId,
@@ -595,7 +595,7 @@ export class AWSSESConsolidationService {
     sesResponse: any,
     deliveryTime: number
   ): Promise<void> {
-    await prisma.emailLogs.update({
+    await prisma.emailLog.update({
       where: { id: emailLogId },
       data: {
         awsMessageId: sesResponse.MessageId,
@@ -629,7 +629,7 @@ export class AWSSESConsolidationService {
       })
 
       if (consolidation) {
-        await prisma.activities.create({
+        await prisma.activity.create({
           data: {
             id: crypto.randomUUID(),
             companyId: consolidation.companyId,
@@ -658,7 +658,7 @@ export class AWSSESConsolidationService {
     // Handle successful delivery webhook
     const messageId = eventData.mail?.messageId
     if (messageId) {
-      await prisma.emailLogs.updateMany({
+      await prisma.emailLog.updateMany({
         where: { awsMessageId: messageId },
         data: {
           deliveryStatus: 'DELIVERED',
@@ -673,7 +673,7 @@ export class AWSSESConsolidationService {
     // Handle bounce webhook
     const messageId = eventData.mail?.messageId
     if (messageId) {
-      await prisma.emailLogs.updateMany({
+      await prisma.emailLog.updateMany({
         where: { awsMessageId: messageId },
         data: {
           deliveryStatus: 'BOUNCED',
@@ -689,7 +689,7 @@ export class AWSSESConsolidationService {
     // Handle complaint webhook
     const messageId = eventData.mail?.messageId
     if (messageId) {
-      await prisma.emailLogs.updateMany({
+      await prisma.emailLog.updateMany({
         where: { awsMessageId: messageId },
         data: {
           complainedAt: new Date(),
@@ -704,7 +704,7 @@ export class AWSSESConsolidationService {
     // Handle email open webhook
     const emailLogId = eventData.emailLogId // Would be extracted from tracking URL
     if (emailLogId) {
-      await prisma.emailLogs.update({
+      await prisma.emailLog.update({
         where: { id: emailLogId },
         data: {
           openedAt: new Date(),
@@ -718,7 +718,7 @@ export class AWSSESConsolidationService {
     // Handle email click webhook
     const emailLogId = eventData.emailLogId // Would be extracted from tracking URL
     if (emailLogId) {
-      await prisma.emailLogs.update({
+      await prisma.emailLog.update({
         where: { id: emailLogId },
         data: {
           clickedAt: new Date(),

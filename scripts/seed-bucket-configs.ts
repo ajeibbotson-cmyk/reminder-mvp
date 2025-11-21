@@ -22,7 +22,7 @@ async function seedBucketConfigs() {
 
   try {
     // Get all companies
-    const companies = await prisma.companies.findMany({
+    const companies = await prisma.company.findMany({
       select: { id: true, name: true }
     })
 
@@ -33,7 +33,7 @@ async function seedBucketConfigs() {
 
       for (const bucketId of BUCKET_IDS) {
         // Check if config already exists
-        const existing = await prisma.bucket_configs.findUnique({
+        const existing = await prisma.bucketConfig.findUnique({
           where: {
             company_id_bucket_id: {
               company_id: company.id,
@@ -48,7 +48,7 @@ async function seedBucketConfigs() {
         }
 
         // Create default config
-        await prisma.bucket_configs.create({
+        await prisma.bucketConfig.create({
           data: {
             company_id: company.id,
             bucket_id: bucketId,

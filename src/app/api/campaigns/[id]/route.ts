@@ -115,25 +115,14 @@ export async function GET(
         companyId: companyId // Multi-tenant security
       },
       include: {
-        created_by_user: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
         campaignEmailSends: {
           include: {
             invoice: {
               select: {
                 id: true,
                 number: true,
-                amount_aed: true,
+                amount: true,
                 status: true
-              }
-            },
-            customer: {
-              select: {
-                name: true
               }
             }
           },
@@ -159,26 +148,26 @@ export async function GET(
 
     // 6. Extract unique invoices from email sends
     const uniqueInvoices = new Map()
-    campaign.campaign_email_sends.forEach(send => {
+    campaign.campaignEmailSends.forEach(send => {
       if (send.invoice && !uniqueInvoices.has(send.invoice.id)) {
         uniqueInvoices.set(send.invoice.id, {
           id: send.invoice.id,
           number: send.invoice.number,
-          customerName: send.customer?.name || 'Unknown',
-          amount: send.invoice.amount_aed || 0,
+          customerName: 'Unknown',
+          amount: Number(send.invoice.amount) || 0,
           status: send.invoice.status
         })
       }
     })
 
     // 7. Format email logs
-    const emailLogs = campaign.campaign_email_sends.map(send => ({
+    const emailLogs = campaign.campaignEmailSends.map(send => ({
       id: send.id,
-      recipientEmail: send.recipient_email,
+      recipientEmail: send.recipientEmail,
       invoiceNumber: send.invoice?.number || 'Unknown',
-      deliveryStatus: send.delivery_status,
-      sentAt: send.sent_at?.toISOString(),
-      errorMessage: send.error_message
+      deliveryStatus: send.deliveryStatus,
+      sentAt: send.sentAt?.toISOString(),
+      errorMessage: send.errorMessage
     }))
 
     // 8. Build response
@@ -187,18 +176,18 @@ export async function GET(
         id: campaign.id,
         name: campaign.name,
         status: campaign.status as any,
-        createdAt: campaign.created_at.toISOString(),
-        startedAt: campaign.started_at?.toISOString(),
-        completedAt: campaign.completed_at?.toISOString(),
+        createdAt: campaign.createdAt.toISOString(),
+        startedAt: campaign.startedAt?.toISOString(),
+        completedAt: campaign.completedAt?.toISOString(),
 
         // Configuration
-        emailSubject: campaign.email_subject,
-        emailContent: campaign.email_content,
+        emailSubject: campaign.emailSubject,
+        emailContent: campaign.emailContent,
         language: campaign.language as any,
-        batchSize: campaign.batch_size,
-        delayBetweenBatches: campaign.delay_between_batches,
-        respectBusinessHours: campaign.respect_business_hours,
-        scheduledFor: campaign.scheduled_for?.toISOString(),
+        batchSize: campaign.batchSize,
+        delayBetweenBatches: campaign.delayBetweenBatches,
+        respectBusinessHours: campaign.respectBusinessHours,
+        scheduledFor: campaign.scheduledFor?.toISOString(),
 
         // Progress
         progress,
@@ -209,8 +198,8 @@ export async function GET(
 
         // Creator info
         createdBy: {
-          id: campaign.created_by_user.id,
-          name: campaign.created_by_user.name
+          id: campaign.createdBy,
+          name: 'Unknown'
         }
       }
     }
@@ -242,9 +231,9 @@ export async function GET(
 async function calculateEngagementMetrics(campaignId: string) {
   try {
     const metrics = await prisma.emailEventTracking.groupBy({
-      by: ['event_type'],
+      by: ['eventType'],
       where: {
-        campaign_email_send: {
+        campaignEmailSend: {
           campaignId: campaignId
         }
       },
@@ -252,10 +241,10 @@ async function calculateEngagementMetrics(campaignId: string) {
     })
 
     return {
-      opened: metrics.find(m => m.event_type === 'opened')?._count.id || 0,
-      clicked: metrics.find(m => m.event_type === 'clicked')?._count.id || 0,
-      bounced: metrics.find(m => m.event_type === 'bounced')?._count.id || 0,
-      unsubscribed: metrics.find(m => m.event_type === 'unsubscribed')?._count.id || 0
+      opened: metrics.find(m => m.eventType === 'opened')?._count.id || 0,
+      clicked: metrics.find(m => m.eventType === 'clicked')?._count.id || 0,
+      bounced: metrics.find(m => m.eventType === 'bounced')?._count.id || 0,
+      unsubscribed: metrics.find(m => m.eventType === 'unsubscribed')?._count.id || 0
     }
   } catch (error) {
     console.error('Engagement metrics calculation error:', error)
@@ -275,25 +264,25 @@ function calculateCampaignProgress(
   campaign: any,
   engagementMetrics: any
 ): CampaignDetailsResponse['campaign']['progress'] {
-  const totalRecipients = campaign.total_recipients
-  const sentCount = campaign.sent_count
-  const failedCount = campaign.failed_count
-  const pendingCount = campaign.campaign_email_sends.filter(
-    (send: any) => send.delivery_status === 'pending'
+  const totalRecipients = campaign.totalRecipients
+  const sentCount = campaign.sentCount
+  const failedCount = campaign.failedCount
+  const pendingCount = campaign.campaignEmailSends.filter(
+    (send: any) => send.deliveryStatus === 'pending'
   ).length
 
   const percentComplete = totalRecipients > 0
     ? Math.round(((sentCount + failedCount) / totalRecipients) * 100)
     : 0
 
-  const currentBatch = Math.ceil((sentCount + failedCount) / campaign.batch_size)
-  const totalBatches = Math.ceil(totalRecipients / campaign.batch_size)
+  const currentBatch = Math.ceil((sentCount + failedCount) / campaign.batchSize)
+  const totalBatches = Math.ceil(totalRecipients / campaign.batchSize)
 
   // Calculate estimated time remaining for active campaigns
   let estimatedTimeRemaining: string | undefined
   if (campaign.status === 'sending' && pendingCount > 0) {
     const remainingBatches = totalBatches - currentBatch
-    const avgBatchTime = campaign.delay_between_batches + 2000 // Estimate 2s processing time
+    const avgBatchTime = campaign.delayBetweenBatches + 2000 // Estimate 2s processing time
     const remainingTime = remainingBatches * avgBatchTime
 
     if (remainingTime > 60000) {
@@ -304,9 +293,9 @@ function calculateCampaignProgress(
   }
 
   // Find last sent email timestamp
-  const lastSentEmail = campaign.campaign_email_sends
-    .filter((send: any) => send.sent_at)
-    .sort((a: any, b: any) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime())[0]
+  const lastSentEmail = campaign.campaignEmailSends
+    .filter((send: any) => send.sentAt)
+    .sort((a: any, b: any) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())[0]
 
   return {
     totalRecipients,
@@ -322,7 +311,7 @@ function calculateCampaignProgress(
     totalBatches: campaign.status === 'sending' ? totalBatches : undefined,
     percentComplete,
     estimatedTimeRemaining,
-    lastEmailSentAt: lastSentEmail?.sent_at?.toISOString()
+    lastEmailSentAt: lastSentEmail?.sentAt?.toISOString()
   }
 }
 

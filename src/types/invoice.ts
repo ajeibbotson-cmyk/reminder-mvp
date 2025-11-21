@@ -31,18 +31,18 @@ export interface InvoiceWithDetails extends Invoice {
 // Invoice filters for dashboard
 export interface InvoiceFilters {
   status?: InvoiceStatus[]
-  customer_name?: string
-  customer_email?: string
-  due_date_from?: Date | string
-  due_date_to?: Date | string
-  amount_from?: number
-  amount_to?: number
+  customerName?: string
+  customerEmail?: string
+  dueDateFrom?: Date | string
+  dueDateTo?: Date | string
+  amountFrom?: number
+  amountTo?: number
   currency?: string
   search?: string
   page?: number
   limit?: number
-  sort_by?: 'created_at' | 'due_date' | 'amount' | 'number'
-  sort_order?: 'asc' | 'desc'
+  sortBy?: 'createdAt' | 'dueDate' | 'amount' | 'number'
+  sortOrder?: 'asc' | 'desc'
 }
 
 // Invoice dashboard statistics

@@ -66,16 +66,16 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
 
   const [filters, setFilters] = useState<FilterType>({
     status: [],
-    due_date_from: undefined,
-    due_date_to: undefined,
-    amount_from: undefined,
-    amount_to: undefined,
+    dueDateFrom: undefined,
+    dueDateTo: undefined,
+    amountFrom: undefined,
+    amountTo: undefined,
     currency: undefined,
     search: '',
     page: 1,
     limit: 10,
-    sort_by: 'created_at',
-    sort_order: 'desc',
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
     ...defaultFilters
   })
 
@@ -87,18 +87,18 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
   useEffect(() => {
     const urlFilters: FilterType = {
       status: searchParams.get('status')?.split(',') as InvoiceStatus[] || [],
-      due_date_from: searchParams.get('due_date_from') ? new Date(searchParams.get('due_date_from')!) : undefined,
-      due_date_to: searchParams.get('due_date_to') ? new Date(searchParams.get('due_date_to')!) : undefined,
-      amount_from: searchParams.get('amount_from') ? parseFloat(searchParams.get('amount_from')!) : undefined,
-      amount_to: searchParams.get('amount_to') ? parseFloat(searchParams.get('amount_to')!) : undefined,
+      dueDateFrom: searchParams.get('dueDateFrom') ? new Date(searchParams.get('dueDateFrom')!) : undefined,
+      dueDateTo: searchParams.get('dueDateTo') ? new Date(searchParams.get('dueDateTo')!) : undefined,
+      amountFrom: searchParams.get('amountFrom') ? parseFloat(searchParams.get('amountFrom')!) : undefined,
+      amountTo: searchParams.get('amountTo') ? parseFloat(searchParams.get('amountTo')!) : undefined,
       currency: searchParams.get('currency') || undefined,
       search: searchParams.get('search') || '',
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '10'),
-      sort_by: (searchParams.get('sort_by') as any) || 'created_at',
-      sort_order: (searchParams.get('sort_order') as any) || 'desc'
+      sortBy: (searchParams.get('sortBy') as any) || 'createdAt',
+      sortOrder: (searchParams.get('sortOrder') as any) || 'desc'
     }
-    
+
     setFilters(urlFilters)
     onFiltersChange(urlFilters)
   }, [searchParams, onFiltersChange])
@@ -143,18 +143,18 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
   const clearAllFilters = () => {
     const clearedFilters: FilterType = {
       status: [],
-      due_date_from: undefined,
-      due_date_to: undefined,
-      amount_from: undefined,
-      amount_to: undefined,
+      dueDateFrom: undefined,
+      dueDateTo: undefined,
+      amountFrom: undefined,
+      amountTo: undefined,
       currency: undefined,
       search: '',
       page: 1,
       limit: filters.limit || 10,
-      sort_by: 'created_at',
-      sort_order: 'desc'
+      sortBy: 'createdAt',
+      sortOrder: 'desc'
     }
-    
+
     setFilters(clearedFilters)
     updateURL(clearedFilters)
     onFiltersChange(clearedFilters)
@@ -163,8 +163,8 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
   const getActiveFiltersCount = () => {
     let count = 0
     if (filters.status && filters.status.length > 0) count++
-    if (filters.due_date_from || filters.due_date_to) count++
-    if (filters.amount_from || filters.amount_to) count++
+    if (filters.dueDateFrom || filters.dueDateTo) count++
+    if (filters.amountFrom || filters.amountTo) count++
     if (filters.currency) count++
     if (filters.search && filters.search.trim()) count++
     return count
@@ -253,13 +253,13 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
                               variant="outline"
                               className={cn(
                                 "w-full justify-start text-left font-normal",
-                                !filters.due_date_from && "text-muted-foreground",
+                                !filters.dueDateFrom && "text-muted-foreground",
                                 isRTL && "text-right"
                               )}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {filters.due_date_from ? (
-                                format(filters.due_date_from, "dd/MM/yyyy")
+                              {filters.dueDateFrom ? (
+                                format(filters.dueDateFrom, "dd/MM/yyyy")
                               ) : (
                                 <span>{locale === 'ar' ? 'اختر التاريخ' : 'Pick date'}</span>
                               )}
@@ -268,8 +268,8 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
                           <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                               mode="single"
-                              selected={filters.due_date_from}
-                              onSelect={(date) => handleFilterChange('due_date_from', date)}
+                              selected={filters.dueDateFrom}
+                              onSelect={(date) => handleFilterChange('dueDateFrom', date)}
                               initialFocus
                             />
                           </PopoverContent>
@@ -285,13 +285,13 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
                               variant="outline"
                               className={cn(
                                 "w-full justify-start text-left font-normal",
-                                !filters.due_date_to && "text-muted-foreground",
+                                !filters.dueDateTo && "text-muted-foreground",
                                 isRTL && "text-right"
                               )}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {filters.due_date_to ? (
-                                format(filters.due_date_to, "dd/MM/yyyy")
+                              {filters.dueDateTo ? (
+                                format(filters.dueDateTo, "dd/MM/yyyy")
                               ) : (
                                 <span>{locale === 'ar' ? 'اختر التاريخ' : 'Pick date'}</span>
                               )}
@@ -300,8 +300,8 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
                           <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                               mode="single"
-                              selected={filters.due_date_to}
-                              onSelect={(date) => handleFilterChange('due_date_to', date)}
+                              selected={filters.dueDateTo}
+                              onSelect={(date) => handleFilterChange('dueDateTo', date)}
                               initialFocus
                             />
                           </PopoverContent>
@@ -323,9 +323,9 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
                         <Input
                           type="number"
                           placeholder="0"
-                          value={filters.amount_from || ''}
-                          onChange={(e) => 
-                            handleFilterChange('amount_from', e.target.value ? parseFloat(e.target.value) : undefined)
+                          value={filters.amountFrom || ''}
+                          onChange={(e) =>
+                            handleFilterChange('amountFrom', e.target.value ? parseFloat(e.target.value) : undefined)
                           }
                           className="text-sm"
                         />
@@ -337,9 +337,9 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
                         <Input
                           type="number"
                           placeholder="∞"
-                          value={filters.amount_to || ''}
-                          onChange={(e) => 
-                            handleFilterChange('amount_to', e.target.value ? parseFloat(e.target.value) : undefined)
+                          value={filters.amountTo || ''}
+                          onChange={(e) =>
+                            handleFilterChange('amountTo', e.target.value ? parseFloat(e.target.value) : undefined)
                           }
                           className="text-sm"
                         />
@@ -401,27 +401,27 @@ export function InvoiceFilters({ onFiltersChange, className, defaultFilters }: I
               ) : null
             })}
             
-            {(filters.due_date_from || filters.due_date_to) && (
-              <Badge 
-                variant="outline" 
+            {(filters.dueDateFrom || filters.dueDateTo) && (
+              <Badge
+                variant="outline"
                 className="cursor-pointer hover:bg-red-50"
                 onClick={() => {
-                  handleFilterChange('due_date_from', undefined)
-                  handleFilterChange('due_date_to', undefined)
+                  handleFilterChange('dueDateFrom', undefined)
+                  handleFilterChange('dueDateTo', undefined)
                 }}
               >
                 {locale === 'ar' ? 'تاريخ الاستحقاق' : 'Due Date'}
                 <X className="h-3 w-3 ml-1" />
               </Badge>
             )}
-            
-            {(filters.amount_from || filters.amount_to) && (
-              <Badge 
-                variant="outline" 
+
+            {(filters.amountFrom || filters.amountTo) && (
+              <Badge
+                variant="outline"
                 className="cursor-pointer hover:bg-red-50"
                 onClick={() => {
-                  handleFilterChange('amount_from', undefined)
-                  handleFilterChange('amount_to', undefined)
+                  handleFilterChange('amountFrom', undefined)
+                  handleFilterChange('amountTo', undefined)
                 }}
               >
                 {locale === 'ar' ? 'المبلغ' : 'Amount'}

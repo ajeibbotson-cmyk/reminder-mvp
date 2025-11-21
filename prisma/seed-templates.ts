@@ -236,7 +236,7 @@ async function seedTemplates() {
 
   try {
     // Get all companies
-    const companies = await prisma.companies.findMany({
+    const companies = await prisma.company.findMany({
       where: {
         is_active: true,
       },
@@ -260,7 +260,7 @@ async function seedTemplates() {
       console.log(`\n🏢 Processing company: ${company.name} (${company.id})`)
 
       // Get any user from this company to use as created_by
-      const companyUser = await prisma.users.findFirst({
+      const companyUser = await prisma.user.findFirst({
         where: {
           company_id: company.id,
         },
@@ -276,7 +276,7 @@ async function seedTemplates() {
 
       for (const template of templates) {
         // Check if template already exists
-        const existing = await prisma.email_templates.findFirst({
+        const existing = await prisma.emailTemplate.findFirst({
           where: {
             company_id: company.id,
             name: template.name,
@@ -290,7 +290,7 @@ async function seedTemplates() {
         }
 
         // Create template
-        await prisma.email_templates.create({
+        await prisma.emailTemplate.create({
           data: {
             id: randomUUID(),
             company_id: company.id,

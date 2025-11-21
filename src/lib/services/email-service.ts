@@ -64,38 +64,38 @@ function isRetryableError(error: any): boolean {
  * Log email to database
  */
 async function logEmailToDatabase(params: {
-  recipient_email: string
-  recipient_name?: string
+  recipientEmail: string
+  recipientName?: string
   subject: string
   content: string
-  company_id?: string
-  invoice_id?: string
-  customer_id?: string
-  template_id?: string
-  aws_message_id?: string
-  delivery_status: 'QUEUED' | 'SENT' | 'DELIVERED' | 'BOUNCED' | 'COMPLAINED' | 'FAILED'
-  sent_at?: Date
-  bounce_reason?: string
+  companyId?: string
+  invoiceId?: string
+  customerId?: string
+  templateId?: string
+  awsMessageId?: string
+  deliveryStatus: 'QUEUED' | 'SENT' | 'DELIVERED' | 'BOUNCED' | 'COMPLAINED' | 'FAILED'
+  sentAt?: Date
+  bounceReason?: string
 }): Promise<string | null> {
   try {
-    const emailLog = await prisma.email_logs.create({
+    const emailLog = await prisma.emailLog.create({
       data: {
         id: `email_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-        recipient_email: params.recipient_email,
-        recipient_name: params.recipient_name,
+        recipientEmail: params.recipientEmail,
+        recipientName: params.recipientName,
         subject: params.subject,
         content: params.content,
-        delivery_status: params.delivery_status,
-        aws_message_id: params.aws_message_id,
-        sent_at: params.sent_at,
-        bounce_reason: params.bounce_reason,
-        created_at: new Date(),
-        updated_at: new Date(),
+        deliveryStatus: params.deliveryStatus,
+        awsMessageId: params.awsMessageId,
+        sentAt: params.sentAt,
+        bounceReason: params.bounceReason,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         // Optional fields
-        ...(params.company_id && { company_id: params.company_id }),
-        ...(params.invoice_id && { invoice_id: params.invoice_id }),
-        ...(params.customer_id && { customer_id: params.customer_id }),
-        ...(params.template_id && { template_id: params.template_id }),
+        ...(params.companyId && { companyId: params.companyId }),
+        ...(params.invoiceId && { invoiceId: params.invoiceId }),
+        ...(params.customerId && { customerId: params.customerId }),
+        ...(params.templateId && { templateId: params.templateId }),
       },
     })
 
@@ -270,17 +270,17 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     // Log to database (non-blocking)
     if (params.companyId) {
       await logEmailToDatabase({
-        recipient_email: params.to,
-        recipient_name: params.fromName,
+        recipientEmail: params.to,
+        recipientName: params.fromName,
         subject: params.subject,
         content: params.htmlContent || params.textContent,
-        company_id: params.companyId,
-        invoice_id: params.invoiceId,
-        customer_id: params.customerId,
-        template_id: params.templateId,
-        aws_message_id: response.MessageId,
-        delivery_status: 'SENT',
-        sent_at: new Date(),
+        companyId: params.companyId,
+        invoiceId: params.invoiceId,
+        customerId: params.customerId,
+        templateId: params.templateId,
+        awsMessageId: response.MessageId,
+        deliveryStatus: 'SENT',
+        sentAt: new Date(),
       })
     }
 
@@ -309,16 +309,16 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     // Log failure to database (non-blocking)
     if (params.companyId) {
       await logEmailToDatabase({
-        recipient_email: params.to,
-        recipient_name: params.fromName,
+        recipientEmail: params.to,
+        recipientName: params.fromName,
         subject: params.subject,
         content: params.htmlContent || params.textContent,
-        company_id: params.companyId,
-        invoice_id: params.invoiceId,
-        customer_id: params.customerId,
-        template_id: params.templateId,
-        delivery_status: 'FAILED',
-        bounce_reason: errorMessage,
+        companyId: params.companyId,
+        invoiceId: params.invoiceId,
+        customerId: params.customerId,
+        templateId: params.templateId,
+        deliveryStatus: 'FAILED',
+        bounceReason: errorMessage,
       })
     }
 

@@ -350,7 +350,7 @@ export class EnhancedEmailSchedulingService {
    */
 
   private async getCustomerPreferences(customerId: string) {
-    const customer = await prisma.customers.findUnique({
+    const customer = await prisma.customer.findUnique({
       where: { id: customerId },
       select: {
         companyId: true,
@@ -365,7 +365,7 @@ export class EnhancedEmailSchedulingService {
   private async getCompanyBusinessHours(companyId: string): Promise<UAEBusinessHours | null> {
     if (!companyId) return null
 
-    const company = await prisma.companies.findUnique({
+    const company = await prisma.company.findUnique({
       where: { id: companyId },
       select: { businessHours: true }
     })
@@ -542,7 +542,7 @@ export class EnhancedEmailSchedulingService {
     customerId: string
   ): Promise<{ adjustedTime: Date; wasAdjusted: boolean }> {
     // Check if there are other pending emails for this customer
-    const pendingEmails = await prisma.emailLogs.count({
+    const pendingEmails = await prisma.emailLog.count({
       where: {
         customerId,
         deliveryStatus: 'SCHEDULED',

@@ -102,7 +102,7 @@ export function CustomerDetailsModal({
 
   // Recent invoices (last 5)
   const recentInvoices = customer.invoices
-    ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    ?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     ?.slice(0, 5) || []
 
   const handleDelete = async () => {
@@ -229,7 +229,7 @@ export function CustomerDetailsModal({
                       <span className="text-sm font-medium">
                         {locale === 'ar' ? 'تاريخ الإنشاء:' : 'Created:'}
                       </span>
-                      <UAEDateDisplay date={customer.created_at} locale={locale} />
+                      <UAEDateDisplay date={customer.createdAt} locale={locale} />
                     </div>
                   </div>
                 </CardContent>
@@ -335,23 +335,23 @@ export function CustomerDetailsModal({
                       {locale === 'ar' ? 'شروط الدفع:' : 'Payment Terms:'}
                     </span>
                     <span className="text-sm">
-                      {customer.payment_terms 
-                        ? (locale === 'ar' 
-                            ? `${customer.payment_terms} يوم` 
-                            : `${customer.payment_terms} days`
+                      {customer.paymentTerms
+                        ? (locale === 'ar'
+                            ? `${customer.paymentTerms} يوم`
+                            : `${customer.paymentTerms} days`
                           )
                         : (locale === 'ar' ? 'غير محدد' : 'Not specified')
                       }
                     </span>
                   </div>
-                  
-                  {customer.credit_limit && (
+
+                  {customer.creditLimit && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                         {locale === 'ar' ? 'حد الائتمان:' : 'Credit Limit:'}
                       </span>
-                      <AEDAmount amount={Number(customer.credit_limit)} locale={locale} className="text-sm" />
+                      <AEDAmount amount={Number(customer.creditLimit)} locale={locale} className="text-sm" />
                     </div>
                   )}
                 </div>
@@ -415,7 +415,7 @@ export function CustomerDetailsModal({
                               {invoice.number}
                             </TableCell>
                             <TableCell>
-                              <UAEDateDisplay date={invoice.created_at} format="short" locale={locale} />
+                              <UAEDateDisplay date={invoice.createdAt} format="short" locale={locale} />
                             </TableCell>
                             <TableCell>
                               <AEDAmount amount={Number(invoice.amount)} locale={locale} />

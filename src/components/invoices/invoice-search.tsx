@@ -113,12 +113,12 @@ export function InvoiceSearch({
       }
       
       // Match customer name
-      if (invoice.customer_name?.toLowerCase().includes(searchQuery)) {
+      if (invoice.customerName?.toLowerCase().includes(searchQuery)) {
         matches.push('customer')
       }
       
       // Match customer email
-      if (invoice.customer_email?.toLowerCase().includes(searchQuery)) {
+      if (invoice.customerEmail?.toLowerCase().includes(searchQuery)) {
         matches.push('email')
       }
       
@@ -128,7 +128,7 @@ export function InvoiceSearch({
       }
 
       // Match TRN
-      if (invoice.trn_number?.toLowerCase().includes(searchQuery)) {
+      if (invoice.trnNumber?.toLowerCase().includes(searchQuery)) {
         matches.push('trn')
       }
       
@@ -140,7 +140,7 @@ export function InvoiceSearch({
         switch (primaryMatch) {
           case 'invoice':
             icon = <Hash className="h-4 w-4" />
-            sublabel = invoice.customer?.name || invoice.customer_name || 'Unknown Customer'
+            sublabel = invoice.customer?.name || invoice.customerName || 'Unknown Customer'
             break
           case 'customer':
             icon = <Building2 className="h-4 w-4" />
@@ -156,12 +156,12 @@ export function InvoiceSearch({
             break
           default:
             icon = <Hash className="h-4 w-4" />
-            sublabel = invoice.customer?.name || invoice.customer_name || 'Unknown Customer'
+            sublabel = invoice.customer?.name || invoice.customerName || 'Unknown Customer'
         }
         
         results.push({
           type: 'invoice',
-          label: primaryMatch === 'customer' ? invoice.customer_name! : invoice.number,
+          label: primaryMatch === 'customer' ? invoice.customerName! : invoice.number,
           sublabel,
           value: invoice.number,
           invoice,

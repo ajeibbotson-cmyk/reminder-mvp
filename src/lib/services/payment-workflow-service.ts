@@ -119,16 +119,16 @@ export class PaymentWorkflowService {
   ): Promise<PaymentWorkflowResult> {
     return await prisma.$transaction(async (tx) => {
       // Fetch payment with complete invoice and payment history
-      const payment = await tx.payments.findUnique({
+      const payment = await tx.payment.findUnique({
         where: { id: paymentId },
         include: {
-          invoices: {
+          invoice: {
             include: {
               payments: {
                 select: { id: true, amount: true, paymentDate: true, method: true, reference: true },
                 orderBy: { paymentDate: 'desc' }
               },
-              companies: {
+              company: {
                 select: { id: true, name: true }
               }
             }
@@ -141,11 +141,11 @@ export class PaymentWorkflowService {
       }
 
       // Verify company isolation
-      if (payment.invoices.companies.id !== context.companyId) {
+      if (payment.invoice.company.id !== context.companyId) {
         throw new Error('Access denied: Payment belongs to different company')
       }
 
-      const invoice = payment.invoices
+      const invoice = payment.invoice
 
       // Calculate payment summary
       const paymentSummary = this.calculatePaymentSummary(invoice, payment)
@@ -292,7 +292,7 @@ export class PaymentWorkflowService {
     invoiceId: string,
     companyId: string
   ): Promise<PaymentReconciliationResult> {
-    const invoice = await prisma.invoices.findUnique({
+    const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId, companyId },
       include: {
         payments: {
@@ -374,12 +374,12 @@ export class PaymentWorkflowService {
   ): Promise<PaymentWorkflowResult> {
     return await prisma.$transaction(async (tx) => {
       // Find invoice by number
-      const invoice = await tx.invoices.findUnique({
-        where: { 
-          companyId_number: { 
-            companyId, 
-            number: notification.invoiceNumber 
-          } 
+      const invoice = await tx.invoice.findUnique({
+        where: {
+          companyId_number: {
+            companyId,
+            number: notification.invoiceNumber
+          }
         },
         include: {
           payments: { select: { id: true, amount: true } }
@@ -391,8 +391,8 @@ export class PaymentWorkflowService {
       }
 
       // Check if payment already exists
-      const existingPayment = await tx.payments.findFirst({
-        where: { 
+      const existingPayment = await tx.payment.findFirst({
+        where: {
           invoiceId: invoice.id,
           reference: notification.externalPaymentId
         }
@@ -410,7 +410,7 @@ export class PaymentWorkflowService {
 
       if (notification.status === 'failed') {
         // Log failed payment attempt
-        await tx.activities.create({
+        await tx.activity.create({
           data: {
             id: crypto.randomUUID(),
             companyId,
@@ -435,7 +435,7 @@ export class PaymentWorkflowService {
 
       if (notification.status === 'pending') {
         // Log pending payment for tracking
-        await tx.activities.create({
+        await tx.activity.create({
           data: {
             id: crypto.randomUUID(),
             companyId,
@@ -458,7 +458,7 @@ export class PaymentWorkflowService {
       }
 
       // Create new payment record for successful payment
-      const payment = await tx.payments.create({
+      const payment = await tx.payment.create({
         data: {
           id: crypto.randomUUID(),
           invoiceId: invoice.id,
@@ -656,7 +656,7 @@ export class PaymentWorkflowService {
     statusChangeResult: StatusChangeResult | null,
     context: any
   ) {
-    await tx.activities.create({
+    await tx.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: context.companyId,

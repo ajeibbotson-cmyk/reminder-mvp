@@ -816,7 +816,7 @@ export class SequenceExecutionService {
       console.log(`🔄 Starting consolidated sequence execution for customer ${consolidatedReminder.customerId}`)
 
       // Get sequence data
-      const sequence = await prisma.followUpSequences.findUnique({
+      const sequence = await prisma.followUpSequence.findUnique({
         where: { id: sequenceId },
         include: { companies: true }
       })
@@ -994,7 +994,7 @@ export class SequenceExecutionService {
         emailLogIds.push(emailLogId)
 
         // Update the email log to include consolidation information
-        await prisma.emailLogs.update({
+        await prisma.emailLog.update({
           where: { id: emailLogId },
           data: {
             consolidatedReminderId: consolidatedReminder.id,
@@ -1185,7 +1185,7 @@ export class SequenceExecutionService {
 
     // Check if customer has unsubscribed
     const customer = invoices[0].customers
-    const unsubscribed = await prisma.emailLogs.findFirst({
+    const unsubscribed = await prisma.emailLog.findFirst({
       where: {
         recipientEmail: customer.email,
         deliveryStatus: 'UNSUBSCRIBED'
@@ -1197,7 +1197,7 @@ export class SequenceExecutionService {
     }
 
     // Check recent consolidated email sending to avoid spam
-    const recentConsolidatedEmails = await prisma.emailLogs.count({
+    const recentConsolidatedEmails = await prisma.emailLog.count({
       where: {
         recipientEmail: customer.email,
         companyId: sequence.companyId,
@@ -1238,7 +1238,7 @@ export class SequenceExecutionService {
     emailLogId: string
   ): Promise<void> {
     // Create a follow-up log entry that references the consolidation
-    await prisma.followUpLogs.create({
+    await prisma.followUpLog.create({
       data: {
         id: executionId,
         invoiceId: consolidatedReminder.invoiceIds[0], // Reference primary invoice
@@ -1258,7 +1258,7 @@ export class SequenceExecutionService {
     })
 
     // Log consolidation activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: consolidatedReminder.companyId,

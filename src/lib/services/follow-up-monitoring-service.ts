@@ -176,7 +176,7 @@ export class FollowUpMonitoringService {
       await prisma.$queryRaw`SELECT 1`
 
       // Check recent activity
-      const recentActivities = await prisma.activities.count({
+      const recentActivities = await prisma.activity.count({
         where: {
           createdAt: {
             gte: new Date(Date.now() - 60 * 60 * 1000) // Last hour
@@ -347,7 +347,7 @@ export class FollowUpMonitoringService {
    */
   private async checkProcessingHealth(): Promise<HealthCheckResult> {
     try {
-      const lastProcessingRun = await prisma.activities.findFirst({
+      const lastProcessingRun = await prisma.activity.findFirst({
         where: {
           type: 'FOLLOW_UP_PROCESSING'
         },
@@ -400,7 +400,7 @@ export class FollowUpMonitoringService {
   private async checkUAEComplianceHealth(): Promise<HealthCheckResult> {
     try {
       // Check for emails sent outside business hours in the last 24 hours
-      const complianceViolations = await prisma.activities.count({
+      const complianceViolations = await prisma.activity.count({
         where: {
           type: 'COMPLIANCE_VIOLATION',
           createdAt: {
@@ -410,7 +410,7 @@ export class FollowUpMonitoringService {
       })
 
       // Check for emails rescheduled due to cultural compliance
-      const rescheduledEmails = await prisma.activities.count({
+      const rescheduledEmails = await prisma.activity.count({
         where: {
           type: 'EMAIL_RESCHEDULED',
           description: { contains: 'UAE compliance' },
@@ -459,7 +459,7 @@ export class FollowUpMonitoringService {
    */
   private async checkEscalationHealth(): Promise<HealthCheckResult> {
     try {
-      const recentEscalations = await prisma.activities.count({
+      const recentEscalations = await prisma.activity.count({
         where: {
           type: 'FOLLOW_UP_ESCALATED',
           createdAt: {
@@ -524,14 +524,14 @@ export class FollowUpMonitoringService {
       prisma.follow_up_logs.count(),
       prisma.follow_up_sequences.count({ where: { active: true } }),
       prisma.follow_up_logs.count({ where: { deliveryStatus: 'QUEUED' } }),
-      prisma.activities.findFirst({
+      prisma.activity.findFirst({
         where: { type: 'FOLLOW_UP_PROCESSING' },
         orderBy: { createdAt: 'desc' }
       })
     ])
 
     // Calculate error rate from recent activities
-    const recentErrors = await prisma.activities.count({
+    const recentErrors = await prisma.activity.count({
       where: {
         type: { contains: 'ERROR' },
         createdAt: {
@@ -540,7 +540,7 @@ export class FollowUpMonitoringService {
       }
     })
 
-    const recentTotal = await prisma.activities.count({
+    const recentTotal = await prisma.activity.count({
       where: {
         createdAt: {
           gte: new Date(Date.now() - 60 * 60 * 1000)
@@ -677,7 +677,7 @@ export class FollowUpMonitoringService {
       console.log(`🚨 Triggering alert: ${rule.name} (${rule.severity})`)
 
       // Check if we've already sent this alert recently (avoid spam)
-      const recentAlert = await prisma.activities.findFirst({
+      const recentAlert = await prisma.activity.findFirst({
         where: {
           type: 'SYSTEM_ALERT',
           metadata: {
@@ -696,7 +696,7 @@ export class FollowUpMonitoringService {
       }
 
       // Log the alert
-      await prisma.activities.create({
+      await prisma.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: 'system',
@@ -836,7 +836,7 @@ export class FollowUpMonitoringService {
       warningActivities,
       processingTimes
     ] = await Promise.all([
-      prisma.activities.count({
+      prisma.activity.count({
         where: {
           type: 'FOLLOW_UP_TRIGGERED',
           createdAt: { gte: start, lte: end }
@@ -860,31 +860,31 @@ export class FollowUpMonitoringService {
           sentAt: { gte: start, lte: end }
         }
       }),
-      prisma.activities.count({
+      prisma.activity.count({
         where: {
           type: 'FOLLOW_UP_ESCALATED',
           createdAt: { gte: start, lte: end }
         }
       }),
-      prisma.activities.count({
+      prisma.activity.count({
         where: {
           type: 'SEQUENCE_COMPLETED',
           createdAt: { gte: start, lte: end }
         }
       }),
-      prisma.activities.count({
+      prisma.activity.count({
         where: {
           type: { contains: 'ERROR' },
           createdAt: { gte: start, lte: end }
         }
       }),
-      prisma.activities.count({
+      prisma.activity.count({
         where: {
           type: { contains: 'WARNING' },
           createdAt: { gte: start, lte: end }
         }
       }),
-      prisma.activities.findMany({
+      prisma.activity.findMany({
         where: {
           type: 'FOLLOW_UP_PROCESSING',
           createdAt: { gte: start, lte: end }

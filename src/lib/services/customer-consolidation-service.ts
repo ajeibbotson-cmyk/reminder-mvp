@@ -143,7 +143,7 @@ export class CustomerConsolidationService {
   ): Promise<boolean> {
     try {
       // Get customer preferences
-      const customer = await prisma.customers.findUnique({
+      const customer = await prisma.customer.findUnique({
         where: { id: customerId },
         select: {
           id: true,
@@ -229,7 +229,7 @@ export class CustomerConsolidationService {
         updatedAt: new Date()
       }
 
-      const consolidation = await prisma.customerConsolidatedReminders.create({
+      const consolidation = await prisma.customerConsolidatedReminder.create({
         data: consolidationData
       })
 
@@ -285,14 +285,14 @@ export class CustomerConsolidationService {
 
       // Get consolidation data
       const [consolidations, candidates, emailLogs] = await Promise.all([
-        prisma.customerConsolidatedReminders.findMany({
+        prisma.customerConsolidatedReminder.findMany({
           where: whereClause,
           include: {
             customer: true
           }
         }),
         this.getConsolidationCandidates(companyId),
-        prisma.emailLogs.findMany({
+        prisma.emailLog.findMany({
           where: {
             companyId,
             consolidatedReminderId: { not: null },
@@ -377,7 +377,7 @@ export class CustomerConsolidationService {
    */
 
   private async getOverdueInvoicesByCustomer(companyId: string) {
-    return await prisma.invoices.findMany({
+    return await prisma.invoice.findMany({
       where: {
         companyId,
         status: { in: ['OVERDUE', 'SENT'] },
@@ -385,13 +385,13 @@ export class CustomerConsolidationService {
         dueDate: {
           lt: new Date() // Past due date
         },
-        customers: {
+        customer: {
           isActive: true,
           consolidationPreference: { not: 'DISABLED' }
         }
       },
       include: {
-        customers: {
+        customer: {
           select: {
             id: true,
             name: true,
@@ -415,7 +415,7 @@ export class CustomerConsolidationService {
     const groups = new Map<string, any[]>()
 
     for (const invoice of invoices) {
-      const customerId = invoice.customers.id
+      const customerId = invoice.customer.id
       if (!groups.has(customerId)) {
         groups.set(customerId, [])
       }
@@ -431,7 +431,7 @@ export class CustomerConsolidationService {
   private async createConsolidationCandidate(
     group: {customerId: string, invoices: any[]}
   ): Promise<ConsolidationCandidate | null> {
-    const customer = group.invoices[0].customers
+    const customer = group.invoices[0].customer
     const invoices = group.invoices
 
     // Check customer consolidation preferences
@@ -559,16 +559,16 @@ export class CustomerConsolidationService {
 
   private async getLastContactDate(customerId: string): Promise<Date | null> {
     // Check consolidated reminders
-    const lastConsolidated = await prisma.customerConsolidatedReminders.findFirst({
+    const lastConsolidated = await prisma.customerConsolidatedReminder.findFirst({
       where: { customerId },
       orderBy: { sentAt: 'desc' }
     })
 
     // Check individual follow-up logs
-    const lastIndividual = await prisma.follow_up_logss.findFirst({
+    const lastIndividual = await prisma.followUpLog.findFirst({
       where: {
-        invoices: {
-          customers: {
+        invoice: {
+          customer: {
             id: customerId
           }
         }
@@ -711,7 +711,7 @@ export class CustomerConsolidationService {
   }
 
   private async getCompanyIdFromCustomer(customerId: string): Promise<string> {
-    const customer = await prisma.customers.findUnique({
+    const customer = await prisma.customer.findUnique({
       where: { id: customerId },
       select: { companyId: true }
     })
@@ -733,7 +733,7 @@ export class CustomerConsolidationService {
     description: string,
     metadata: Record<string, any>
   ): Promise<void> {
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId,

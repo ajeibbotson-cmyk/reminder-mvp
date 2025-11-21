@@ -25,14 +25,14 @@ const analyticsEventSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.company_id) {
+    if (!session?.user?.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
 
-    const companyId = session.user.companies_id
+    const companyId = session.user.companyId
 
     // Get real-time metrics with minimal caching
     const filters = {
@@ -83,14 +83,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.company_id) {
+    if (!session?.user?.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
 
-    const companyId = session.user.companies_id
+    const companyId = session.user.companyId
     const body = await request.json()
 
     // Validate event data
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
 export async function CONNECT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.company_id) {
+    if (!session?.user?.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized access' },
         { status: 401 }

@@ -198,11 +198,11 @@ export class StatusNotificationService {
   ): Promise<boolean> {
     try {
       // Get invoice with full context
-      const invoice = await prisma.invoices.findUnique({
+      const invoice = await prisma.invoice.findUnique({
         where: { id: invoiceId },
         include: {
-          companies: true,
-          customers: true,
+          company: true,
+          customer: true,
           payments: { select: { amount: true, paymentDate: true } }
         }
       })
@@ -258,11 +258,11 @@ export class StatusNotificationService {
   ): Promise<void> {
     try {
       // Get invoice and check if it should be marked as paid
-      const invoice = await prisma.invoices.findUnique({
+      const invoice = await prisma.invoice.findUnique({
         where: { id: invoiceId },
         include: {
-          companies: true,
-          customers: true,
+          company: true,
+          customer: true,
           payments: { select: { amount: true } }
         }
       })
@@ -522,12 +522,12 @@ export class StatusNotificationService {
         trnNumber: invoice.trnNumber
       },
       company: {
-        id: invoice.companies.id,
-        name: invoice.companies.name,
-        email: invoice.companies.email,
-        phone: invoice.companies.phone,
-        address: invoice.companies.address,
-        trn: invoice.companies.trn
+        id: invoice.company.id,
+        name: invoice.company.name,
+        email: invoice.company.email,
+        phone: invoice.company.phone,
+        address: invoice.company.address,
+        trn: invoice.company.trn
       },
       statusChange: statusChangeInfo,
       paymentInfo: {

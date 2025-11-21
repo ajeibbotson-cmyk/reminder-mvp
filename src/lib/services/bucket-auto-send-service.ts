@@ -32,22 +32,22 @@ function shouldSendNow(config: any): boolean {
   const currentDay = uaeTime.getDay() // 0 = Sunday, 6 = Saturday
 
   // Check if current hour matches send time
-  if (currentHour !== config.send_time_hour) {
+  if (currentHour !== config.sendTimeHour) {
     return false
   }
 
   // Check if today is in send days
-  const sendDays = Array.isArray(config.send_days_of_week)
-    ? config.send_days_of_week
-    : JSON.parse(config.send_days_of_week as string)
+  const sendDays = Array.isArray(config.sendDaysOfWeek)
+    ? config.sendDaysOfWeek
+    : JSON.parse(config.sendDaysOfWeek as string)
 
   if (!sendDays.includes(currentDay)) {
     return false
   }
 
   // Check if already sent today
-  if (config.last_auto_send_at) {
-    const lastSend = new Date(config.last_auto_send_at)
+  if (config.lastAutoSendAt) {
+    const lastSend = new Date(config.lastAutoSendAt)
     const today = new Date(uaeTime.toDateString())
 
     if (lastSend >= today) {
@@ -84,11 +84,11 @@ async function getBucketInvoices(companyId: string, bucketId: string): Promise<s
   const maxDate = range.max ? new Date(now.getTime() - range.max * 24 * 60 * 60 * 1000) : null
 
   // Query invoices
-  const invoices = await prisma.invoices.findMany({
+  const invoices = await prisma.invoice.findMany({
     where: {
-      company_id: companyId,
+      companyId: companyId,
       status: { not: 'PAID' },
-      due_date: maxDate
+      dueDate: maxDate
         ? { lte: minDate, gte: maxDate }
         : { lte: minDate }
     },
@@ -255,8 +255,8 @@ async function processAutoSendBucket(
     const emailService = new UnifiedEmailService(prisma, systemSession, {
       defaultFromEmail: process.env.AWS_SES_FROM_EMAIL || 'noreply@reminder.com',
       awsRegion: process.env.AWS_REGION || 'me-south-1',
-      defaultBatchSize: config.batch_size || 5,
-      defaultDelayBetweenBatches: config.delay_between_batches || 3000
+      defaultBatchSize: config.batchSize || 5,
+      defaultDelayBetweenBatches: config.delayBetweenBatches || 3000
     })
 
     // Get email template (use custom template if configured, otherwise default)
@@ -272,8 +272,8 @@ async function processAutoSendBucket(
         language: 'ENGLISH',
         sendingOptions: {
           respectBusinessHours: true,
-          batchSize: config.batch_size || 5,
-          delayBetweenBatches: config.delay_between_batches || 3000,
+          batchSize: config.batchSize || 5,
+          delayBetweenBatches: config.delayBetweenBatches || 3000,
           attachInvoicePdf: true // Always attach PDF for auto-send reminders
         },
         personalization: {
@@ -290,15 +290,15 @@ async function processAutoSendBucket(
     console.log(`[Auto-Send] Campaign ${campaign.id} sent: ${sendResult.totalSent} emails sent, ${sendResult.totalFailed} failed`)
 
     // Update last send time
-    await prisma.bucket_configs.update({
+    await prisma.bucketConfig.update({
       where: {
-        company_id_bucket_id: {
-          company_id: companyId,
-          bucket_id: bucketId
+        companyId_bucketId: {
+          companyId: companyId,
+          bucketId: bucketId
         }
       },
       data: {
-        last_auto_send_at: new Date()
+        lastAutoSendAt: new Date()
       }
     })
 
@@ -331,16 +331,16 @@ export async function processAutoSendJob(): Promise<AutoSendResult> {
     console.log('[Auto-Send] Starting auto-send job...')
 
     // Get all bucket configs with auto-send enabled
-    const configs = await prisma.bucket_configs.findMany({
+    const configs = await prisma.bucketConfig.findMany({
       where: {
-        auto_send_enabled: true
+        autoSendEnabled: true
       },
       include: {
-        companies: {
+        company: {
           select: {
             id: true,
             name: true,
-            is_active: true
+            isActive: true
           }
         }
       }
@@ -351,13 +351,13 @@ export async function processAutoSendJob(): Promise<AutoSendResult> {
     // Group by company
     const companiesMap = new Map<string, typeof configs>()
     for (const config of configs) {
-      if (!config.companies.is_active) {
-        console.log(`[Auto-Send] Skipping inactive company: ${config.company_id}`)
+      if (!config.company.isActive) {
+        console.log(`[Auto-Send] Skipping inactive company: ${config.companyId}`)
         continue
       }
 
-      const existing = companiesMap.get(config.company_id) || []
-      companiesMap.set(config.company_id, [...existing, config])
+      const existing = companiesMap.get(config.companyId) || []
+      companiesMap.set(config.companyId, [...existing, config])
     }
 
     console.log(`[Auto-Send] Processing ${companiesMap.size} active companies`)
@@ -365,21 +365,21 @@ export async function processAutoSendJob(): Promise<AutoSendResult> {
     // Process each company
     for (const [companyId, companyConfigs] of companiesMap) {
       result.companiesProcessed++
-      console.log(`[Auto-Send] Processing company: ${companyId} (${companyConfigs[0].companies.name})`)
+      console.log(`[Auto-Send] Processing company: ${companyId} (${companyConfigs[0].company.name})`)
 
       for (const config of companyConfigs) {
         // Check if should send now
         if (!shouldSendNow(config)) {
-          console.log(`[Auto-Send] Skipping ${config.bucket_id} - not scheduled for now`)
+          console.log(`[Auto-Send] Skipping ${config.bucketId} - not scheduled for now`)
           continue
         }
 
-        console.log(`[Auto-Send] Processing bucket: ${config.bucket_id}`)
+        console.log(`[Auto-Send] Processing bucket: ${config.bucketId}`)
 
         try {
           const bucketResult = await processAutoSendBucket(
             companyId,
-            config.bucket_id,
+            config.bucketId,
             config
           )
 
@@ -391,18 +391,18 @@ export async function processAutoSendJob(): Promise<AutoSendResult> {
 
           result.emailsSent += bucketResult.emailsSent
 
-          console.log(`[Auto-Send] Bucket ${config.bucket_id} completed: ${bucketResult.emailsSent} emails sent`)
+          console.log(`[Auto-Send] Bucket ${config.bucketId} completed: ${bucketResult.emailsSent} emails sent`)
 
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
           result.errors.push({
             companyId,
-            bucketId: config.bucket_id,
+            bucketId: config.bucketId,
             error: errorMessage
           })
 
-          console.error(`[Auto-Send] Error processing ${companyId}/${config.bucket_id}:`, error)
+          console.error(`[Auto-Send] Error processing ${companyId}/${config.bucketId}:`, error)
         }
       }
     }

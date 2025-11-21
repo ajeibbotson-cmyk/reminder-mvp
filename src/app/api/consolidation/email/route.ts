@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const invoices = await prisma.invoice.findMany({
       where: {
         id: { in: invoiceIds },
-        customerId,
+        customerEmail: customer.email,
         companyId: authContext.user.companyId,
         status: { in: ['SENT', 'OVERDUE'] },
         isActive: true
@@ -273,7 +273,7 @@ export async function GET(request: NextRequest) {
           delivered: !!emailLog.deliveredAt,
           opened: !!emailLog.openedAt,
           clicked: !!emailLog.clickedAt,
-          bounced: !!emailLog.bounced_at,
+          bounced: !!emailLog.bouncedAt,
           deliveryTime: emailLog.deliveredAt ?
             Math.floor((emailLog.deliveredAt.getTime() - emailLog.sentAt!.getTime()) / 1000) : null,
           awsMessageId: emailLog.awsMessageId

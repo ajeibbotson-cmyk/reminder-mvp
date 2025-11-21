@@ -47,10 +47,10 @@ export function withAuth(
       }
 
       // 2. Get user from database with fresh data
-      const user = await prisma.users.findUnique({
+      const user = await prisma.user.findUnique({
         where: { email: session.user.email },
         include: {
-          companies: true
+          company: true
         }
       })
 
@@ -67,7 +67,7 @@ export function withAuth(
 
       // 4. Company access validation
       if (options.requireCompanyAccess && context?.params?.companyId) {
-        if (user.companies_id !== context.params.companyId) {
+        if (user.companyId !== context.params.companyId) {
           throw new ForbiddenError('Access denied to this company data')
         }
       }
@@ -119,16 +119,16 @@ export function withAuth(
         email: user.email,
         name: user.name,
         role: user.role,
-        companyId: user.companies_id
+        companyId: user.companyId
       }
       authenticatedRequest.company = {
-        id: user.companies.id,
-        name: user.companies.name,
-        trn: user.companies.trn
+        id: user.company.id,
+        name: user.company.name,
+        trn: user.company.trn
       }
 
       // 8. Log API access for security monitoring
-      await logApiAccess(user.id, user.companies_id, request.method, request.nextUrl.pathname)
+      await logApiAccess(user.id, user.companyId, request.method, request.nextUrl.pathname)
 
       // 9. Call the actual handler
       return await handler(authenticatedRequest, context)
@@ -237,11 +237,11 @@ async function logApiAccess(
   try {
     // In production, you might want to use a separate logging system
     // or queue this to avoid blocking the request
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
-        company_id: companyId,
-        user_id: userId,
+        companyId: companyId,
+        userId: userId,
         type: 'API_ACCESS',
         description: `${method} ${path}`,
         metadata: {
@@ -320,11 +320,11 @@ export async function canAccessUser(
   
   // Admins can access other users in their company
   if (requesterRole === UserRole.ADMIN) {
-    const targetUser = await prisma.users.findUnique({
+    const targetUser = await prisma.user.findUnique({
       where: { id: targetUserId }
     })
-    
-    return targetUser?.company_id === requesterCompanyId
+
+    return targetUser?.companyId === requesterCompanyId
   }
   
   return false

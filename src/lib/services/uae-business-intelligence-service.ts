@@ -515,7 +515,7 @@ export class UAEBusinessIntelligenceService {
    * Get VAT calculation accuracy
    */
   private async getVATCalculationAccuracy(companyId: string) {
-    const invoices = await prisma.invoices.findMany({
+    const invoices = await prisma.invoice.findMany({
       where: {
         companyId,
         isActive: true,
@@ -572,7 +572,7 @@ export class UAEBusinessIntelligenceService {
    * Calculate business confidence indicator
    */
   private async calculateBusinessConfidence(companyId: string, dateRange: AnalyticsDateRange) {
-    const invoices = await prisma.invoices.findMany({
+    const invoices = await prisma.invoice.findMany({
       where: {
         companyId,
         createdAt: {
@@ -695,7 +695,7 @@ export class UAEBusinessIntelligenceService {
     const [emails, customers, invoices] = await Promise.all([
       prisma.emailLog.count({ where: { companyId } }),
       prisma.customer.count({ where: { companyId, isActive: true } }),
-      prisma.invoices.count({ where: { companyId, isActive: true } })
+      prisma.invoice.count({ where: { companyId, isActive: true } })
     ])
 
     return emails + customers + invoices

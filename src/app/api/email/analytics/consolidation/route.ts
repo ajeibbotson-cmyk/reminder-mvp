@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       prisma.emailLog.findMany({
         where: baseWhere,
         include: {
-          emailTemplates: {
+          emailTemplate: {
             select: { name: true, templateType: true }
           },
           customer: {
@@ -556,7 +556,7 @@ function getTopPerformingTemplates(emails: any[]) {
     const templateId = email.templateId
     if (!templatePerformance.has(templateId)) {
       templatePerformance.set(templateId, {
-        templateName: email.emailTemplates?.name || 'Unknown',
+        templateName: email.emailTemplate?.name || 'Unknown',
         count: 0,
         opened: 0,
         clicked: 0

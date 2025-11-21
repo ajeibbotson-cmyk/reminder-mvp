@@ -11,14 +11,14 @@ import { invoiceAnalyticsService } from '@/lib/services/invoice-analytics-servic
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.company_id) {
+    if (!session?.user?.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
 
-    const companyId = session.user.companies_id
+    const companyId = session.user.companyId
 
     // Get comprehensive aging report
     const agingReport = await invoiceAnalyticsService.getInvoiceAgingReport(companyId)
@@ -53,14 +53,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.company_id) {
+    if (!session?.user?.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
 
-    const companyId = session.user.companies_id
+    const companyId = session.user.companyId
 
     // Batch update overdue invoices
     const updatedCount = await invoiceAnalyticsService.batchUpdateOverdueInvoices(companyId)

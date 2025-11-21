@@ -340,7 +340,7 @@ export async function GET(
         }
       },
       include: {
-        users: {
+        user: {
           select: { name: true, email: true }
         }
       },
@@ -374,14 +374,14 @@ export async function GET(
       },
       paymentHistory: paymentActivities.map(activity => ({
         id: activity.id,
-        amount: activity.metadata.amount as number,
-        method: activity.metadata.method as PaymentMethod,
-        reference: activity.metadata.reference as string,
+        amount: (activity.metadata as any).amount as number,
+        method: (activity.metadata as any).method as PaymentMethod,
+        reference: (activity.metadata as any).reference as string,
         recordedAt: activity.createdAt,
-        recordedBy: activity.users?.name || 'System',
-        previousTotal: activity.metadata.previousPaidAmount as number,
-        newTotal: activity.metadata.newTotalPaid as number,
-        formattedAmount: formatUAECurrency(activity.metadata.amount as number, invoice.currency)
+        recordedBy: activity.user?.name || 'System',
+        previousTotal: (activity.metadata as any).previousPaidAmount as number,
+        newTotal: (activity.metadata as any).newTotalPaid as number,
+        formattedAmount: formatUAECurrency((activity.metadata as any).amount as number, invoice.currency)
       })),
       summary: {
         paymentCount: invoice.payments.length,
@@ -458,7 +458,7 @@ async function schedulePaymentNotification(
       id: crypto.randomUUID(),
       companyId,
       invoiceId: invoice.id,
-      customerId: invoice.customers?.id,
+      customerId: invoice.customer?.id,
       recipientEmail: invoice.customerEmail,
       recipientName: invoice.customerName,
       subject: `Payment Received - Invoice ${invoice.number}`,

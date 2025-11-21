@@ -259,16 +259,16 @@ export class PDFAttachmentService {
    */
 
   private async getInvoiceDataForPDF(invoiceIds: string[], companyId: string): Promise<InvoicePDFData[]> {
-    const invoices = await prisma.invoices.findMany({
+    const invoices = await prisma.invoice.findMany({
       where: {
         id: { in: invoiceIds },
         companyId,
         isActive: true
       },
       include: {
-        customers: true,
+        customer: true,
         invoiceItems: true,
-        companies: true
+        company: true
       }
     })
 
@@ -277,8 +277,8 @@ export class PDFAttachmentService {
       number: invoice.number,
       customerName: invoice.customerName,
       customerEmail: invoice.customerEmail,
-      businessName: invoice.customers?.businessName,
-      customerAddress: invoice.customers?.address,
+      businessName: invoice.customer?.businessName,
+      customerAddress: invoice.customer?.address,
       amount: Number(invoice.amount),
       currency: invoice.currency,
       dueDate: invoice.dueDate,
@@ -294,9 +294,9 @@ export class PDFAttachmentService {
       vatAmount: Number(invoice.vatAmount || 0),
       totalAmount: Number(invoice.totalAmount),
       companyDetails: {
-        name: invoice.companies.name,
-        address: invoice.companies.address,
-        trn: invoice.companies.trn,
+        name: invoice.company.name,
+        address: invoice.company.address,
+        trn: invoice.company.trn,
         email: process.env.AWS_SES_FROM_EMAIL,
         phone: '' // Would come from company settings
       }

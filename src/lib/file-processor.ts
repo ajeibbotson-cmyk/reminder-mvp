@@ -578,7 +578,7 @@ export class FileProcessor {
 
     // Check for duplicate invoice number in company
     if (data.number) {
-      const existingInvoice = await prisma.invoices.findFirst({
+      const existingInvoice = await prisma.invoice.findFirst({
         where: {
           companyId: this.options.companyId,
           number: data.number
@@ -653,7 +653,7 @@ export class FileProcessor {
           const invoiceData = row.processedData as any
           
           // Create or find customer first
-          const customer = await prisma.customers.upsert({
+          const customer = await prisma.customer.upsert({
             where: {
               email_companyId: {
                 email: invoiceData.customerEmail,
@@ -672,7 +672,7 @@ export class FileProcessor {
           })
 
           // Create invoice
-          const invoice = await prisma.invoices.create({
+          const invoice = await prisma.invoice.create({
             data: {
               id: crypto.randomUUID(),
               companyId: this.options.companyId,

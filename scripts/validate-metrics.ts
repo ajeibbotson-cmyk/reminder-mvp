@@ -28,8 +28,8 @@ async function validateMetrics(companyId?: string) {
   try {
     // Get all active companies or specific company
     const companies = companyId
-      ? await prisma.companies.findMany({ where: { id: companyId, is_active: true } })
-      : await prisma.companies.findMany({ where: { is_active: true }, take: 5 }) // Validate first 5 companies
+      ? await prisma.company.findMany({ where: { id: companyId, is_active: true } })
+      : await prisma.company.findMany({ where: { is_active: true }, take: 5 }) // Validate first 5 companies
 
     if (companies.length === 0) {
       console.log('⚠️  No active companies found')
@@ -41,7 +41,7 @@ async function validateMetrics(companyId?: string) {
       console.log('─'.repeat(80))
 
       // 1. Total Invoices Count
-      const totalInvoicesDB = await prisma.invoices.count({
+      const totalInvoicesDB = await prisma.invoice.count({
         where: {
           company_id: company.id,
           is_active: true,
@@ -58,7 +58,7 @@ async function validateMetrics(companyId?: string) {
       console.log(`✓ Total Invoices: ${totalInvoicesDB}`)
 
       // 2. Outstanding Amount (Invoices NOT paid)
-      const outstandingInvoices = await prisma.invoices.findMany({
+      const outstandingInvoices = await prisma.invoice.findMany({
         where: {
           company_id: company.id,
           is_active: true,
@@ -90,7 +90,7 @@ async function validateMetrics(companyId?: string) {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
 
-      const overdueCountDB = await prisma.invoices.count({
+      const overdueCountDB = await prisma.invoice.count({
         where: {
           company_id: company.id,
           is_active: true,
@@ -113,7 +113,7 @@ async function validateMetrics(companyId?: string) {
       console.log(`✓ Overdue Invoices: ${overdueCountDB}`)
 
       // 4. Overdue Amount
-      const overdueInvoices = await prisma.invoices.findMany({
+      const overdueInvoices = await prisma.invoice.findMany({
         where: {
           company_id: company.id,
           is_active: true,
@@ -187,8 +187,8 @@ async function validateMetrics(companyId?: string) {
           }
         }
 
-        const bucketCount = await prisma.invoices.count({ where: whereClause })
-        const bucketInvoices = await prisma.invoices.findMany({
+        const bucketCount = await prisma.invoice.count({ where: whereClause })
+        const bucketInvoices = await prisma.invoice.findMany({
           where: whereClause,
           select: {
             total_amount: true,
@@ -228,7 +228,7 @@ async function validateMetrics(companyId?: string) {
       })
 
       // 6. Customer Count
-      const customerCountDB = await prisma.customers.count({
+      const customerCountDB = await prisma.customer.count({
         where: {
           company_id: company.id,
           is_active: true,
@@ -245,7 +245,7 @@ async function validateMetrics(companyId?: string) {
       console.log(`\n✓ Active Customers: ${customerCountDB}`)
 
       // 7. Email Templates Count
-      const templateCountDB = await prisma.email_templates.count({
+      const templateCountDB = await prisma.emailTemplate.count({
         where: {
           company_id: company.id,
           is_active: true,

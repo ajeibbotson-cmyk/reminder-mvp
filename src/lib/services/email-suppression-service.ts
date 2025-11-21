@@ -368,7 +368,7 @@ export class EmailSuppressionService {
     reason: string
   ): Promise<void> {
     try {
-      const customer = await prisma.customers.findFirst({
+      const customer = await prisma.customer.findFirst({
         where: {
           email: emailAddress,
           companyId
@@ -380,7 +380,7 @@ export class EmailSuppressionService {
         const existingNotes = customer.notes || ''
         const newNotes = existingNotes ? `${existingNotes}\n${suppressionNote}` : suppressionNote
 
-        await prisma.customers.update({
+        await prisma.customer.update({
           where: { id: customer.id },
           data: { notes: newNotes }
         })

@@ -43,9 +43,9 @@ export async function GET(
       select: {
         id: true,
         number: true,
-        pdf_s3_key: true,
-        pdf_s3_bucket: true,
-        pdf_uploaded_at: true
+        pdfS3Key: true,
+        pdfS3Bucket: true,
+        pdfUploadedAt: true
       }
     })
 
@@ -57,7 +57,7 @@ export async function GET(
     }
 
     // Check if PDF exists
-    if (!invoice.pdf_s3_key || !invoice.pdf_s3_bucket) {
+    if (!invoice.pdfS3Key || !invoice.pdfS3Bucket) {
       return NextResponse.json(
         { error: 'No PDF available for this invoice' },
         { status: 404 }
@@ -66,8 +66,8 @@ export async function GET(
 
     // Generate presigned URL (valid for 1 hour)
     const command = new GetObjectCommand({
-      Bucket: invoice.pdf_s3_bucket,
-      Key: invoice.pdf_s3_key,
+      Bucket: invoice.pdfS3Bucket,
+      Key: invoice.pdfS3Key,
     })
 
     const presignedUrl = await getSignedUrl(s3Client, command, {
@@ -79,7 +79,7 @@ export async function GET(
       data: {
         presignedUrl,
         fileName: `invoice-${invoice.number}.pdf`,
-        uploadedAt: invoice.pdf_uploaded_at,
+        uploadedAt: invoice.pdfUploadedAt,
         expiresIn: 3600
       }
     })

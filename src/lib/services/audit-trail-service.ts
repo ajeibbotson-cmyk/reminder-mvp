@@ -426,7 +426,7 @@ export class AuditTrailService {
    * Register webhook for audit events
    */
   public async registerWebhook(config: WebhookConfig): Promise<void> {
-    await prisma.webhookConfigs.create({
+    await prisma.webhookConfig.create({
       data: {
         id: config.id,
         companyId: config.companyId,
@@ -493,7 +493,7 @@ export class AuditTrailService {
   }
 
   private async storeAuditEntry(auditEntry: AuditEntry): Promise<void> {
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: auditEntry.id,
         companyId: auditEntry.context.companyId,
@@ -600,10 +600,10 @@ export class AuditTrailService {
   }
 
   private async fetchAuditEntries(whereClause: any, filters: AuditQueryFilters) {
-    const activities = await prisma.activities.findMany({
+    const activities = await prisma.activity.findMany({
       where: whereClause,
       include: {
-        users: {
+        user: {
           select: { name: true, email: true }
         }
       },
@@ -616,11 +616,11 @@ export class AuditTrailService {
   }
 
   private async countAuditEntries(whereClause: any): Promise<number> {
-    return await prisma.activities.count({ where: whereClause })
+    return await prisma.activity.count({ where: whereClause })
   }
 
   private async getEventTypeCounts(whereClause: any): Promise<Record<AuditEventType, number>> {
-    const counts = await prisma.activities.groupBy({
+    const counts = await prisma.activity.groupBy({
       by: ['type'],
       where: whereClause,
       _count: { type: true }
@@ -698,7 +698,7 @@ export class AuditTrailService {
 
   private async storeReportMetadata(reportId: string, config: AuditReportConfig, score: number) {
     // Store report metadata for tracking and retrieval
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: config.companyId,
@@ -784,7 +784,7 @@ export class AuditTrailService {
 
   private async logFallbackEvent(eventType: AuditEventType, context: AuditContext, error: any): Promise<void> {
     try {
-      await prisma.activities.create({
+      await prisma.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: context.companyId,

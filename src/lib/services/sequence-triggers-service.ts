@@ -534,7 +534,7 @@ export class SequenceTriggersService {
     try {
       // In a real implementation, you'd have a dedicated trigger_events table
       // For now, we'll log to activities table
-      await prisma.activities.create({
+      await prisma.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: event.companyId,
@@ -584,7 +584,7 @@ export class SequenceTriggersService {
       )
 
       // Log manual trigger
-      await prisma.activities.create({
+      await prisma.activity.create({
         data: {
           id: crypto.randomUUID(),
           companyId: '', // Would get from sequence
@@ -751,7 +751,7 @@ export class SequenceTriggersService {
         }),
 
         // Triggers last hour (using activities as proxy)
-        prisma.activities.count({
+        prisma.activity.count({
           where: {
             ...whereClause,
             type: 'SEQUENCE_TRIGGERED',
@@ -760,7 +760,7 @@ export class SequenceTriggersService {
         }),
 
         // Triggers last day
-        prisma.activities.count({
+        prisma.activity.count({
           where: {
             ...whereClause,
             type: 'SEQUENCE_TRIGGERED',
@@ -769,7 +769,7 @@ export class SequenceTriggersService {
         }),
 
         // Recent trigger events for analysis
-        prisma.activities.findMany({
+        prisma.activity.findMany({
           where: {
             ...whereClause,
             type: { in: ['SEQUENCE_TRIGGERED', 'MANUAL_SEQUENCE_TRIGGER'] },

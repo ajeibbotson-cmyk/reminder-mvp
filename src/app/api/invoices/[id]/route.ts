@@ -72,7 +72,7 @@ export async function GET(
         },
         followUpLogs: {
           include: {
-            followUpSequences: {
+            followUpSequence: {
               select: {
                 id: true,
                 name: true,
@@ -83,7 +83,7 @@ export async function GET(
           orderBy: { sentAt: 'desc' },
           take: 10
         },
-        importBatches: {
+        importBatch: {
           select: {
             id: true,
             originalFilename: true,
@@ -147,10 +147,10 @@ export async function GET(
         remainingAmount: formatUAECurrency(remainingAmount, invoice.currency)
       },
       // VAT summary for UAE compliance
-      vatSummary: invoice.invoice_items.length > 0 ? {
-        standardRate: invoice.invoice_items.filter(item => item.taxCategory === 'STANDARD'),
-        zeroRated: invoice.invoice_items.filter(item => item.taxCategory === 'ZERO_RATED'),
-        exempt: invoice.invoice_items.filter(item => item.taxCategory === 'EXEMPT')
+      vatSummary: invoice.invoiceItems.length > 0 ? {
+        standardRate: invoice.invoiceItems.filter(item => item.taxCategory === 'STANDARD'),
+        zeroRated: invoice.invoiceItems.filter(item => item.taxCategory === 'ZERO_RATED'),
+        exempt: invoice.invoiceItems.filter(item => item.taxCategory === 'EXEMPT')
       } : null
     })
 
@@ -353,15 +353,15 @@ export async function PUT(
       // Update invoice items if provided (UAE VAT compliant)
       if (updateData.items) {
         // Delete existing items
-        await tx.invoice_items.deleteMany({
+        await tx.invoiceItem.deleteMany({
           where: { invoiceId: id }
         })
 
         // Create new items with VAT calculations
         if (updateData.items.length > 0) {
           const itemsWithVat = vatCalculation ? vatCalculation.lineItems : updateData.items
-          
-          await tx.invoice_items.createMany({
+
+          await tx.invoiceItem.createMany({
             data: itemsWithVat.map((item: any, index: number) => {
               const originalItem = updateData.items![index]
               return {
@@ -472,7 +472,7 @@ export async function DELETE(
         payments: true,
         followUpLogs: true,
         emailLogs: true,
-        importBatches: {
+        importBatch: {
           select: { id: true, status: true }
         }
       }
@@ -500,14 +500,14 @@ export async function DELETE(
     }
 
     // Check if this invoice is part of a completed import batch
-    if (existingInvoice.importBatches && existingInvoice.importBatches.status === 'COMPLETED') {
+    if (existingInvoice.importBatch && existingInvoice.importBatch.status === 'COMPLETED') {
       throw new Error('Cannot delete invoice from a completed import batch. This would compromise data integrity.')
     }
 
     // Soft delete invoice with comprehensive audit trail (UAE compliance)
     await prisma.$transaction(async (tx) => {
       // First, delete related records that should be cleaned up
-      await tx.invoice_items.deleteMany({
+      await tx.invoiceItem.deleteMany({
         where: { invoiceId: id }
       })
 
@@ -538,7 +538,7 @@ export async function DELETE(
             dueDate: existingInvoice.dueDate.toISOString(),
             createdAt: existingInvoice.createdAt.toISOString(),
             trnNumber: existingInvoice.trnNumber,
-            itemCount: existingInvoice.invoice_items?.length || 0,
+            itemCount: existingInvoice.invoiceItems?.length || 0,
             deletionReason: 'User requested deletion',
             userAgent: request.headers.get('user-agent'),
             ipAddress: request.headers.get('x-forwarded-for') || 'unknown',

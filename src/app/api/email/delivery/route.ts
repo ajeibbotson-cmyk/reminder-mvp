@@ -71,16 +71,16 @@ export async function GET(request: NextRequest) {
       prisma.emailLog.findMany({
         where,
         include: {
-          emailTemplates: {
+          emailTemplate: {
             select: { id: true, name: true, templateType: true }
           },
-          invoices: {
+          invoice: {
             select: { id: true, number: true, customerName: true }
           },
           customer: {
             select: { id: true, name: true, email: true }
           },
-          followUpLogs: {
+          followUpLog: {
             select: { id: true, stepNumber: true }
           }
         },
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     const emailLog = await prisma.emailLog.findUnique({
       where: { id: emailLogId },
       include: {
-        emailTemplates: {
+        emailTemplate: {
           select: { id: true, name: true, templateType: true }
         }
       }

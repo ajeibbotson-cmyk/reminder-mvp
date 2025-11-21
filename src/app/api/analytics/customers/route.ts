@@ -25,14 +25,14 @@ const customerFiltersSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.company_id) {
+    if (!session?.user?.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
 
-    const companyId = session.user.companies_id
+    const companyId = session.user.companyId
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -83,14 +83,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.company_id) {
+    if (!session?.user?.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
 
-    const companyId = session.user.companies_id
+    const companyId = session.user.companyId
 
     // Trigger customer risk score updates
     const updatedCount = await customerAnalyticsService.updateCustomerRiskScores(companyId)

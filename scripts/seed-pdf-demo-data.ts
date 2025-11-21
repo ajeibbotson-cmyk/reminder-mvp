@@ -12,7 +12,7 @@ async function seedPDFDemoData() {
 
   try {
     // Get the first company (assuming you have test companies)
-    const company = await prisma.companies.findFirst()
+    const company = await prisma.company.findFirst()
     if (!company) {
       console.error('❌ No company found. Please create a company first.')
       return
@@ -21,7 +21,7 @@ async function seedPDFDemoData() {
     console.log(`📊 Using company: ${company.name} (${company.id})`)
 
     // Get the first user
-    const user = await prisma.users.findFirst({
+    const user = await prisma.user.findFirst({
       where: { companyId: company.id }
     })
     if (!user) {
@@ -31,7 +31,7 @@ async function seedPDFDemoData() {
 
     // 1. Create import batch (simulating PDF processing)
     console.log('📁 Creating PDF import batch...')
-    const importBatch = await prisma.import_batches.create({
+    const importBatch = await prisma.importBatch.create({
       data: {
         id: 'pdf_demo_' + Date.now(),
         companyId: company.id,
@@ -112,7 +112,7 @@ async function seedPDFDemoData() {
 
     // 2. Create customer from PDF extraction
     console.log('👤 Creating customer from PDF data...')
-    const customer = await prisma.customers.create({
+    const customer = await prisma.customer.create({
       data: {
         id: 'cust_above_clouds_' + Date.now(),
         companyId: company.id,
@@ -136,7 +136,7 @@ async function seedPDFDemoData() {
 
     // 3. Create invoice from reconciled PDF data
     console.log('🧾 Creating invoice from reconciled data...')
-    const invoice = await prisma.invoices.create({
+    const invoice = await prisma.invoice.create({
       data: {
         id: 'inv_pdf_demo_' + Date.now(),
         companyId: company.id,
@@ -162,7 +162,7 @@ async function seedPDFDemoData() {
 
     // 4. Create activity log
     console.log('📝 Creating activity log...')
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: 'activity_pdf_' + Date.now(),
         companyId: company.id,

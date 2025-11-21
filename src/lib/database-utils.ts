@@ -272,7 +272,7 @@ export async function getInvoicePerformanceStats(companyId: string, periodDays: 
     ])
 
     const [totalInvoices, slowSearchCount] = await Promise.all([
-      prisma.invoices.count({
+      prisma.invoice.count({
         where: { companyId, isActive: true },
       }),
 
@@ -314,33 +314,33 @@ export async function getPaymentReconciliationStats(companyId: string): Promise<
 }> {
   try {
     const [paymentStats, reconciliationStats] = await Promise.all([
-      prisma.payments.aggregate({
+      prisma.payment.aggregate({
         where: {
-          invoices: { companyId },
+          invoice: { companyId },
         },
         _count: { id: true },
       }),
 
-      prisma.payments.aggregate({
+      prisma.payment.aggregate({
         where: {
-          invoices: { companyId },
+          invoice: { companyId },
           isVerified: true,
         },
         _count: { id: true },
       }),
     ])
 
-    const pendingCount = await prisma.payments.count({
+    const pendingCount = await prisma.payment.count({
       where: {
-        invoices: { companyId },
+        invoice: { companyId },
         isVerified: false,
       },
     })
 
     // Calculate average reconciliation time for verified payments
-    const verifiedPayments = await prisma.payments.findMany({
+    const verifiedPayments = await prisma.payment.findMany({
       where: {
-        invoices: { companyId },
+        invoice: { companyId },
         isVerified: true,
         verifiedAt: { not: null },
       },
@@ -402,11 +402,11 @@ export async function generateComplianceReport(companyId: string, periodDays: nu
       trnValidatedCount,
       auditTrailStats,
     ] = await Promise.all([
-      prisma.invoices.count({
+      prisma.invoice.count({
         where: { companyId, createdAt: { gte: startDate } },
       }),
 
-      prisma.invoices.count({
+      prisma.invoice.count({
         where: {
           companyId,
           createdAt: { gte: startDate },
@@ -415,7 +415,7 @@ export async function generateComplianceReport(companyId: string, periodDays: nu
         },
       }),
 
-      prisma.invoices.count({
+      prisma.invoice.count({
         where: {
           companyId,
           createdAt: { gte: startDate },

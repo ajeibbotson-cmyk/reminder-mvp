@@ -143,7 +143,7 @@ export class CustomerExtractionService {
     const results: CustomerMatchResult[] = []
 
     // Get all existing customers for the company
-    const existingCustomers = await prisma.customers.findMany({
+    const existingCustomers = await prisma.customer.findMany({
       where: { companyId: this.companyId }
     })
 
@@ -325,7 +325,7 @@ export class CustomerExtractionService {
           updatedAt: new Date()
         }
 
-        const customer = await prisma.customers.create({
+        const customer = await prisma.customer.create({
           data: customerData
         })
 

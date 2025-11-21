@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
 async function performBulkUpdate(
   companyId: string,
   userId: string,
-  customer: any[],
+  customers: any[],
   updateData: any
 ) {
   const results = {
@@ -172,8 +172,8 @@ async function performBulkUpdate(
     processedCount: 0,
     successCount: 0,
     failureCount: 0,
-    errors: [],
-    details: []
+    errors: [] as any[],
+    details: [] as any[]
   }
 
   for (const customer of customers) {
@@ -251,7 +251,7 @@ async function performBulkUpdate(
 async function performBulkArchive(
   companyId: string,
   userId: string,
-  customer: any[],
+  customers: any[],
   reason?: string
 ) {
   const results = {
@@ -259,8 +259,8 @@ async function performBulkArchive(
     processedCount: 0,
     successCount: 0,
     failureCount: 0,
-    errors: [],
-    details: []
+    errors: [] as any[],
+    details: [] as any[]
   }
 
   for (const customer of customers) {
@@ -405,8 +405,7 @@ async function performBulkMerge(
           },
           data: {
             customerEmail: primaryCustomer.email,
-            customerName: primaryCustomer.name,
-            customerNameAr: primaryCustomer.nameAr
+            customerName: primaryCustomer.name
           }
         })
 
@@ -464,14 +463,14 @@ async function performBulkMerge(
 }
 
 // Bulk export implementation
-async function performBulkExport(customer: any[], format: string) {
+async function performBulkExport(customers: any[], format: string) {
   const results = {
     action: 'export',
     processedCount: customers.length,
     successCount: customers.length,
     failureCount: 0,
-    errors: [],
-    details: []
+    errors: [] as any[],
+    details: [] as any[]
   }
 
   // Calculate customer metrics for export

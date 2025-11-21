@@ -111,7 +111,7 @@ export async function PATCH(request: NextRequest) {
               metadata: {
                 invoiceId: invoice.id,
                 invoiceNumber: invoice.number,
-                customerName: invoice.customer_name,
+                customerName: invoice.customerName,
                 previousStatus: invoice.status,
                 newStatus: status,
                 reason: reason || 'Bulk update operation',

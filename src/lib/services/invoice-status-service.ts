@@ -183,12 +183,12 @@ export class InvoiceStatusService {
   ): Promise<StatusChangeResult> {
     return await prisma.$transaction(async (tx) => {
       // Fetch invoice with related data
-      const invoice = await tx.invoices.findUnique({
+      const invoice = await tx.invoice.findUnique({
         where: { id: invoiceId },
         include: {
-          payments: { select: { amount: true, paymentDate: true } },
-          customers: { select: { email: true, name: true } },
-          companies: { select: { id: true, name: true } }
+          payment: { select: { amount: true, paymentDate: true } },
+          customer: { select: { email: true, name: true } },
+          company: { select: { id: true, name: true } }
         }
       })
 
@@ -220,9 +220,9 @@ export class InvoiceStatusService {
       const finalStatus = this.determineActualStatus(invoice, newStatus, businessContext)
 
       // Update invoice status
-      const updatedInvoice = await tx.invoices.update({
+      const updatedInvoice = await tx.invoice.update({
         where: { id: invoiceId },
-        data: { 
+        data: {
           status: finalStatus,
           updatedAt: new Date()
         }
@@ -360,14 +360,14 @@ export class InvoiceStatusService {
     }
   ): Promise<BatchStatusChangeResult> {
     // Fetch all invoices with validation
-    const invoices = await prisma.invoices.findMany({
+    const invoices = await prisma.invoice.findMany({
       where: {
         id: { in: invoiceIds },
         companyId: context.companyId // Enforce company isolation
       },
       include: {
-        payments: { select: { amount: true, paymentDate: true } },
-        customers: { select: { email: true, name: true } }
+        payment: { select: { amount: true, paymentDate: true } },
+        customer: { select: { email: true, name: true } }
       }
     })
 
@@ -413,7 +413,7 @@ export class InvoiceStatusService {
     const overdueAnalysis = await this.getOverdueAnalysis(companyId)
 
     // Get recent status changes from audit trail
-    const recentChanges = await prisma.activities.findMany({
+    const recentChanges = await prisma.activity.findMany({
       where: {
         companyId,
         type: 'invoice_status_updated',
@@ -421,7 +421,7 @@ export class InvoiceStatusService {
       },
       orderBy: { createdAt: 'desc' },
       take: 10,
-      include: { users: { select: { name: true } } }
+      include: { user: { select: { name: true } } }
     })
 
     const recentStatusChanges = recentChanges.map(activity => ({
@@ -429,7 +429,7 @@ export class InvoiceStatusService {
       oldStatus: activity.metadata.previousStatus as InvoiceStatus,
       newStatus: activity.metadata.newStatus as InvoiceStatus,
       changedAt: activity.createdAt,
-      changedBy: activity.users?.name || 'System',
+      changedBy: activity.user?.name || 'System',
       reason: activity.metadata.reason as string
     }))
 
@@ -451,7 +451,7 @@ export class InvoiceStatusService {
 
     // Payment validation for PAID status
     if (newStatus === InvoiceStatus.PAID) {
-      const totalPaid = invoice.payments.reduce(
+      const totalPaid = invoice.payment.reduce(
         (sum: Decimal, payment: any) => sum.plus(payment.amount),
         new Decimal(0)
       )
@@ -512,7 +512,7 @@ export class InvoiceStatusService {
   }
 
   private calculateBusinessContext(invoice: any) {
-    const totalPaid = invoice.payments.reduce(
+    const totalPaid = invoice.payment.reduce(
       (sum: Decimal, payment: any) => sum.plus(payment.amount),
       new Decimal(0)
     )
@@ -526,10 +526,10 @@ export class InvoiceStatusService {
     return {
       isOverdue,
       daysPastDue,
-      hasPayments: invoice.payments.length > 0,
+      hasPayments: invoice.payment.length > 0,
       totalPaid: totalPaid.toNumber(),
       remainingAmount: remainingAmount.toNumber(),
-      customerEmail: invoice.customers?.email || invoice.customerEmail,
+      customerEmail: invoice.customer?.email || invoice.customerEmail,
       dueDate: invoice.dueDate
     }
   }
@@ -608,7 +608,7 @@ export class InvoiceStatusService {
   }
 
   private async createAuditTrailEntry(tx: any, auditEntry: StatusChangeAuditEntry) {
-    await tx.activities.create({
+    await tx.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: auditEntry.companyId,
@@ -645,12 +645,12 @@ export class InvoiceStatusService {
     ]
 
     if (notifiableTransitions.includes(`${fromStatus}->${toStatus}`)) {
-      await tx.emailLogs.create({
+      await tx.emailLog.create({
         data: {
           id: crypto.randomUUID(),
           companyId,
           invoiceId: invoice.id,
-          customerId: invoice.customers?.id,
+          customerId: invoice.customer?.id,
           recipientEmail: invoice.customerEmail,
           recipientName: invoice.customerName,
           subject: this.getNotificationSubject(invoice.number, fromStatus, toStatus),
@@ -722,11 +722,11 @@ export class InvoiceStatusService {
       whereClause.companyId = companyId
     }
 
-    return await prisma.invoices.findMany({
+    return await prisma.invoice.findMany({
       where: whereClause,
       include: {
-        payments: { select: { amount: true, paymentDate: true } },
-        customers: { select: { email: true, name: true } }
+        payment: { select: { amount: true, paymentDate: true } },
+        customer: { select: { email: true, name: true } }
       },
       orderBy: { dueDate: 'asc' }
     })
@@ -798,7 +798,7 @@ export class InvoiceStatusService {
           const businessContext = this.calculateBusinessContext(invoice)
           const finalStatus = this.determineActualStatus(invoice, newStatus, businessContext)
 
-          await tx.invoices.update({
+          await tx.invoice.update({
             where: { id: invoice.id },
             data: { status: finalStatus, updatedAt: new Date() }
           })
@@ -856,7 +856,7 @@ export class InvoiceStatusService {
   }
 
   private async getStatusCounts(companyId: string): Promise<Record<InvoiceStatus, number>> {
-    const counts = await prisma.invoices.groupBy({
+    const counts = await prisma.invoice.groupBy({
       by: ['status'],
       where: { companyId },
       _count: { status: true }
@@ -879,7 +879,7 @@ export class InvoiceStatusService {
   }
 
   private async getOverdueAnalysis(companyId: string) {
-    const overdueInvoices = await prisma.invoices.findMany({
+    const overdueInvoices = await prisma.invoice.findMany({
       where: {
         companyId,
         status: InvoiceStatus.OVERDUE

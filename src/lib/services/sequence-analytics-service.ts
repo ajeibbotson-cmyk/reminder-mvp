@@ -339,7 +339,7 @@ export class SequenceAnalyticsService {
     const invoiceIds = [...new Set(logs.map(log => log.invoiceId))]
     
     // Get payment data for invoices in this sequence
-    const payments = await prisma.payments.findMany({
+    const payments = await prisma.payment.findMany({
       where: {
         invoiceId: { in: invoiceIds },
         paymentDate: { gte: dateFrom, lte: dateTo }

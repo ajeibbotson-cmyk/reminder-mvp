@@ -48,7 +48,7 @@ interface InvoiceTableProps {
   className?: string
 }
 
-type SortField = 'number' | 'customer_name' | 'amount' | 'due_date' | 'created_at' | 'status'
+type SortField = 'number' | 'customerName' | 'amount' | 'dueDate' | 'createdAt' | 'status'
 type SortOrder = 'asc' | 'desc'
 
 interface SortConfig {
@@ -79,7 +79,7 @@ export function InvoiceTable({
   // Table state
   const [selectedInvoices, setSelectedInvoices] = useState<string[]>([])
   const [sortConfig, setSortConfig] = useState<SortConfig>({
-    field: 'created_at',
+    field: 'createdAt',
     order: 'desc'
   })
   const [currentPage, setCurrentPage] = useState(1)
@@ -113,10 +113,10 @@ export function InvoiceTable({
     setSortConfig(newSortConfig)
     
     // Update filters to trigger API call
-    onFiltersChange?.({ 
-      ...filters, 
-      sort_by: field, 
-      sort_order: newOrder,
+    onFiltersChange?.({
+      ...filters,
+      sortBy: field,
+      sortOrder: newOrder,
       page: 1 // Reset to first page when sorting
     })
   }
@@ -131,21 +131,21 @@ export function InvoiceTable({
           aValue = a.number || ''
           bValue = b.number || ''
           break
-        case 'customer_name':
-          aValue = a.customer_name || ''
-          bValue = b.customer_name || ''
+        case 'customerName':
+          aValue = a.customerName || ''
+          bValue = b.customerName || ''
           break
         case 'amount':
           aValue = a.amount || 0
           bValue = b.amount || 0
           break
-        case 'due_date':
-          aValue = new Date(a.due_date || 0).getTime()
-          bValue = new Date(b.due_date || 0).getTime()
+        case 'dueDate':
+          aValue = new Date(a.dueDate || 0).getTime()
+          bValue = new Date(b.dueDate || 0).getTime()
           break
-        case 'created_at':
-          aValue = new Date(a.created_at || 0).getTime()
-          bValue = new Date(b.created_at || 0).getTime()
+        case 'createdAt':
+          aValue = new Date(a.createdAt || 0).getTime()
+          bValue = new Date(b.createdAt || 0).getTime()
           break
         case 'status':
           aValue = a.status || ''
@@ -343,11 +343,11 @@ export function InvoiceTable({
                     <TableHead className={isRTL ? 'text-right' : 'text-left'}>
                       <Button
                         variant="ghost"
-                        onClick={() => handleSort('customer_name')}
+                        onClick={() => handleSort('customerName')}
                         className="h-auto p-0 font-medium hover:bg-transparent"
                       >
                         {t('invoices.customer')}
-                        {getSortIcon('customer_name')}
+                        {getSortIcon('customerName')}
                       </Button>
                     </TableHead>
                     
@@ -365,11 +365,11 @@ export function InvoiceTable({
                     <TableHead className={isRTL ? 'text-right' : 'text-left'}>
                       <Button
                         variant="ghost"
-                        onClick={() => handleSort('due_date')}
+                        onClick={() => handleSort('dueDate')}
                         className="h-auto p-0 font-medium hover:bg-transparent"
                       >
                         {t('invoices.dueDate')}
-                        {getSortIcon('due_date')}
+                        {getSortIcon('dueDate')}
                       </Button>
                     </TableHead>
                     
@@ -392,8 +392,8 @@ export function InvoiceTable({
                 <TableBody>
                   {paginatedInvoices.map((invoice) => {
                     const isSelected = selectedInvoices.includes(invoice.id)
-                    const isOverdue = invoice.status === 'OVERDUE' || 
-                      (invoice.status === 'SENT' && new Date(invoice.due_date) < new Date())
+                    const isOverdue = invoice.status === 'OVERDUE' ||
+                      (invoice.status === 'SENT' && new Date(invoice.dueDate) < new Date())
                     
                     return (
                       <TableRow 
@@ -417,9 +417,9 @@ export function InvoiceTable({
                         <TableCell className="font-medium">
                           <div className="flex flex-col">
                             <span className="font-mono text-sm">{invoice.number}</span>
-                            {invoice.trn_number && (
+                            {invoice.trnNumber && (
                               <span className="text-xs text-muted-foreground">
-                                TRN: {invoice.trn_number}
+                                TRN: {invoice.trnNumber}
                               </span>
                             )}
                           </div>
@@ -428,10 +428,10 @@ export function InvoiceTable({
                         <TableCell>
                           <div className="space-y-1">
                             <div className="font-medium">
-                              {invoice.customer?.name || invoice.customer_name || 'Unknown Customer'}
+                              {invoice.customer?.name || invoice.customerName || 'Unknown Customer'}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {invoice.customer?.email || invoice.customer_email}
+                              {invoice.customer?.email || invoice.customerEmail}
                             </div>
                           </div>
                         </TableCell>
@@ -443,10 +443,10 @@ export function InvoiceTable({
                               locale={locale === 'ar' ? 'ar-AE' : 'en-AE'}
                               className="font-medium"
                             />
-                            {invoice.vat_amount && invoice.vat_amount > 0 && (
+                            {invoice.vatAmount && Number(invoice.vatAmount) > 0 && (
                               <div className="text-xs text-muted-foreground">
-                                VAT: <AEDAmount 
-                                  amount={invoice.vat_amount} 
+                                VAT: <AEDAmount
+                                  amount={Number(invoice.vatAmount)}
                                   locale={locale === 'ar' ? 'ar-AE' : 'en-AE'}
                                   showCurrency={false}
                                 />
@@ -457,8 +457,8 @@ export function InvoiceTable({
                         
                         <TableCell>
                           <div className="space-y-1">
-                            <UAEDateDisplay 
-                              date={invoice.due_date} 
+                            <UAEDateDisplay
+                              date={invoice.dueDate}
                               locale={locale === 'ar' ? 'ar-AE' : 'en-AE'}
                               className={isOverdue ? 'text-red-600 font-medium' : ''}
                             />

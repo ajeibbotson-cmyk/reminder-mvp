@@ -197,14 +197,14 @@ export class UnifiedEmailService {
       const validatedOptions = CampaignOptionsSchema.parse(options)
 
       // 2. Fetch invoices with customer data
-      const invoices = await this.prisma.invoices.findMany({
+      const invoices = await this.prisma.invoice.findMany({
         where: {
           id: { in: invoiceIds },
-          company_id: companyId // Multi-tenant security
+          companyId: companyId // Multi-tenant security
         },
         include: {
-          customers: true,
-          companies: true
+          customer: true,
+          company: true
         }
       })
 
@@ -224,39 +224,39 @@ export class UnifiedEmailService {
       // 5. Create campaign record
       const campaign = await this.prisma.invoiceCampaign.create({
         data: {
-          company_id: companyId,
+          companyId: companyId,
           name: validatedOptions.campaignName,
-          email_subject: validatedOptions.emailSubject,
-          email_content: validatedOptions.emailContent,
+          emailSubject: validatedOptions.emailSubject,
+          emailContent: validatedOptions.emailContent,
           language: validatedOptions.language,
-          template_id: validatedOptions.templateId,
+          templateId: validatedOptions.templateId,
           status: 'draft',
-          total_recipients: validation.validEmails,
-          batch_size: validatedOptions.sendingOptions.batchSize,
-          delay_between_batches: validatedOptions.sendingOptions.delayBetweenBatches,
-          respect_business_hours: validatedOptions.sendingOptions.respectBusinessHours,
-          attach_invoice_pdf: validatedOptions.sendingOptions.attachInvoicePdf,
-          scheduled_for: validatedOptions.sendingOptions.scheduleFor,
-          created_by: userId,  // Support both user and system sessions
+          totalRecipients: validation.validEmails,
+          batchSize: validatedOptions.sendingOptions.batchSize,
+          delayBetweenBatches: validatedOptions.sendingOptions.delayBetweenBatches,
+          respectBusinessHours: validatedOptions.sendingOptions.respectBusinessHours,
+          attachInvoicePdf: validatedOptions.sendingOptions.attachInvoicePdf,
+          scheduledFor: validatedOptions.sendingOptions.scheduleFor,
+          createdBy: userId,  // Support both user and system sessions
 
           // Create associated email send records
-          campaign_email_sends: {
+          campaignEmailSends: {
             create: invoices
-              .filter(invoice => invoice.customer_email) // Only valid emails
+              .filter(invoice => invoice.customerEmail) // Only valid emails
               .map(invoice => ({
-                company_id: companyId,
-                invoice_id: invoice.id,
-                customer_id: invoice.customer_id,
-                recipient_email: invoice.customer_email!,
-                email_subject: this.resolveSubjectMergeTags(validatedOptions.emailSubject, invoice),
-                email_content: this.resolveContentMergeTags(validatedOptions.emailContent, invoice),
-                delivery_status: 'pending',
+                companyId: companyId,
+                invoiceId: invoice.id,
+                customerId: invoice.customer?.id, // Get customer ID from included relation
+                recipientEmail: invoice.customerEmail!,
+                emailSubject: this.resolveSubjectMergeTags(validatedOptions.emailSubject, invoice),
+                emailContent: this.resolveContentMergeTags(validatedOptions.emailContent, invoice),
+                deliveryStatus: 'pending',
                 language: validatedOptions.language
               }))
           }
         },
         include: {
-          campaign_email_sends: true
+          campaignEmailSends: true
         }
       })
 
@@ -287,18 +287,18 @@ export class UnifiedEmailService {
     const campaign = await this.prisma.invoiceCampaign.findFirst({
       where: {
         id: campaignId,
-        company_id: this.session.user.companyId
+        companyId: this.session.user.companyId
       },
       include: {
-        campaign_email_sends: {
-          where: { delivery_status: 'pending' },
+        campaignEmailSends: {
+          where: { deliveryStatus: 'pending' },
           include: {
-            invoices: {
+            invoice: {
               select: {
                 id: true,
                 number: true,
-                pdf_s3_key: true,
-                pdf_s3_bucket: true
+                pdfS3Key: true,
+                pdfS3Bucket: true
               }
             }
           }
@@ -315,7 +315,7 @@ export class UnifiedEmailService {
     }
 
     const startTime = Date.now()
-    const pendingEmails = campaign.campaign_email_sends
+    const pendingEmails = campaign.campaignEmailSends
     const results: EmailSendResult[] = []
 
     try {
@@ -324,19 +324,19 @@ export class UnifiedEmailService {
         where: { id: campaignId },
         data: {
           status: 'sending',
-          started_at: new Date()
+          startedAt: new Date()
         }
       })
 
       // Calculate batch information
-      const batchSize = campaign.batch_size
+      const batchSize = campaign.batchSize
       const totalBatches = Math.ceil(pendingEmails.length / batchSize)
       let currentBatch = 0
       let sentCount = 0
       let failedCount = 0
 
       // Get attachment setting (default true for backward compatibility)
-      const attachPdf = campaign.attach_invoice_pdf ?? true
+      const attachPdf = campaign.attachInvoicePdf ?? true
 
       // Process emails in batches
       for (let i = 0; i < pendingEmails.length; i += batchSize) {
@@ -352,10 +352,10 @@ export class UnifiedEmailService {
             await this.prisma.campaignEmailSend.update({
               where: { id: emailSend.id },
               data: {
-                delivery_status: result.status === 'sent' ? 'sent' : 'failed',
-                ses_message_id: result.messageId,
-                error_message: result.errorMessage,
-                sent_at: result.status === 'sent' ? new Date() : null
+                deliveryStatus: result.status === 'sent' ? 'sent' : 'failed',
+                sesMessageId: result.messageId,
+                errorMessage: result.errorMessage,
+                sentAt: result.status === 'sent' ? new Date() : null
               }
             })
 
@@ -363,8 +363,8 @@ export class UnifiedEmailService {
 
           } catch (error) {
             const failedResult: EmailSendResult = {
-              recipientEmail: emailSend.recipient_email,
-              invoiceId: emailSend.invoice_id,
+              recipientEmail: emailSend.recipientEmail,
+              invoiceId: emailSend.invoiceId,
               status: 'failed',
               errorMessage: error instanceof Error ? error.message : 'Unknown error',
               sentAt: new Date()
@@ -374,9 +374,9 @@ export class UnifiedEmailService {
             await this.prisma.campaignEmailSend.update({
               where: { id: emailSend.id },
               data: {
-                delivery_status: 'failed',
-                error_message: failedResult.errorMessage,
-                sent_at: new Date()
+                deliveryStatus: 'failed',
+                errorMessage: failedResult.errorMessage,
+                sentAt: new Date()
               }
             })
 
@@ -424,7 +424,7 @@ export class UnifiedEmailService {
 
         // Delay between batches (except for last batch)
         if (currentBatch < totalBatches) {
-          await new Promise(resolve => setTimeout(resolve, campaign.delay_between_batches))
+          await new Promise(resolve => setTimeout(resolve, campaign.delayBetweenBatches))
         }
       }
 
@@ -437,10 +437,10 @@ export class UnifiedEmailService {
         where: { id: campaignId },
         data: {
           status: failedCount === 0 ? 'completed' : 'completed_with_errors',
-          completed_at: new Date(),
-          sent_count: sentCount,
-          failed_count: failedCount,
-          success_rate: successRate
+          completedAt: new Date(),
+          sentCount: sentCount,
+          failedCount: failedCount,
+          successRate: successRate
         }
       })
 
@@ -474,8 +474,8 @@ export class UnifiedEmailService {
         where: { id: campaignId },
         data: {
           status: 'failed',
-          completed_at: new Date(),
-          error_message: error instanceof Error ? error.message : 'Unknown error'
+          completedAt: new Date(),
+          errorMessage: error instanceof Error ? error.message : 'Unknown error'
         }
       })
 
@@ -490,13 +490,13 @@ export class UnifiedEmailService {
     const campaign = await this.prisma.invoiceCampaign.findFirst({
       where: {
         id: campaignId,
-        company_id: this.session.user.companyId
+        companyId: this.session.user.companyId
       },
       include: {
-        campaign_email_sends: {
+        campaignEmailSends: {
           select: {
-            delivery_status: true,
-            sent_at: true
+            deliveryStatus: true,
+            sentAt: true
           }
         }
       }
@@ -506,27 +506,27 @@ export class UnifiedEmailService {
       throw new Error('Campaign not found or access denied')
     }
 
-    const totalRecipients = campaign.total_recipients
-    const sentCount = campaign.campaign_email_sends.filter(s => s.delivery_status === 'sent').length
-    const failedCount = campaign.campaign_email_sends.filter(s => s.delivery_status === 'failed').length
-    const pendingCount = campaign.campaign_email_sends.filter(s => s.delivery_status === 'pending').length
+    const totalRecipients = campaign.totalRecipients
+    const sentCount = campaign.campaignEmailSends.filter(s => s.deliveryStatus === 'sent').length
+    const failedCount = campaign.campaignEmailSends.filter(s => s.deliveryStatus === 'failed').length
+    const pendingCount = campaign.campaignEmailSends.filter(s => s.deliveryStatus === 'pending').length
 
     const percentComplete = totalRecipients > 0 ? Math.round(((sentCount + failedCount) / totalRecipients) * 100) : 0
-    const currentBatch = Math.ceil((sentCount + failedCount) / campaign.batch_size)
-    const totalBatches = Math.ceil(totalRecipients / campaign.batch_size)
+    const currentBatch = Math.ceil((sentCount + failedCount) / campaign.batchSize)
+    const totalBatches = Math.ceil(totalRecipients / campaign.batchSize)
 
     // Calculate estimated time remaining for active campaigns
     let estimatedTimeRemaining: string | undefined
     if (campaign.status === 'sending' && pendingCount > 0) {
       const remainingBatches = totalBatches - currentBatch
-      const avgBatchTime = campaign.delay_between_batches + 2000 // Estimate 2 seconds per batch processing
+      const avgBatchTime = campaign.delayBetweenBatches + 2000 // Estimate 2 seconds per batch processing
       const remainingTime = remainingBatches * avgBatchTime
       estimatedTimeRemaining = `${Math.round(remainingTime / 1000)} seconds`
     }
 
-    const lastSentEmail = campaign.campaign_email_sends
-      .filter(s => s.sent_at)
-      .sort((a, b) => new Date(b.sent_at!).getTime() - new Date(a.sent_at!).getTime())[0]
+    const lastSentEmail = campaign.campaignEmailSends
+      .filter(s => s.sentAt)
+      .sort((a, b) => new Date(b.sentAt!).getTime() - new Date(a.sentAt!).getTime())[0]
 
     return {
       campaignId,
@@ -537,7 +537,7 @@ export class UnifiedEmailService {
       totalBatches,
       percentComplete,
       estimatedTimeRemaining,
-      lastEmailSentAt: lastSentEmail?.sent_at,
+      lastEmailSentAt: lastSentEmail?.sentAt,
       status: campaign.status as any
     }
   }
@@ -558,15 +558,15 @@ export class UnifiedEmailService {
     let duplicateEmails = 0
 
     // Check suppression list
-    const suppressedEmailList = await this.prisma.email_suppression_list.findMany({
-      where: { company_id: this.session.user.companyId },
-      select: { email_address: true }
+    const suppressedEmailList = await this.prisma.emailSuppressionList.findMany({
+      where: { companyId: this.session.user.companyId },
+      select: { emailAddress: true }
     })
-    const suppressedSet = new Set(suppressedEmailList.map(s => s.email_address.toLowerCase()))
+    const suppressedSet = new Set(suppressedEmailList.map(s => s.emailAddress.toLowerCase()))
 
     for (const invoice of invoices) {
-      // Use denormalized customer_email field (invoices have it directly)
-      const email = invoice.customer_email?.toLowerCase()
+      // Use denormalized customerEmail field (invoices have it directly)
+      const email = invoice.customerEmail?.toLowerCase()
 
       // Missing email
       if (!email) {
@@ -637,12 +637,12 @@ export class UnifiedEmailService {
   private async getReplyToAddress(invoice: any): Promise<string | undefined> {
     try {
       // Get company email settings
-      const company = await this.prisma.companies.findUnique({
-        where: { id: invoice.company_id },
-        select: { email_settings: true }
+      const company = await this.prisma.company.findUnique({
+        where: { id: invoice.companyId },
+        select: { emailSettings: true }
       })
 
-      const emailSettings = company?.email_settings as any
+      const emailSettings = company?.emailSettings as any
       const companyReplyTo = emailSettings?.replyTo
 
       // If company has a default Reply-To configured, use it
@@ -652,8 +652,8 @@ export class UnifiedEmailService {
 
       // Otherwise, use the customer's email as Reply-To (they reply to themselves)
       // This makes sense for B2B invoicing where customer knows the context
-      if (invoice.customer_email && invoice.customer_email.includes('@')) {
-        return invoice.customer_email
+      if (invoice.customerEmail && invoice.customerEmail.includes('@')) {
+        return invoice.customerEmail
       }
 
       // No Reply-To configured
@@ -753,8 +753,8 @@ export class UnifiedEmailService {
   private async sendSingleEmail(emailSend: any, attachPdf: boolean = true): Promise<EmailSendResult> {
     try {
       // Check if we should attach PDF and if PDF is available
-      const invoice = emailSend.invoices
-      const shouldAttachPdf = attachPdf && invoice?.pdf_s3_key && invoice?.pdf_s3_bucket
+      const invoice = emailSend.invoice
+      const shouldAttachPdf = attachPdf && invoice?.pdfS3Key && invoice?.pdfS3Bucket
 
       // Determine Reply-To address for this email
       const replyTo = await this.getReplyToAddress(invoice)
@@ -763,15 +763,15 @@ export class UnifiedEmailService {
 
       if (shouldAttachPdf) {
         // Fetch PDF from S3
-        const pdfBuffer = await this.fetchPdfFromS3(invoice.pdf_s3_key, invoice.pdf_s3_bucket)
+        const pdfBuffer = await this.fetchPdfFromS3(invoice.pdfS3Key, invoice.pdfS3Bucket)
 
         if (pdfBuffer) {
           // Build MIME email with attachment
           const pdfFileName = `invoice-${invoice.number || invoice.id}.pdf`
           const rawMessage = this.buildMimeEmailWithAttachment(
-            emailSend.recipient_email,
-            emailSend.email_subject,
-            emailSend.email_content,
+            emailSend.recipientEmail,
+            emailSend.emailSubject,
+            emailSend.emailContent,
             pdfBuffer,
             pdfFileName,
             replyTo
@@ -785,7 +785,7 @@ export class UnifiedEmailService {
           })
 
           response = await this.sesClient.send(rawCommand)
-          console.log(`Email sent with PDF attachment: ${pdfFileName} to ${emailSend.recipient_email}${replyTo ? ` (Reply-To: ${replyTo})` : ''}`)
+          console.log(`Email sent with PDF attachment: ${pdfFileName} to ${emailSend.recipientEmail}${replyTo ? ` (Reply-To: ${replyTo})` : ''}`)
         } else {
           // PDF fetch failed, send without attachment
           console.warn(`PDF fetch failed for invoice ${invoice.id}, sending email without attachment`)
@@ -797,8 +797,8 @@ export class UnifiedEmailService {
       }
 
       return {
-        recipientEmail: emailSend.recipient_email,
-        invoiceId: emailSend.invoice_id,
+        recipientEmail: emailSend.recipientEmail,
+        invoiceId: emailSend.invoiceId,
         status: 'sent',
         messageId: response.MessageId,
         sentAt: new Date()
@@ -807,8 +807,8 @@ export class UnifiedEmailService {
     } catch (error) {
       console.error('SES send error:', error)
       return {
-        recipientEmail: emailSend.recipient_email,
-        invoiceId: emailSend.invoice_id,
+        recipientEmail: emailSend.recipientEmail,
+        invoiceId: emailSend.invoiceId,
         status: 'failed',
         errorMessage: error instanceof Error ? error.message : 'AWS SES send failed',
         sentAt: new Date()
@@ -824,16 +824,16 @@ export class UnifiedEmailService {
       Source: this.config.defaultFromEmail,
       ...(replyTo ? { ReplyToAddresses: [replyTo] } : {}),
       Destination: {
-        ToAddresses: [emailSend.recipient_email]
+        ToAddresses: [emailSend.recipientEmail]
       },
       Message: {
         Subject: {
-          Data: emailSend.email_subject,
+          Data: emailSend.emailSubject,
           Charset: 'UTF-8'
         },
         Body: {
           Html: {
-            Data: emailSend.email_content,
+            Data: emailSend.emailContent,
             Charset: 'UTF-8'
           }
         }
@@ -870,27 +870,27 @@ export class UnifiedEmailService {
   private resolveSubjectMergeTags(subject: string, invoice: any): string {
     return subject
       .replace(/\{\{invoiceNumber\}\}/g, invoice.number || '')
-      .replace(/\{\{customerName\}\}/g, invoice.customer_name || invoice.customer?.name || '')
-      .replace(/\{\{amount\}\}/g, invoice.amount?.toString() || invoice.amount_aed?.toString() || '')
-      .replace(/\{\{companyName\}\}/g, invoice.companies?.name || '')
+      .replace(/\{\{customerName\}\}/g, invoice.customerName || invoice.customer?.name || '')
+      .replace(/\{\{amount\}\}/g, invoice.amount?.toString() || invoice.amountAed?.toString() || '')
+      .replace(/\{\{companyName\}\}/g, invoice.company?.name || '')
   }
 
   /**
    * Resolve content merge tags
    */
   private resolveContentMergeTags(content: string, invoice: any): string {
-    const dueDate = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : ''
-    const daysPastDue = invoice.due_date ?
-      Math.max(0, Math.floor((Date.now() - new Date(invoice.due_date).getTime()) / (1000 * 60 * 60 * 24))) : 0
+    const dueDate = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : ''
+    const daysPastDue = invoice.dueDate ?
+      Math.max(0, Math.floor((Date.now() - new Date(invoice.dueDate).getTime()) / (1000 * 60 * 60 * 24))) : 0
 
     return content
       .replace(/\{\{invoiceNumber\}\}/g, invoice.number || '')
-      .replace(/\{\{customerName\}\}/g, invoice.customer_name || invoice.customer?.name || '')
-      .replace(/\{\{amount\}\}/g, invoice.amount?.toString() || invoice.amount_aed?.toString() || '')
+      .replace(/\{\{customerName\}\}/g, invoice.customerName || invoice.customer?.name || '')
+      .replace(/\{\{amount\}\}/g, invoice.amount?.toString() || invoice.amountAed?.toString() || '')
       .replace(/\{\{dueDate\}\}/g, dueDate)
       .replace(/\{\{daysPastDue\}\}/g, daysPastDue.toString())
-      .replace(/\{\{companyName\}\}/g, invoice.companies?.name || '')
-      .replace(/\{\{customerEmail\}\}/g, invoice.customer_email || invoice.customer?.email || '')
+      .replace(/\{\{companyName\}\}/g, invoice.company?.name || '')
+      .replace(/\{\{customerEmail\}\}/g, invoice.customerEmail || invoice.customer?.email || '')
   }
 
   /**

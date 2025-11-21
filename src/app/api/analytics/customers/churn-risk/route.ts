@@ -11,14 +11,14 @@ import { customerAnalyticsService } from '@/lib/services/customer-analytics-serv
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.company_id) {
+    if (!session?.user?.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
 
-    const companyId = session.user.companies_id
+    const companyId = session.user.companyId
 
     // Get customers at risk of churn
     const churnRiskCustomers = await customerAnalyticsService.getChurnRiskCustomers(companyId)

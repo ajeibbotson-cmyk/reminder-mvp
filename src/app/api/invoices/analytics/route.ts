@@ -305,7 +305,7 @@ async function getOverviewMetrics(companyId: string, startDate: Date, endDate: D
     ? paidInvoices.reduce((sum, invoice) => {
         if (invoice.payments[0]) {
           const daysDiff = Math.ceil(
-            (invoice.payments[0].paymentDate.getTime() - invoice.created_at.getTime()) / (1000 * 60 * 60 * 24)
+            (invoice.payments[0].paymentDate.getTime() - invoice.createdAt.getTime()) / (1000 * 60 * 60 * 24)
           )
           return sum + daysDiff
         }
@@ -447,7 +447,7 @@ async function getTopCustomers(companyId: string, startDate: Date, endDate: Date
       ? customerPaidInvoices.reduce((sum, invoice) => {
           if (invoice.payments[0]) {
             const daysDiff = Math.ceil(
-              (invoice.payments[0].paymentDate.getTime() - invoice.created_at.getTime()) / (1000 * 60 * 60 * 24)
+              (invoice.payments[0].paymentDate.getTime() - invoice.createdAt.getTime()) / (1000 * 60 * 60 * 24)
             )
             return sum + daysDiff
           }
@@ -468,7 +468,7 @@ async function getTopCustomers(companyId: string, startDate: Date, endDate: Date
       paidAmount: paidAmount.toNumber(),
       outstandingAmount: Math.max(0, outstandingAmount.toNumber()),
       averageDaysToPayment: Math.round(averageDaysToPayment),
-      lastInvoiceDate: customer._max.created_at || new Date()
+      lastInvoiceDate: customer._max.createdAt || new Date()
     })
   }
 

@@ -48,7 +48,7 @@ export async function GET(
         companyId: user.companies.id
       },
       include: {
-        email_templates: {
+        emailTemplate: {
           select: {
             id: true,
             name: true,
@@ -64,35 +64,35 @@ export async function GET(
       id: log.id,
       subject: log.subject,
       content: log.content,
-      recipientEmail: log.recipient_email,
-      recipientName: log.recipient_name,
-      deliveryStatus: log.delivery_status,
+      recipientEmail: log.recipientEmail,
+      recipientName: log.recipientName,
+      deliveryStatus: log.deliveryStatus,
       language: log.language,
-      sentAt: log.sent_at?.toISOString(),
-      deliveredAt: log.delivered_at?.toISOString(),
-      openedAt: log.opened_at?.toISOString(),
-      clickedAt: log.clicked_at?.toISOString(),
-      bouncedAt: log.bounced_at?.toISOString(),
-      complainedAt: log.complained_at?.toISOString(),
-      bounceReason: log.bounce_reason,
-      complaintFeedback: log.complaint_feedback,
-      retryCount: log.retry_count,
-      awsMessageId: log.aws_message_id,
-      template: log.email_templates ? {
-        id: log.email_templates.id,
-        name: log.email_templates.name,
-        templateType: log.email_templates.template_id
+      sentAt: log.sentAt?.toISOString(),
+      deliveredAt: log.deliveredAt?.toISOString(),
+      openedAt: log.openedAt?.toISOString(),
+      clickedAt: log.clickedAt?.toISOString(),
+      bouncedAt: log.bouncedAt?.toISOString(),
+      complainedAt: log.complainedAt?.toISOString(),
+      bounceReason: log.bounceReason,
+      complaintFeedback: log.complaintFeedback,
+      retryCount: log.retryCount,
+      awsMessageId: log.awsMessageId,
+      template: log.emailTemplate ? {
+        id: log.emailTemplate.id,
+        name: log.emailTemplate.name,
+        templateType: log.emailTemplate.templateId
       } : null,
-      createdAt: log.created_at.toISOString(),
-      updatedAt: log.updated_at.toISOString()
+      createdAt: log.createdAt.toISOString(),
+      updatedAt: log.updatedAt.toISOString()
     }))
 
     // Calculate summary statistics
     const totalSent = emailHistory.length
-    const delivered = emailHistory.filter(log => log.delivery_status === 'DELIVERED').length
-    const opened = emailHistory.filter(log => log.opened_at !== null).length
-    const bounced = emailHistory.filter(log => log.delivery_status === 'BOUNCED').length
-    const failed = emailHistory.filter(log => log.delivery_status === 'FAILED').length
+    const delivered = emailHistory.filter(log => log.deliveryStatus === 'DELIVERED').length
+    const opened = emailHistory.filter(log => log.openedAt !== null).length
+    const bounced = emailHistory.filter(log => log.deliveryStatus === 'BOUNCED').length
+    const failed = emailHistory.filter(log => log.deliveryStatus === 'FAILED').length
 
     const summary = {
       total: totalSent,
@@ -110,8 +110,8 @@ export async function GET(
         invoice: {
           id: invoice.id,
           number: invoice.number,
-          customerName: invoice.customer_name,
-          customerEmail: invoice.customer_email
+          customerName: invoice.customerName,
+          customerEmail: invoice.customerEmail
         },
         history: formattedHistory,
         summary

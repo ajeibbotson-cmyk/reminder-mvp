@@ -96,11 +96,11 @@ export async function GET(
       invoice.status === 'PAID' && invoice.payments.length > 0
     )
     
-    const averagePaymentDays = paidInvoices.length > 0 ? 
+    const averagePaymentDays = paidInvoices.length > 0 ?
       paidInvoices.reduce((sum, invoice) => {
         const firstPayment = invoice.payments[0]
         const daysDiff = Math.ceil(
-          (new Date(firstPayment.payment_date).getTime() - new Date(invoice.created_at).getTime()) 
+          (new Date(firstPayment.paymentDate).getTime() - new Date(invoice.createdAt).getTime())
           / (1000 * 60 * 60 * 24)
         )
         return sum + daysDiff
@@ -258,8 +258,7 @@ export async function PUT(
           },
           data: {
             customerEmail: updateData.email,
-            customerName: updateData.name || existingCustomer.name,
-            customerNameAr: updateData.nameAr || existingCustomer.nameAr
+            customerName: updateData.name || existingCustomer.name
           }
         })
       }
@@ -273,8 +272,7 @@ export async function PUT(
             isActive: true
           },
           data: {
-            customerName: updateData.name,
-            customerNameAr: updateData.nameAr
+            customerName: updateData.name
           }
         })
       }

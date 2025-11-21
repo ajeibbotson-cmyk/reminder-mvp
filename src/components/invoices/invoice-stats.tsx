@@ -67,7 +67,7 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
     
     const overdueInvoices = invoices.filter(invoice => {
       if (invoice.status === 'OVERDUE') return true
-      if (invoice.status === 'SENT' && new Date(invoice.due_date) < new Date()) return true
+      if (invoice.status === 'SENT' && new Date(invoice.dueDate) < new Date()) return true
       return false
     })
     const overdueCount = overdueInvoices.length
@@ -77,10 +77,10 @@ export function InvoiceStats({ invoices, loading = false, className }: InvoiceSt
     const sentCount = invoices.filter(invoice => invoice.status === 'SENT').length
     
     // Calculate average payment time (simplified - would need payment data)
-    const averagePaymentTime = paidInvoices.length > 0 ? 
+    const averagePaymentTime = paidInvoices.length > 0 ?
       paidInvoices.reduce((sum, invoice) => {
-        const dueDate = new Date(invoice.due_date)
-        const createdDate = new Date(invoice.created_at)
+        const dueDate = new Date(invoice.dueDate)
+        const createdDate = new Date(invoice.createdAt)
         const daysDiff = Math.floor((dueDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24))
         return sum + Math.max(0, daysDiff)
       }, 0) / paidInvoices.length : 0

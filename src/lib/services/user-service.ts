@@ -81,10 +81,10 @@ export class UserService {
         name: data.name,
         password: hashedPassword,
         role: data.role || UserRole.FINANCE,
-        company_id: companyId
+        companyId: companyId
       },
       include: {
-        companies: true
+        company: true
       }
     })
 
@@ -116,7 +116,7 @@ export class UserService {
 
     // Build where clause
     const whereClause: any = {
-      company_id: requesterCompanyId // Only show users from same company
+      companyId: requesterCompanyId // Only show users from same company
     }
 
     if (search) {
@@ -137,7 +137,7 @@ export class UserService {
     const users = await prisma.user.findMany({
       where: whereClause,
       include: {
-        companies: true
+        company: true
       },
       orderBy: {
         [sortBy]: sortOrder
@@ -165,15 +165,15 @@ export class UserService {
    * Get a single user by ID
    */
   async getUserById(
-    userId: string, 
-    requesterCompanyId: string, 
+    userId: string,
+    requesterCompanyId: string,
     requesterRole: UserRole,
     requesterId: string
   ): Promise<UserResponse> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        companies: true
+        company: true
       }
     })
 
@@ -182,8 +182,8 @@ export class UserService {
     }
 
     // Users can view their own profile, or admins can view any user in their company
-    const canView = userId === requesterId || 
-                   (requesterRole === UserRole.ADMIN && user.companies_id === requesterCompanyId)
+    const canView = userId === requesterId ||
+                   (requesterRole === UserRole.ADMIN && user.companyId === requesterCompanyId)
 
     if (!canView) {
       throw new ForbiddenError('Access denied to this user')
@@ -204,7 +204,7 @@ export class UserService {
   ): Promise<UserResponse> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { companies: true }
+      include: { company: true }
     })
 
     if (!user) {
@@ -213,7 +213,7 @@ export class UserService {
 
     // Check permissions - users can edit their own profile (limited), admins can edit any user in their company
     const isSelfEdit = userId === requesterId
-    const isAdminEdit = requesterRole === UserRole.ADMIN && user.companies_id === requesterCompanyId
+    const isAdminEdit = requesterRole === UserRole.ADMIN && user.companyId === requesterCompanyId
 
     if (!isSelfEdit && !isAdminEdit) {
       throw new ForbiddenError('Access denied to edit this user')
@@ -246,7 +246,7 @@ export class UserService {
         ...(data.role && { role: data.role })
       },
       include: {
-        companies: true
+        company: true
       }
     })
 
@@ -289,7 +289,7 @@ export class UserService {
     }
 
     // Can only delete users from same company
-    if (user.companies_id !== requesterCompanyId) {
+    if (user.companyId !== requesterCompanyId) {
       throw new ForbiddenError('Cannot delete users from other companies')
     }
 
@@ -346,7 +346,7 @@ export class UserService {
 
     // Log the activity
     await this.logUserActivity(
-      user.companies_id,
+      user.companyId,
       userId,
       'PASSWORD_CHANGED',
       'Password changed successfully'
@@ -376,7 +376,7 @@ export class UserService {
     const users = await prisma.user.findMany({
       where: {
         id: { in: data.userIds },
-        company_id: requesterCompanyId
+        companyId: requesterCompanyId
       }
     })
 
@@ -388,7 +388,7 @@ export class UserService {
     const result = await prisma.user.deleteMany({
       where: {
         id: { in: data.userIds },
-        company_id: requesterCompanyId
+        companyId: requesterCompanyId
       }
     })
 
@@ -421,7 +421,7 @@ export class UserService {
     const users = await prisma.user.findMany({
       where: {
         id: { in: data.userIds },
-        company_id: requesterCompanyId
+        companyId: requesterCompanyId
       }
     })
 
@@ -433,7 +433,7 @@ export class UserService {
     const result = await prisma.user.updateMany({
       where: {
         id: { in: data.userIds },
-        company_id: requesterCompanyId
+        companyId: requesterCompanyId
       },
       data: data.updates
     })
@@ -459,11 +459,11 @@ export class UserService {
 
     const [totalUsers, roleStats] = await Promise.all([
       prisma.user.count({
-        where: { company_id: requesterCompanyId }
+        where: { companyId: requesterCompanyId }
       }),
       prisma.user.groupBy({
         by: ['role'],
-        where: { company_id: requesterCompanyId },
+        where: { companyId: requesterCompanyId },
         _count: { role: true }
       })
     ])
@@ -488,13 +488,13 @@ export class UserService {
       email: user.email,
       name: user.name,
       role: user.role,
-      companyId: user.companies_id,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
-      company: user.companies ? {
-        id: user.companies.id,
-        name: user.companies.name,
-        trn: user.companies.trn
+      companyId: user.companyId,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      company: user.company ? {
+        id: user.company.id,
+        name: user.company.name,
+        trn: user.company.trn
       } : undefined
     }
   }
@@ -506,11 +506,11 @@ export class UserService {
     description: string
   ): Promise<void> {
     try {
-      await prisma.activities.create({
+      await prisma.activity.create({
         data: {
           id: crypto.randomUUID(),
-          company_id: companyId,
-          user_id: userId,
+          companyId: companyId,
+          userId: userId,
           type,
           description,
           metadata: {}

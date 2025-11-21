@@ -336,10 +336,10 @@ export class ConsolidatedEmailService {
         }
       }
 
-      const consolidatedEmails = await prisma.emailLogs.findMany({
+      const consolidatedEmails = await prisma.emailLog.findMany({
         where: whereClause,
         include: {
-          emailTemplates: {
+          emailTemplate: {
             select: { name: true }
           }
         }
@@ -1062,7 +1062,7 @@ export class ConsolidatedEmailService {
       errorMessage?: string
     }
   ): Promise<void> {
-    await prisma.emailLogs.update({
+    await prisma.emailLog.update({
       where: { id: emailLogId },
       data: {
         ...updates,
@@ -1148,7 +1148,7 @@ export class ConsolidatedEmailService {
     scheduledFor: Date
     attachments: any[]
   }): Promise<string> {
-    const emailLog = await prisma.emailLogs.create({
+    const emailLog = await prisma.emailLog.create({
       data: {
         id: crypto.randomUUID(),
         templateId: data.templateId,

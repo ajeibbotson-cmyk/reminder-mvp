@@ -40,8 +40,8 @@ export default function InvoicesPage() {
     status: [],
     page: 1,
     limit: 10,
-    sort_by: 'created_at',
-    sort_order: 'desc'
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);

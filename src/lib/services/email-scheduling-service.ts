@@ -224,7 +224,7 @@ export class EmailSchedulingService {
     if (!customerId) return 'REGULAR'
 
     try {
-      const customer = await prisma.customers.findUnique({
+      const customer = await prisma.customer.findUnique({
         where: { id: customerId },
         include: {
           invoices: {
@@ -505,7 +505,7 @@ export class EmailSchedulingService {
    */
   private async validateSchedulingConstraints(companyId: string): Promise<void> {
     try {
-      const company = await prisma.companies.findUnique({
+      const company = await prisma.company.findUnique({
         where: { id: companyId }
       })
 

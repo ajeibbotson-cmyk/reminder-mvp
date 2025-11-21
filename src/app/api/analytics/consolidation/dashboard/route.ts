@@ -219,12 +219,12 @@ async function getConsolidationAnalytics(
     },
     _count: {
       id: true,
-      customer_responded_at: true
+      customerRespondedAt: true
     }
   })
 
   const responseRate = responseRateData._count.id > 0
-    ? (responseRateData._count.customer_responded_at / responseRateData._count.id) * 100
+    ? (responseRateData._count.customerRespondedAt / responseRateData._count.id) * 100
     : 0
 
   return {

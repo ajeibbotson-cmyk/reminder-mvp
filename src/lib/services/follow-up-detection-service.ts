@@ -323,7 +323,7 @@ export class FollowUpDetectionService {
     })
 
     // Log the trigger activity
-    await prisma.activities.create({
+    await prisma.activity.create({
       data: {
         id: crypto.randomUUID(),
         companyId: invoice.companyId,
@@ -450,7 +450,7 @@ export class FollowUpDetectionService {
     }
 
     // Check for manual override flags
-    const manualOverride = await prisma.activities.findFirst({
+    const manualOverride = await prisma.activity.findFirst({
       where: {
         type: 'FOLLOW_UP_OVERRIDE',
         metadata: {
@@ -779,7 +779,7 @@ export class FollowUpDetectionService {
         prisma.customerConsolidatedReminders.findMany({
           where: whereClause
         }),
-        prisma.emailLogs.findMany({
+        prisma.emailLog.findMany({
           where: {
             ...whereClause,
             consolidatedReminderId: { not: null }
@@ -889,13 +889,13 @@ export class FollowUpDetectionService {
     }
 
     const [activities, followUpLogs, consolidationStats] = await Promise.all([
-      prisma.activities.findMany({
+      prisma.activity.findMany({
         where: {
           type: 'FOLLOW_UP_TRIGGERED',
           ...whereClause
         }
       }),
-      prisma.followUpLogs.findMany({
+      prisma.followUpLog.findMany({
         where: {
           ...whereClause,
           deliveryStatus: { not: 'FAILED' }
