@@ -71,16 +71,26 @@ const REQUIRED_FIELDS = [
 ]
 
 /**
- * Convert DD/MM/YYYY or MM/DD/YYYY format to YYYY-MM-DD for HTML date inputs
+ * Convert various date formats to YYYY-MM-DD for HTML date inputs
+ * Handles: DD/MM/YYYY, MM/DD/YYYY, DD-MM-YYYY, and already correct YYYY-MM-DD
  */
 const convertDateFormat = (dateStr: string | undefined): string => {
   if (!dateStr) return ''
 
-  // Try to parse DD/MM/YYYY or MM/DD/YYYY format
+  // Try to parse date parts
   const parts = dateStr.split(/[-\/]/)
   if (parts.length !== 3) return dateStr
 
-  const [first, second, year] = parts
+  const [first, second, third] = parts
+
+  // Check if already in YYYY-MM-DD format (first part is 4 digits)
+  if (first.length === 4) {
+    // Already in correct format, just ensure proper padding
+    return `${first}-${second.padStart(2, '0')}-${third.padStart(2, '0')}`
+  }
+
+  // Otherwise, assume DD/MM/YYYY or MM/DD/YYYY with year as last part
+  const year = third
 
   // Detect format based on first part (day > 12 means DD/MM/YYYY)
   const day = parseInt(first) > 12 ? first : second
