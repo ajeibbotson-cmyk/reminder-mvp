@@ -134,15 +134,25 @@ export class TextractAsyncParser {
   }
 
   /**
-   * Poll Textract job until complete
+   * Poll Textract job until complete with exponential backoff
+   * Starts fast (1s) and gradually increases to reduce total wait time
    */
   private static async pollTextractJob(jobId: string): Promise<Block[]> {
-    const maxAttempts = 60 // 5 minutes max (5 second intervals)
-    const pollInterval = 5000 // 5 seconds
+    const maxAttempts = 40 // Max attempts before timeout
+    const maxTotalTime = 120000 // 2 minutes max total
+    const startTime = Date.now()
+
+    // Exponential backoff: start at 1s, max 5s
+    let pollInterval = 1000
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // Check total time
+      if (Date.now() - startTime > maxTotalTime) {
+        throw new Error('Textract job timeout - exceeded 2 minute limit')
+      }
+
       try {
-        console.log(`Polling Textract job (attempt ${attempt + 1}/${maxAttempts}):`, jobId)
+        console.log(`[Textract] Polling attempt ${attempt + 1}, interval: ${pollInterval}ms`)
 
         const command = new GetDocumentTextDetectionCommand({
           JobId: jobId,
@@ -150,7 +160,7 @@ export class TextractAsyncParser {
 
         const response = await this.textractClient.send(command)
 
-        console.log('Job status:', response.JobStatus)
+        console.log('[Textract] Job status:', response.JobStatus)
 
         if (response.JobStatus === 'SUCCEEDED') {
           const blocks: Block[] = response.Blocks || []
@@ -167,7 +177,7 @@ export class TextractAsyncParser {
             nextToken = nextResponse.NextToken
           }
 
-          console.log('Textract job completed, blocks:', blocks.length)
+          console.log(`[Textract] Job completed in ${Date.now() - startTime}ms, blocks: ${blocks.length}`)
           return blocks
         }
 
@@ -175,10 +185,13 @@ export class TextractAsyncParser {
           throw new Error(`Textract job failed: ${response.StatusMessage || 'Unknown error'}`)
         }
 
-        // Job still in progress, wait before next poll
+        // Job still in progress, wait before next poll with exponential backoff
         await new Promise(resolve => setTimeout(resolve, pollInterval))
+
+        // Increase interval: 1s -> 1.5s -> 2s -> 2.5s -> 3s -> 4s -> 5s (max)
+        pollInterval = Math.min(pollInterval * 1.3, 5000)
       } catch (error) {
-        console.error('Textract polling error:', error)
+        console.error('[Textract] Polling error:', error)
         throw error
       }
     }
