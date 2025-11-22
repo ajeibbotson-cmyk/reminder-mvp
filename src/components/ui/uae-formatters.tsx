@@ -1,23 +1,28 @@
 import { cn } from "@/lib/utils"
 
-interface AEDAmountProps {
+interface CurrencyAmountProps {
   amount: number
+  currency?: string
   className?: string
   showCurrency?: boolean
   precision?: number
   locale?: string
 }
 
-export function AEDAmount({ 
-  amount, 
-  className, 
-  showCurrency = true, 
+/**
+ * Flexible currency formatter - supports any currency code
+ */
+export function CurrencyAmount({
+  amount,
+  currency = 'AED',
+  className,
+  showCurrency = true,
   precision = 2,
   locale = 'en-AE'
-}: AEDAmountProps) {
+}: CurrencyAmountProps) {
   const formatted = new Intl.NumberFormat(locale, {
     style: showCurrency ? 'currency' : 'decimal',
-    currency: 'AED',
+    currency: currency,
     minimumFractionDigits: precision,
     maximumFractionDigits: precision
   }).format(amount)
@@ -26,6 +31,37 @@ export function AEDAmount({
     <span className={cn("font-medium", className)}>
       {formatted}
     </span>
+  )
+}
+
+interface AEDAmountProps {
+  amount: number
+  className?: string
+  showCurrency?: boolean
+  precision?: number
+  locale?: string
+}
+
+/**
+ * @deprecated Use CurrencyAmount with currency prop instead
+ * Kept for backwards compatibility
+ */
+export function AEDAmount({
+  amount,
+  className,
+  showCurrency = true,
+  precision = 2,
+  locale = 'en-AE'
+}: AEDAmountProps) {
+  return (
+    <CurrencyAmount
+      amount={amount}
+      currency="AED"
+      className={className}
+      showCurrency={showCurrency}
+      precision={precision}
+      locale={locale}
+    />
   )
 }
 
@@ -203,13 +239,24 @@ export function BusinessTypeDisplay({
 }
 
 // Export utility functions that are expected by analytics components
-export function formatAEDCurrency(amount: number): string {
+
+/**
+ * Format amount with any currency code
+ */
+export function formatCurrency(amount: number, currency: string = 'AED'): string {
   return new Intl.NumberFormat('en-AE', {
     style: 'currency',
-    currency: 'AED',
+    currency: currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(amount)
+}
+
+/**
+ * @deprecated Use formatCurrency(amount, 'AED') instead
+ */
+export function formatAEDCurrency(amount: number): string {
+  return formatCurrency(amount, 'AED')
 }
 
 export function formatPercentage(value: number): string {

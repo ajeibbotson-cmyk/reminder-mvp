@@ -63,12 +63,18 @@ export class TextractInvoiceParser {
   }
 
   /**
-   * Extract invoice number - Pop Trading format: V01250724
+   * Extract invoice number - supports multiple formats:
+   * - Pop Trading: V01250724
+   * - UAE standard: INV-004935, INV004935
+   * - Generic: Invoice Number followed by alphanumeric
    */
   private static extractInvoiceNumber(text: string): string | undefined {
     const patterns = [
-      /\b(V\d{8})\b/,  // V01250724 format
+      /\b(V\d{8})\b/,  // V01250724 format (Pop Trading)
       /invoice\s*(?:no|number|#)?\s*:?\s*(V\d{8})/i,
+      /Invoice\s+Number\s+(INV[-]?\d+)/i,  // INV-004935 or INV004935
+      /\b(INV[-]?\d{4,})\b/i,  // Standalone INV-XXXXX
+      /invoice\s*(?:no|number|#)?\s*:?\s*([A-Z]{2,4}[-]?\d{4,})/i,  // Generic invoice number
     ]
 
     for (const pattern of patterns) {
@@ -81,19 +87,37 @@ export class TextractInvoiceParser {
   }
 
   /**
-   * Extract customer name - appears after email before "Invoice number"
+   * Extract customer name - multiple formats:
+   * - Pop Trading: email@domain.com CUSTOMER NAME Invoice number
+   * - UAE format: Customer Details followed by company name
    */
   private static extractCustomerName(text: string): string | undefined {
-    // Pattern: email@domain.com CUSTOMER NAME Invoice number
-    const pattern = /@[a-z0-9.-]+\.[a-z]{2,}\s+(.+?)\s+Invoice\s+number/i
-    const match = text.match(pattern)
+    // Try UAE format first: "Customer Details" followed by company name
+    const uaePatterns = [
+      /Customer\s+Details\s+([A-Z][A-Z0-9\s.,&'-]+(?:L\.?L\.?C\.?|LLC|LTD|INC|CORP|FZE|FZC|FZCO)?)/i,
+      /Bill\s+To\s*:?\s*([A-Z][A-Z0-9\s.,&'-]+(?:L\.?L\.?C\.?|LLC|LTD)?)/i,
+      /Customer\s*:?\s*([A-Z][A-Z0-9\s.,&'-]+(?:L\.?L\.?C\.?|LLC|LTD)?)/i,
+    ]
 
-    if (match && match[1]) {
-      let name = match[1].trim()
-      
-      // Clean up common noise
-      name = name.split(/\s{2,}/)[0] // Take first segment
-      
+    for (const pattern of uaePatterns) {
+      const match = text.match(pattern)
+      if (match && match[1]) {
+        let name = match[1].trim()
+        // Clean up - stop at newline markers or addresses
+        name = name.split(/\s{2,}|Honey|P\.?O\.?\s*Box|\d{3,}/)[0].trim()
+        if (name.length >= 3 && name.length <= 100) {
+          return name
+        }
+      }
+    }
+
+    // Pop Trading format: email@domain.com CUSTOMER NAME Invoice number
+    const popPattern = /@[a-z0-9.-]+\.[a-z]{2,}\s+(.+?)\s+Invoice\s+number/i
+    const popMatch = text.match(popPattern)
+
+    if (popMatch && popMatch[1]) {
+      let name = popMatch[1].trim()
+      name = name.split(/\s{2,}/)[0]
       if (name.length >= 3 && name.length <= 100 &&
           !/\d{2}[-\/]\d{2}/.test(name)) {
         return name
@@ -112,7 +136,7 @@ export class TextractInvoiceParser {
   }
 
   /**
-   * Extract amounts with VAT calculation
+   * Extract amounts with VAT calculation - supports EUR and AED formats
    */
   private static extractAmounts(text: string): {
     amount?: number
@@ -121,45 +145,71 @@ export class TextractInvoiceParser {
     totalAmount?: number
   } {
     let currency = 'EUR'
-    
-    // Detect currency
-    if (/EUR|€/i.test(text)) currency = 'EUR'
-    else if (/USD|\$/i.test(text)) currency = 'USD'
-    else if (/AED/i.test(text)) currency = 'AED'
 
-    // Extract total amount - look for patterns like "7.978,00 Total" or "Total EUR 7.978,00"
-    const totalPatterns = [
-      /([\d.,]+)\s+Total/i,
-      /Total\s+(?:excl\.?\s+VAT\s*:?\s*)?(?:EUR|AED|USD)?\s*([\d.,]+)/i,
-    ]
+    // Detect currency - prioritize AED for UAE invoices
+    if (/AED|Amount\s+Due\s+AED|Invoice\s+Total\s+AED/i.test(text)) currency = 'AED'
+    else if (/EUR|€/i.test(text)) currency = 'EUR'
+    else if (/USD|\$/i.test(text)) currency = 'USD'
 
     let totalAmount: number | undefined
-    for (const pattern of totalPatterns) {
+    let vatAmount: number | undefined
+
+    // UAE format: "Amount Due AED 149,494.35" or "Invoice Total AED 149,494.35"
+    const uaeAmountPatterns = [
+      /Amount\s+Due\s+AED\s*([\d,]+\.?\d*)/i,
+      /Invoice\s+Total\s+AED\s*([\d,]+\.?\d*)/i,
+      /Total\s+(?:Amount\s+)?AED\s*([\d,]+\.?\d*)/i,
+      /AED\s*([\d,]+\.?\d*)\s*$/im,  // AED at end of line
+    ]
+
+    for (const pattern of uaeAmountPatterns) {
       const match = text.match(pattern)
       if (match && match[1]) {
         totalAmount = this.parseNumber(match[1])
-        break
+        if (totalAmount > 0) break
       }
     }
 
-    // Extract VAT - format: "0,00% VAT on 1.534,00"
-    let vatAmount: number | undefined
-    const vatPercentMatch = text.match(/([\d.,]+)%\s+VAT\s+on\s+([\d.,]+)/i)
-    
-    if (vatPercentMatch) {
-      const vatPercent = this.parseNumber(vatPercentMatch[1])
-      const baseAmount = this.parseNumber(vatPercentMatch[2])
-      vatAmount = (baseAmount * vatPercent) / 100
-      
-      if (vatAmount === 0 && totalAmount) {
-        // 0% VAT means amount = total
-        return { amount: totalAmount, currency, vatAmount: 0, totalAmount }
+    // UAE VAT: "Total Tax on sales 5% 7,118.78"
+    const uaeVatMatch = text.match(/Total\s+Tax\s+(?:on\s+sales\s+)?(?:\d+%\s+)?([\d,]+\.?\d*)/i)
+    if (uaeVatMatch) {
+      vatAmount = this.parseNumber(uaeVatMatch[1])
+    }
+
+    // Fall back to EUR/Pop Trading format if no UAE amount found
+    if (!totalAmount) {
+      const totalPatterns = [
+        /([\d.,]+)\s+Total/i,
+        /Total\s+(?:excl\.?\s+VAT\s*:?\s*)?(?:EUR|AED|USD)?\s*([\d.,]+)/i,
+      ]
+
+      for (const pattern of totalPatterns) {
+        const match = text.match(pattern)
+        if (match && match[1]) {
+          totalAmount = this.parseNumber(match[1])
+          break
+        }
+      }
+    }
+
+    // EUR VAT format: "0,00% VAT on 1.534,00"
+    if (vatAmount === undefined) {
+      const vatPercentMatch = text.match(/([\d.,]+)%\s+VAT\s+on\s+([\d.,]+)/i)
+      if (vatPercentMatch) {
+        const vatPercent = this.parseNumber(vatPercentMatch[1])
+        const baseAmount = this.parseNumber(vatPercentMatch[2])
+        vatAmount = (baseAmount * vatPercent) / 100
+
+        if (vatAmount === 0 && totalAmount) {
+          // 0% VAT means amount = total
+          return { amount: totalAmount, currency, vatAmount: 0, totalAmount }
+        }
       }
     }
 
     // Calculate subtotal
-    const amount = totalAmount && vatAmount !== undefined 
-      ? totalAmount - vatAmount 
+    const amount = totalAmount && vatAmount !== undefined
+      ? totalAmount - vatAmount
       : totalAmount
 
     return { amount, currency, vatAmount, totalAmount }
@@ -196,28 +246,63 @@ export class TextractInvoiceParser {
   }
 
   /**
-   * Extract dates - invoice date and calculate due date
+   * Extract dates - invoice date and due date
+   * Supports multiple formats:
+   * - UAE: "28 Apr 2025", "Due Date: 20 May 2025"
+   * - US: MM-DD-YYYY, MM/DD/YYYY
+   * - EU: DD-MM-YYYY, DD/MM/YYYY
    */
   private static extractDates(text: string): { invoiceDate?: string; dueDate?: string } {
     let invoiceDate: string | undefined
     let dueDate: string | undefined
 
-    // Extract invoice date - format: MM-DD-YYYY or DD/MM/YYYY
-    const invoiceDateMatch = text.match(/Invoice\s+date\s+(\d{2}[-\/]\d{2}[-\/]\d{4})/i)
-    if (invoiceDateMatch) {
-      invoiceDate = invoiceDateMatch[1]
+    const months: Record<string, number> = {
+      'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+      'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
     }
 
-    // Calculate due date from "Payment within X days"
-    if (invoiceDate) {
+    // UAE format: "Invoice Date 28 Apr 2025" or "28 Apr 2025"
+    const uaeDatePattern = /Invoice\s+Date\s+(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})/i
+    const uaeMatch = text.match(uaeDatePattern)
+    if (uaeMatch) {
+      const [, day, monthStr, year] = uaeMatch
+      const month = months[monthStr.toLowerCase()]
+      if (month) {
+        invoiceDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      }
+    }
+
+    // UAE due date: "Due Date: 20 May 2025"
+    const uaeDueDatePattern = /Due\s+Date\s*:?\s*(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})/i
+    const uaeDueMatch = text.match(uaeDueDatePattern)
+    if (uaeDueMatch) {
+      const [, day, monthStr, year] = uaeDueMatch
+      const month = months[monthStr.toLowerCase()]
+      if (month) {
+        dueDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      }
+    }
+
+    // Fall back to numeric formats if UAE format not found
+    if (!invoiceDate) {
+      const numericDateMatch = text.match(/Invoice\s+date\s+(\d{2}[-\/]\d{2}[-\/]\d{4})/i)
+      if (numericDateMatch) {
+        invoiceDate = numericDateMatch[1]
+      }
+    }
+
+    // Calculate due date from payment terms if not explicitly found
+    if (invoiceDate && !dueDate) {
       const paymentTermsMatch = text.match(/Payment\s+within\s+(\d+)\s+days/i)
       if (paymentTermsMatch) {
         const days = parseInt(paymentTermsMatch[1])
         const parts = invoiceDate.split(/[-\/]/).map(Number)
-        
+
         let day: number, month: number, year: number
-        // Assume MM-DD-YYYY format (American)
-        if (parts[0] > 12) {
+        if (invoiceDate.includes('-') && parts[0] > 31) {
+          // YYYY-MM-DD format
+          [year, month, day] = parts
+        } else if (parts[0] > 12) {
           [day, month, year] = parts
         } else {
           [month, day, year] = parts
@@ -225,9 +310,8 @@ export class TextractInvoiceParser {
 
         const date = new Date(year, month - 1, day)
         date.setDate(date.getDate() + days)
-        
-        const separator = invoiceDate.includes('-') ? '-' : '/'
-        dueDate = `${String(date.getMonth() + 1).padStart(2, '0')}${separator}${String(date.getDate()).padStart(2, '0')}${separator}${date.getFullYear()}`
+
+        dueDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
       }
     }
 
@@ -235,20 +319,38 @@ export class TextractInvoiceParser {
   }
 
   /**
-   * Extract TRN/VAT number
+   * Extract TRN/VAT number - supports:
+   * - UAE TRN: 15-digit format (e.g., 104779489400003)
+   * - EU VAT: Country code + alphanumeric (e.g., NL123456789B01)
    */
   private static extractTRN(text: string): string | undefined {
     const patterns = [
-      /VAT\s+number\s*:?\s*([A-Z]{2}[A-Z0-9]{8,12})/i,
-      /TRN\s*:?\s*(\d{15})/i,
+      /TRN\s*#?\s*:?\s*(\d{15})/i,  // UAE TRN: TRN # :104779489400003
+      /TRN\s*:?\s*(\d{15})/i,  // TRN: 104779489400003
+      /\b(\d{15})\b/,  // Standalone 15-digit number (likely TRN in UAE context)
+      /VAT\s+number\s*:?\s*([A-Z]{2}[A-Z0-9]{8,12})/i,  // EU VAT number
     ]
 
     for (const pattern of patterns) {
       const match = text.match(pattern)
       if (match && match[1]) {
-        return match[1]
+        // Validate UAE TRN (15 digits, starts with 100)
+        if (/^\d{15}$/.test(match[1]) && match[1].startsWith('100')) {
+          return match[1]
+        }
+        // EU VAT format
+        if (/^[A-Z]{2}[A-Z0-9]{8,12}$/.test(match[1])) {
+          return match[1]
+        }
       }
     }
+
+    // Broader search for 15-digit numbers that look like TRN
+    const broadMatch = text.match(/\b(100\d{12})\b/)
+    if (broadMatch) {
+      return broadMatch[1]
+    }
+
     return undefined
   }
 

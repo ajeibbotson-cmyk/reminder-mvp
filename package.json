@@ -27,6 +27,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.1",
     "@auth/prisma-adapter": "^2.10.0",
     "@aws-sdk/client-s3": "^3.901.0",
     "@aws-sdk/client-ses": "^3.883.0",

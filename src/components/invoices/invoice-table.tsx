@@ -10,10 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { LoadingOverlay, LoadingSpinner } from '@/components/ui/loading-spinner'
 import { InvoiceTableSkeleton } from '@/components/ui/skeleton'
-import { 
-  AEDAmount, 
-  UAEDateDisplay, 
-  InvoiceStatusBadge 
+import {
+  CurrencyAmount,
+  UAEDateDisplay,
+  InvoiceStatusBadge
 } from '@/components/ui/uae-formatters'
 import { 
   Table, 
@@ -190,12 +190,13 @@ export function InvoiceTable({
     try {
       switch (action) {
         case 'view':
-          // Navigate to invoice view
-          window.location.href = `/dashboard/invoices/${invoice.id}`
+          // Navigate to invoice view (use router with locale)
+          router.push(`/${locale}/dashboard/invoices/${invoice.id}`)
           break
         case 'edit':
-          // Navigate to invoice edit
-          window.location.href = `/dashboard/invoices/${invoice.id}/edit`
+          // Edit page not yet implemented - show view page instead
+          router.push(`/${locale}/dashboard/invoices/${invoice.id}`)
+          toast.info('Edit mode coming soon - viewing invoice details')
           break
         case 'updateStatus':
           await updateInvoiceStatus(invoice.id, data.status)
@@ -317,10 +318,11 @@ export function InvoiceTable({
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
+              <div className="px-4">
+                <Table>
+                  <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">
+                    <TableHead className="w-[50px]">
                       <Checkbox
                         checked={isAllSelected}
                         indeterminate={isPartiallySelected}
@@ -328,63 +330,58 @@ export function InvoiceTable({
                         aria-label="Select all invoices"
                       />
                     </TableHead>
-                    
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>
-                      <Button
-                        variant="ghost"
+
+                    <TableHead className="w-[140px]">
+                      <button
                         onClick={() => handleSort('number')}
-                        className="h-auto p-0 font-medium hover:bg-transparent"
+                        className="flex items-center gap-1 font-medium hover:text-foreground/80"
                       >
                         {t('invoices.invoiceNumber')}
                         {getSortIcon('number')}
-                      </Button>
+                      </button>
                     </TableHead>
-                    
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>
-                      <Button
-                        variant="ghost"
+
+                    <TableHead>
+                      <button
                         onClick={() => handleSort('customerName')}
-                        className="h-auto p-0 font-medium hover:bg-transparent"
+                        className="flex items-center gap-1 font-medium hover:text-foreground/80"
                       >
                         {t('invoices.customer')}
                         {getSortIcon('customerName')}
-                      </Button>
+                      </button>
                     </TableHead>
-                    
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>
-                      <Button
-                        variant="ghost"
+
+                    <TableHead className="w-[140px] text-right pr-4">
+                      <button
                         onClick={() => handleSort('amount')}
-                        className="h-auto p-0 font-medium hover:bg-transparent"
+                        className="flex items-center gap-1 font-medium hover:text-foreground/80 ml-auto"
                       >
                         {t('invoices.amount')}
                         {getSortIcon('amount')}
-                      </Button>
+                      </button>
                     </TableHead>
-                    
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>
-                      <Button
-                        variant="ghost"
+
+                    <TableHead className="w-[120px]">
+                      <button
                         onClick={() => handleSort('dueDate')}
-                        className="h-auto p-0 font-medium hover:bg-transparent"
+                        className="flex items-center gap-1 font-medium hover:text-foreground/80"
                       >
                         {t('invoices.dueDate')}
                         {getSortIcon('dueDate')}
-                      </Button>
+                      </button>
                     </TableHead>
-                    
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>
-                      <Button
-                        variant="ghost"
+
+                    <TableHead className="w-[100px]">
+                      <button
                         onClick={() => handleSort('status')}
-                        className="h-auto p-0 font-medium hover:bg-transparent"
+                        className="flex items-center gap-1 font-medium hover:text-foreground/80"
                       >
                         {t('invoices.status')}
                         {getSortIcon('status')}
-                      </Button>
+                      </button>
                     </TableHead>
-                    
-                    <TableHead className={cn('w-12', isRTL ? 'text-right' : 'text-left')}>
+
+                    <TableHead className="w-[70px]">
                       {t('invoices.actions')}
                     </TableHead>
                   </TableRow>
@@ -394,39 +391,31 @@ export function InvoiceTable({
                     const isSelected = selectedInvoices.includes(invoice.id)
                     const isOverdue = invoice.status === 'OVERDUE' ||
                       (invoice.status === 'SENT' && new Date(invoice.dueDate) < new Date())
-                    
+
                     return (
-                      <TableRow 
+                      <TableRow
                         key={invoice.id}
                         className={cn(
                           'hover:bg-muted/50 transition-colors',
-                          isSelected && 'bg-blue-50/50 hover:bg-blue-50/70',
-                          isOverdue && 'border-l-4 border-l-red-500'
+                          isSelected && 'bg-blue-50/50 hover:bg-blue-50/70'
                         )}
                       >
-                        <TableCell>
+                        <TableCell className="w-[50px]">
                           <Checkbox
                             checked={isSelected}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked) =>
                               handleSelectInvoice(invoice.id, checked as boolean)
                             }
                             aria-label={`Select invoice ${invoice.number}`}
                           />
                         </TableCell>
-                        
-                        <TableCell className="font-medium">
-                          <div className="flex flex-col">
-                            <span className="font-mono text-sm">{invoice.number}</span>
-                            {invoice.trnNumber && (
-                              <span className="text-xs text-muted-foreground">
-                                TRN: {invoice.trnNumber}
-                              </span>
-                            )}
-                          </div>
+
+                        <TableCell className="w-[140px]">
+                          <span className="font-mono text-sm">{invoice.number}</span>
                         </TableCell>
-                        
+
                         <TableCell>
-                          <div className="space-y-1">
+                          <div>
                             <div className="font-medium">
                               {invoice.customer?.name || invoice.customerName || 'Unknown Customer'}
                             </div>
@@ -435,49 +424,32 @@ export function InvoiceTable({
                             </div>
                           </div>
                         </TableCell>
-                        
-                        <TableCell>
-                          <div className="text-right">
-                            <AEDAmount 
-                              amount={invoice.amount} 
-                              locale={locale === 'ar' ? 'ar-AE' : 'en-AE'}
-                              className="font-medium"
-                            />
-                            {invoice.vatAmount && Number(invoice.vatAmount) > 0 && (
-                              <div className="text-xs text-muted-foreground">
-                                VAT: <AEDAmount
-                                  amount={Number(invoice.vatAmount)}
-                                  locale={locale === 'ar' ? 'ar-AE' : 'en-AE'}
-                                  showCurrency={false}
-                                />
-                              </div>
-                            )}
-                          </div>
+
+                        <TableCell className="w-[140px] text-right pr-4">
+                          <CurrencyAmount
+                            amount={invoice.amount}
+                            currency={invoice.currency || 'AED'}
+                            locale={locale === 'ar' ? 'ar-AE' : 'en-AE'}
+                            className="font-medium"
+                          />
                         </TableCell>
-                        
-                        <TableCell>
-                          <div className="space-y-1">
-                            <UAEDateDisplay
-                              date={invoice.dueDate}
-                              locale={locale === 'ar' ? 'ar-AE' : 'en-AE'}
-                              className={isOverdue ? 'text-red-600 font-medium' : ''}
-                            />
-                            {isOverdue && (
-                              <div className="text-xs text-red-600">
-                                {locale === 'ar' ? 'متأخر' : 'Overdue'}
-                              </div>
-                            )}
-                          </div>
+
+                        <TableCell className="w-[120px]">
+                          <UAEDateDisplay
+                            date={invoice.dueDate}
+                            locale={locale === 'ar' ? 'ar-AE' : 'en-AE'}
+                            className={isOverdue ? 'text-red-600 font-medium' : ''}
+                          />
                         </TableCell>
-                        
-                        <TableCell>
-                          <InvoiceStatusBadge 
-                            status={invoice.status} 
+
+                        <TableCell className="w-[100px]">
+                          <InvoiceStatusBadge
+                            status={invoice.status}
                             locale={locale}
                           />
                         </TableCell>
-                        
-                        <TableCell>
+
+                        <TableCell className="w-[70px]">
                           <InvoiceActions
                             invoice={invoice}
                             onAction={(action, data) => handleInvoiceAction(invoice, action, data)}
@@ -488,7 +460,8 @@ export function InvoiceTable({
                   })}
                 </TableBody>
               </Table>
-              
+            </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between p-4 border-t">

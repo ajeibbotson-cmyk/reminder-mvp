@@ -335,6 +335,17 @@ model Invoice {
   pdfS3Bucket          String?             @map("pdf_s3_bucket")
   pdfS3Key             String?             @map("pdf_s3_key")
   pdfUploadedAt        DateTime?           @map("pdf_uploaded_at")
+  // Pause Reminders fields
+  remindersPaused      Boolean             @default(false) @map("reminders_paused")
+  remindersPausedAt    DateTime?           @map("reminders_paused_at")
+  remindersPausedBy    String?             @map("reminders_paused_by")
+  remindersPauseReason String?             @map("reminders_pause_reason")
+  // Dispute fields
+  disputedAt           DateTime?           @map("disputed_at")
+  disputeReason        String?             @map("dispute_reason")
+  disputeNotes         String?             @map("dispute_notes")
+  disputeResolvedAt    DateTime?           @map("dispute_resolved_at")
+  disputeResolution    String?             @map("dispute_resolution")
   campaignEmailSends   CampaignEmailSend[]
   emailLogs            EmailLog[]
   followUpLogs         FollowUpLog[]
@@ -352,6 +363,7 @@ model Invoice {
   @@index([companyId, customerEmail, status])
   @@index([companyId, dueDate])
   @@index([companyId, isActive, createdAt])
+  @@index([companyId, remindersPaused])
   @@index([companyId, status, createdAt])
   @@index([companyId, status, dueDate])
   @@index([companyId, status, totalAmount])

@@ -84,7 +84,7 @@ export function PaymentRecordingModal({
   const isOpen = isControlled ? open : internalOpen
   const setOpen = isControlled ? onOpenChange : setInternalOpen
 
-  const remainingAmount = invoice.total_amount - (invoice.paid_amount || 0)
+  const remainingAmount = invoice.totalAmount - (invoice.paidAmount || 0)
   const isFullyPaid = remainingAmount <= 0
   const canRecordPayment = !isFullyPaid && ['SENT', 'OVERDUE'].includes(invoice.status)
 
@@ -188,8 +188,8 @@ export function PaymentRecordingModal({
           </DialogTitle>
           <DialogDescription>
             {locale === 'ar' 
-              ? `تسجيل دفعة للفاتورة #${invoice.number} - ${invoice.customer_name}`
-              : `Record a payment for Invoice #${invoice.number} - ${invoice.customer_name}`
+              ? `تسجيل دفعة للفاتورة #${invoice.number} - ${invoice.customerName}`
+              : `Record a payment for Invoice #${invoice.number} - ${invoice.customerName}`
             }
           </DialogDescription>
         </DialogHeader>
@@ -209,7 +209,7 @@ export function PaymentRecordingModal({
                   {locale === 'ar' ? 'إجمالي الفاتورة' : 'Invoice Total'}
                 </p>
                 <p className="text-lg font-semibold text-green-900">
-                  {formatUAECurrency(invoice.total_amount, invoice.currency)}
+                  {formatUAECurrency(invoice.totalAmount, invoice.currency)}
                 </p>
               </div>
               <div>
@@ -221,12 +221,12 @@ export function PaymentRecordingModal({
                 </p>
               </div>
             </div>
-            {invoice.paid_amount && invoice.paid_amount > 0 && (
+            {invoice.paidAmount && invoice.paidAmount > 0 && (
               <div className="pt-2 border-t border-green-200">
                 <p className="text-sm text-green-700">
                   {locale === 'ar' ? 'المدفوع سابقاً' : 'Previously Paid'}: {' '}
                   <span className="font-medium">
-                    {formatUAECurrency(invoice.paid_amount, invoice.currency)}
+                    {formatUAECurrency(invoice.paidAmount, invoice.currency)}
                   </span>
                 </p>
               </div>

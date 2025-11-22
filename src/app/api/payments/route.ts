@@ -226,8 +226,9 @@ export async function GET(request: NextRequest) {
   try {
     const authContext = await requireRole(request, [UserRole.ADMIN, UserRole.FINANCE, UserRole.USER])
     const { searchParams } = new URL(request.url)
-    
+
     // Extract query parameters
+    const format = searchParams.get('format') || 'json'
     const invoiceId = searchParams.get('invoiceId')
     const paymentMethod = searchParams.get('method')
     const startDate = searchParams.get('startDate')
@@ -235,8 +236,8 @@ export async function GET(request: NextRequest) {
     const minAmount = searchParams.get('minAmount')
     const maxAmount = searchParams.get('maxAmount')
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100)
-    const includeInvoiceDetails = searchParams.get('includeInvoiceDetails') === 'true'
+    const limit = format === 'csv' ? 10000 : Math.min(parseInt(searchParams.get('limit') || '20'), 100)
+    const includeInvoiceDetails = searchParams.get('includeInvoiceDetails') === 'true' || format === 'csv'
 
     // Build where clause with company isolation
     const whereClause: any = {
@@ -319,6 +320,52 @@ export async function GET(request: NextRequest) {
         dueDate: payment.invoice.dueDate
       } : undefined
     }))
+
+    // CSV Export
+    if (format === 'csv') {
+      const { NextResponse } = await import('next/server')
+      const csvRows = [
+        ['Payment Date', 'Invoice Number', 'Customer', 'Email', 'Amount (AED)', 'Method', 'Reference', 'Bank Ref', 'Verified', 'Notes'].join(',')
+      ]
+
+      for (const payment of formattedPayments) {
+        csvRows.push([
+          new Date(payment.paymentDate).toISOString().split('T')[0],
+          `"${payment.invoice?.number || ''}"`,
+          `"${payment.invoice?.customerName || ''}"`,
+          `"${payment.invoice?.customerEmail || ''}"`,
+          Number(payment.amount).toFixed(2),
+          payment.method,
+          `"${payment.reference || ''}"`,
+          `"${(payment as any).bankReference || ''}"`,
+          (payment as any).isVerified ? 'Yes' : 'No',
+          `"${(payment.notes || '').replace(/"/g, '""')}"`
+        ].join(','))
+      }
+
+      // Add summary
+      csvRows.push('')
+      csvRows.push('SUMMARY')
+      csvRows.push(`Total Payments,${paymentStats.paymentCount}`)
+      csvRows.push(`Total Amount,${paymentStats.formattedTotalAmount}`)
+      csvRows.push('')
+      csvRows.push('BY METHOD')
+      for (const method of paymentStats.methodBreakdown) {
+        csvRows.push(`${method.method},${method.formattedAmount}`)
+      }
+      csvRows.push('')
+      csvRows.push(`Report Generated,${new Date().toISOString()}`)
+
+      const csvContent = csvRows.join('\n')
+
+      return new NextResponse(csvContent, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename="payment-history-${new Date().toISOString().split('T')[0]}.csv"`
+        }
+      })
+    }
 
     return successResponse({
       payments: formattedPayments,

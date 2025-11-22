@@ -1,12 +1,12 @@
 /**
  * PDF Invoice Upload and Parsing API
- * Handles PDF upload, extracts invoice data, and returns structured data for review
+ * Handles PDF upload, extracts invoice data using Claude AI with Textract fallback
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { TextractAsyncParser } from '@/lib/services/textract-async-parser'
+import { parseInvoiceWithFallback } from '@/lib/services/claude-invoice-parser'
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,10 +51,12 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // Parse PDF and extract invoice data using async Textract
-    console.log('Starting PDF parsing with Textract async...')
-    const extractedData = await TextractAsyncParser.parseInvoicePDF(buffer, file.name)
-    console.log('PDF parsing completed:', extractedData)
+    // Parse PDF using Claude AI with Textract fallback
+    console.log('[PDF Upload] Starting extraction with Claude AI...')
+    const startTime = Date.now()
+    const extractedData = await parseInvoiceWithFallback(buffer)
+    const processingTime = Date.now() - startTime
+    console.log(`[PDF Upload] Extraction completed in ${processingTime}ms:`, extractedData)
 
     // Validate extracted data (basic validation)
     const validation = {
@@ -76,12 +78,13 @@ export async function POST(request: NextRequest) {
         fileSize: file.size,
         extractedData,
         validation,
+        processingTime,
         timestamp: new Date().toISOString()
       }
     })
 
   } catch (error) {
-    console.error('PDF upload error:', error)
+    console.error('[PDF Upload] Error:', error)
 
     // Return user-friendly error message
     const errorMessage = error instanceof Error ? error.message : 'Failed to process PDF'

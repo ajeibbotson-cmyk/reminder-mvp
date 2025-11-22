@@ -450,7 +450,7 @@ export async function POST(request: NextRequest) {
           totalAmount: calculatedTotalAmount,
           currency: currency,
           dueDate: parsedDueDate,
-          status: 'SENT',
+          status: 'DRAFT',
           description: description || `Invoice ${invoiceNumber}`,
           pdfS3Key: pdfS3Key || null,
           pdfS3Bucket: pdfS3Bucket || null,

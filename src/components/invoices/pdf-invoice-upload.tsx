@@ -354,26 +354,6 @@ export function PDFInvoiceUpload({ onInvoiceCreate, isLoading = false }: PDFInvo
         confidence: extracted.dueDate ? 80 : 0,
         type: 'date',
         required: true
-      },
-      {
-        key: 'trn',
-        label: 'TRN',
-        placeholder: '100123456789012',
-        value: editableData.trn || '',
-        extractedValue: extracted.trn || '',
-        confidence: extracted.trn ? 95 : 0,
-        type: 'text',
-        required: false
-      },
-      {
-        key: 'description',
-        label: 'Notes',
-        placeholder: 'Invoice notes',
-        value: editableData.description || '',
-        extractedValue: extracted.description || '',
-        confidence: extracted.description ? 70 : 0,
-        type: 'textarea',
-        required: false
       }
     ]
   }
